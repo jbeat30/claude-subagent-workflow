@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="32.6.1">
+  <diagram name="install-flow.en">
+    <mxGraphModel page="1" pageWidth="2000" pageHeight="700" background="#FAF8F2" adaptiveColors="none" grid="0" shadow="0">
+      <root>
+        <mxCell id="0" style="" />
+        <mxCell id="1" parent="0" style="" />
+        <mxCell id="2" vertex="1" parent="1" value="" style="shape=rectangle;fillColor=#FAF8F2;strokeColor=none;locked=1;connectable=0;">
+          <mxGeometry as="geometry" x="0" y="0" width="2000" height="700" />
+        </mxCell>
+        <mxCell id="3" vertex="1" parent="1" value="&lt;div style=&quot;font-size:27.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Run /subagent-workflow:setup to set up the subagent workflow in this project&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="40.0" y="55.0" width="1400.0" height="140.0" />
+        </mxCell>
+        <mxCell id="4" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Inspect project&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#eaf0df;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="40.0" y="285.0" width="290.0" height="210.0" />
+        </mxCell>
+        <mxCell id="5" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Questions in chat&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Context7, design tools,&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;protected areas&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#eaf0df;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="355.0" y="285.0" width="290.0" height="210.0" />
+        </mxCell>
+        <mxCell id="6" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Plan summary, 1&lt;/div&gt;&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;confirmation&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="670.0" y="285.0" width="290.0" height="210.0" />
+        </mxCell>
+        <mxCell id="7" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Apply via script&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;existing files preserved&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f8e6cd;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="985.0" y="285.0" width="290.0" height="210.0" />
+        </mxCell>
+        <mxCell id="8" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Verify guard&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;real Claude call&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e8e1f0;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1300.0" y="285.0" width="290.0" height="210.0" />
+        </mxCell>
+        <mxCell id="9" vertex="1" parent="1" value="&lt;div style=&quot;font-size:25.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Call /subagent&lt;/div&gt;&lt;div style=&quot;font-size:25.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;when you&lt;/div&gt;&lt;div style=&quot;font-size:25.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;need it&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1660.0" y="285.0" width="300.0" height="210.0" />
+        </mxCell>
+        <mxCell id="10" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="175.0" y="195.0" />
+            <mxPoint as="targetPoint" x="175.0" y="285.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="330.0" y="395.0" />
+            <mxPoint as="targetPoint" x="355.0" y="395.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="645.0" y="395.0" />
+            <mxPoint as="targetPoint" x="670.0" y="395.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="960.0" y="395.0" />
+            <mxPoint as="targetPoint" x="985.0" y="395.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1275.0" y="395.0" />
+            <mxPoint as="targetPoint" x="1300.0" y="395.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1590.0" y="395.0" />
+            <mxPoint as="targetPoint" x="1660.0" y="395.0" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

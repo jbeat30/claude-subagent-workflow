@@ -4,9 +4,9 @@
 
 <p align="center">
   <a href="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/release-v0.3.8-blue" alt="release: v0.3.8">
+  <img src="https://img.shields.io/badge/release-v0.4.0-blue" alt="release: v0.4.0">
   <img src="https://img.shields.io/badge/Claude%20Code-%E2%89%A5%202.1.302-5A67D8" alt="Claude Code 2.1.302 or later">
-  <img src="https://img.shields.io/badge/Node-%E2%89%A5%2018-339933" alt="Node 18 or later">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A5%2020-339933" alt="Node 20 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
 </p>
 
@@ -38,7 +38,7 @@ For small tasks, asking directly is faster and cheaper. See [Extra cost and veri
 
 ## Quick start
 
-Requirements: Claude Code 2.1.302 or later, Node 18 or later
+Requirements: Claude Code 2.1.302 or later, Node 20 or later
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins
@@ -101,7 +101,7 @@ Issues and fork PRs are welcome. Only the owner has write access, and every chan
 - Proposing changes: fork, then open a PR against the `feature/vX.Y.Z` branch the owner names.
 - `main`, `release`, and `feature` require PRs and forbid force pushes; outside contributors cannot push or merge directly.
 - Fork PR workflows from outside contributors need the owner's approval to run, regardless of contribution history.
-- Development needs Node 18 or later; `npm test` runs static checks and unit tests. See [Testing](docs/verification/TESTING.md) (Korean) for the full method up to real Claude measurement.
+- Development needs Node 20 or later; `npm test` runs static checks and unit tests. See [Testing](docs/verification/TESTING.md) (Korean) for the full method up to real Claude measurement.
 - Details: [Contributing](.github/CONTRIBUTING.md), [Branch strategy](.github/BRANCH_STRATEGY.md), [Development rules](AGENTS.md)
 - Report security vulnerabilities privately, see [SECURITY.md](SECURITY.md).
 

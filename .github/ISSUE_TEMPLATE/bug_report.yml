@@ -37,11 +37,11 @@ body:
   - type: input
     id: version
     attributes:
-      label: agent-team-base 버전
+      label: claude-subagent-workflow 버전
       placeholder: "릴리즈 태그 또는 커밋"
   - type: textarea
     id: logs
     attributes:
       label: 로그·출력
-      description: 설치기 JSON 출력이나 `.claude-team-docs/` 기록 중 관련 부분, 비밀값 제거 후 첨부
+      description: 설치기 JSON 출력이나 `.claude-subagent-docs/` 기록 중 관련 부분, 비밀값 제거 후 첨부
       render: text

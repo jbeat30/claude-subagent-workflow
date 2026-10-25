@@ -1,25 +1,25 @@
 {
-  "name": "agent-team-base",
-  "version": "0.3.7",
-  "description": "Jbeat Claude Code agent team base that respects existing project policies, installed through a skill.",
+  "name": "subagent-workflow",
+  "version": "0.3.8",
+  "description": "Jbeat Claude Code subagent workflow (a PM session delegating to role subagents) that respects existing project policies, installed through a skill.",
   "author": {
     "name": "jbeat",
     "url": "https://github.com/jbeat30"
   },
-  "repository": "https://github.com/jbeat30/agent-team-base",
+  "repository": "https://github.com/jbeat30/claude-subagent-workflow",
   "license": "MIT",
-  "keywords": ["claude-skill", "agent-team", "subagents", "jbeat"],
+  "keywords": ["claude-skill", "subagent-workflow", "subagents", "jbeat"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Claude Team Base",
-    "shortDescription": "Set up a Lite or Full Claude Code agent team with one skill",
+    "displayName": "Claude Subagent Workflow",
+    "shortDescription": "Set up a Lite or Full Claude Code subagent workflow with one skill",
     "developerName": "jbeat",
     "category": "Productivity",
     "capabilities": ["Interactive", "Read", "Write"],
     "defaultPrompt": [
-      "/agent-team-base:setup",
-      "Set up the Jbeat agent team in this project.",
-      "Check the Jbeat agent team installation."
+      "/subagent-workflow:setup",
+      "Set up the Jbeat subagent workflow in this project.",
+      "Check the Jbeat subagent workflow installation."
     ]
   }
 }

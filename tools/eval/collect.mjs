@@ -1,4 +1,4 @@
-// 실행기 출력 폴더에서 비용·시간·토큰·결과를 모아 JSON 배열로 출력
+// 실행기 출력 폴더에서 비용, 시간, 토큰, 결과를 모아 JSON 배열로 출력
 // 사용법: node collect.mjs <그룹 이름> <출력 폴더> [<출력 폴더> ...] > results-<그룹>.json
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';

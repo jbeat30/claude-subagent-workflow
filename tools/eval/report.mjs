@@ -1,4 +1,4 @@
-// 수집한 결과 JSON으로 모드별 비용·시간·토큰 비교 SVG 생성, 라이트·다크 자동 전환
+// 수집한 결과 JSON으로 모드별 비용, 시간, 토큰 비교 SVG 생성, 라이트, 다크 자동 전환
 // 사용법: node report.mjs <결과 JSON 폴더> <출력 SVG>
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

@@ -1,6 +1,6 @@
 # v0.3.2 점검 결과
 
-변경: 설치 때 모드를 묻지 않고(항상 전체 역할 설치, 기본 Lite, 가드 relay 보호 상시), 설치 후 `/claude-team-base:setting`과 설치기 `config` 명령으로 기본 모드 전환과 MCP 추가
+변경: 설치 때 모드를 묻지 않고(항상 전체 역할 설치, 기본 Lite, 가드 relay 보호 상시), 설치 후 `/subagent-workflow:setting`과 설치기 `config` 명령으로 기본 모드 전환과 MCP 추가
 조건별 1회씩의 동작 점검이며 효용 평가가 아님, 비대화형 실행(`claude -p`), 한 모델(sonnet), 작은 합성 fixture
 비용은 Claude Code CLI가 결과에 보고한 환산 값(`total_cost_usd`)이며 직접 계산한 금액이 아님, 구독 로그인이면 청구액이 아닌 사용 한도 소모
 앞선 점검: [EVAL_RESULTS_v0.3.0.md](EVAL_RESULTS_v0.3.0.md)
@@ -10,14 +10,14 @@
 | 점검 | 기대 | 결과 |
 | --- | --- | --- |
 | 설치 때 모드를 생략 | 기본 Lite, 실행 모드 relay로 기록 | 프로필에 `Execution profile: lite`, `Execution mode: relay` |
-| Lite로 설치한 프로젝트에서 `/team 이번 요청은 Full 모드로 처리해줘 …` | Full 경로 실행 | planning-lead → dev-lead → backend → test → qa 순서로 호출, 프로필의 기본값(lite)은 그대로 두고 불일치를 보고, 0.80달러 |
-| `/claude-team-base:setting` | 현재 설정과 MCP 선택 현황 표시 | 기본 모드, 보호 모드, MCP 5종의 용도·사용 역할·선택 여부·주의 사항을 표로 표시(0.05달러) |
-| `/claude-team-base:setting`으로 모드 전환과 MCP 추가 | 미리보기 후 적용, 설치 검증 유지 | `config` 미리보기 → `--yes` 적용, 프로필 `full`, Figma 추가(`.mcp.json`·프로필·매니페스트 갱신), `verify` ok(0.06달러) |
+| Lite로 설치한 프로젝트에서 `/subagent 이번 요청은 Full 모드로 처리해줘 …` | Full 경로 실행 | planning-lead → dev-lead → backend → test → qa 순서로 호출, 프로필의 기본값(lite)은 그대로 두고 불일치를 보고, 0.80달러 |
+| `/subagent-workflow:setting` | 현재 설정과 MCP 선택 현황 표시 | 기본 모드, 보호 모드, MCP 5종의 용도·사용 역할·선택 여부·주의 사항을 표로 표시(0.05달러) |
+| `/subagent-workflow:setting`으로 모드 전환과 MCP 추가 | 미리보기 후 적용, 설치 검증 유지 | `config` 미리보기 → `--yes` 적용, 프로필 `full`, Figma 추가(`.mcp.json`·프로필·매니페스트 갱신), `verify` ok(0.06달러) |
 
 ## 점검 중 발견해 고친 문제
 
 - Full 경로의 마지막 요구 보존 검사(`trace`)가 실패했음. planning-lead 호출 카드의 허용 파일에 계획서(`plan.md`)가 적혀 있는데 검사가 이를 "변경 계획 6장에 없는 소스 파일"로 판정했기 때문임
-- 실행 기록 폴더(`.claude-team-docs/runs/`) 안의 파일은 소스 파일 비교에서 제외하도록 수정하고, 계획에 없는 소스 파일은 계속 탐지하는 테스트를 추가함
+- 실행 기록 폴더(`.claude-subagent-docs/runs/`) 안의 파일은 소스 파일 비교에서 제외하도록 수정하고, 계획에 없는 소스 파일은 계속 탐지하는 테스트를 추가함
 - 이 수정 후 Full 경로를 다시 실행해 `trace` 통과를 확인하지는 못함(단위 테스트로만 확인)
 
 ## 한계

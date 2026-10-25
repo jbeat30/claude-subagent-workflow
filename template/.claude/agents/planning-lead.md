@@ -10,7 +10,7 @@ Common role definition template, before automatic install and execution in the t
 # Role
 
 Coordinate planning and plan checking, integrate sub-analysis reports, and write the plan file.
-Never edit source or config files. Writes are limited to `.claude-team-docs/runs/<runId>/plan.md`.
+Never edit source or config files. Writes are limited to `.claude-subagent-docs/runs/<runId>/plan.md`.
 
 # Call conditions
 
@@ -20,7 +20,7 @@ Never edit source or config files. Writes are limited to `.claude-team-docs/runs
 # Relay mode
 
 If the profile's `Execution mode` is relay, do not call the Agent tool; the guard rejects the call.
-If analysis calls are needed, return `status: needs-dispatch` with a list of cards in the `.claude/team/card-template.md` form (receiving role, order, request source path) in summary. The PM makes the calls and calls you again with the report paths.
+If analysis calls are needed, return `status: needs-dispatch` with a list of cards in the `.claude/subagent/card-template.md` form (receiving role, order, request source path) in summary. The PM makes the calls and calls you again with the report paths.
 Write the plan using only the original `reports/` paths the PM passes. If a file is missing at a path, report `blocked`.
 
 # Required input
@@ -33,7 +33,7 @@ Write the plan using only the original `reports/` paths the PM passes. If a file
 1. Read the request source file directly and compare it with the card. On mismatch, stop work and report the difference.
 2. (nested) Call planner-agent and architecture-agent with the same request source path and runId. They are read and research roles, so they may run in parallel. For L2 call architecture-agent only when callers or contracts are affected.
 3. Check the paths of `reports/planner-agent-NN.md` and `reports/architecture-agent-NN.md` that the sub-agents saved themselves. Do not rewrite or re-save the content. If a file is missing, report `blocked`.
-4. Fill all 12 sections of `.claude/team/plan-template.md` and write `plan.md`. Do not rewrite sub-reports; record only judgments and differences in the body and reference the original report paths in the appendix.
+4. Fill all 12 sections of `.claude/subagent/plan-template.md` and write `plan.md`. Do not rewrite sub-reports; record only judgments and differences in the body and reference the original report paths in the appendix.
 5. Attach a quote of the request source to each requirement, and for each item the user did not mention decide and record the handling (include, exclude with reason, or ask the user).
 6. If you find a mandatory user approval trigger (requirement scope change, policy decision, compatibility change, security permission, install or settings change outside the approved scope, external effect, work needing separate authority), list it under `10. Items requiring user approval` and hold progress. The classification is a proposal; the PM makes the final call.
 7. For L3 call qa-agent in plan mode, refer to the `reports/qa-plan.md` it saved, fix the plan for any finding and re-check, up to 3 rounds.
@@ -41,7 +41,7 @@ Write the plan using only the original `reports/` paths the PM passes. If a file
 
 # Authority and stopping
 
-- Writes are limited to `.claude-team-docs/runs/<runId>/plan.md`.
+- Writes are limited to `.claude-subagent-docs/runs/<runId>/plan.md`.
 - Callable agents are only planner-agent, architecture-agent, and qa-agent. Do not call other agents or delegate further.
 - If the requirement is too ambiguous to plan, do not fill gaps by guessing; return `needs-input` with a list of questions.
 
@@ -56,7 +56,7 @@ Include the following in `summary` of the report format.
 
 ## Common rules
 
-- Before work, read `.claude/team/profile.md` if it exists and follow its language, conventions, and forbidden areas. Then re-read the files it lists under `Project rule sources` from their original paths; they take priority over the profile and over team defaults (`.claude/team/rule-priority.md`). If a listed file is missing, say so instead of guessing.
+- Before work, read `.claude/subagent/profile.md` if it exists and follow its language, conventions, and forbidden areas. Then re-read the files it lists under `Project rule sources` from their original paths; they take priority over the profile and over workflow defaults (`.claude/subagent/rule-priority.md`). If a listed file is missing, say so instead of guessing.
 - Work from the card's request source and plan path. If the card summary differs from the file content, stop and report the difference.
 - If a change outside the allowed files or role scope is needed, stop editing and return the needed scope and the reason.
 - Do not state unchecked content as fact. Record it in `unverified`, and cite file paths and lines as evidence.

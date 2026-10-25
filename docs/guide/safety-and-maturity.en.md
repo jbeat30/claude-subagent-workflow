@@ -36,7 +36,7 @@
 - [v0.3.3 check results](../verification/EVAL_RESULTS_v0.3.3.md) (Korean): one check of switching the protection mode (advisory/strict) and of edits being blocked and released; not a usefulness evaluation
 - [v0.3.2 check results](../verification/EVAL_RESULTS_v0.3.2.md) (Korean): one check each of switching the mode after install and the `setting` skill; not a usefulness evaluation
 - [v0.3.0 check results](../verification/EVAL_RESULTS_v0.3.0.md) (Korean): a check of how `/subagent` is called and one run of the hard task l1; not a usefulness evaluation
-- [v0.2.0 evaluation results](../verification/EVAL_RESULTS_v0.2.0.md) (Korean; 8 tasks, one run each, one model, raw JSON included): the workflow's value can only be judged on the hard tasks (hidden callers l1, implicit requirements m1), which have few measurements and one run each, so they cannot be judged against the design criteria. Easy tasks are not requests anyone would hand to a team, so their cost figures are not used as evidence of the workflow's usefulness.
+- [v0.2.0 evaluation results](../verification/EVAL_RESULTS_v0.2.0.md) (Korean; 8 tasks, one run each, one model, raw JSON included): the workflow's value can only be judged on the hard tasks (hidden callers l1, implicit requirements m1), which have few measurements and one run each, so they cannot be judged against the design criteria. Easy tasks are not requests anyone would hand to the workflow, so their cost figures are not used as evidence of the workflow's usefulness.
 - There is no guarantee that the workflow structure improves quality over handling tasks directly.
 
 ## Roadmap

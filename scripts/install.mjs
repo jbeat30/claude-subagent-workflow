@@ -304,7 +304,7 @@ ${table(['Purpose', 'Command', 'Working directory', 'Side effects (auto-fix, ext
 
 ## Project rule sources
 
-The project's own rule files below take priority over this profile and over the workflow defaults. Re-read them from the original path before work; never rely on a copied summary. If a rule here differs from this profile, follow the source file. Apply a team behavior that the project's rules do not have only after the user confirms it.
+The project's own rule files below take priority over this profile and over the workflow defaults. Re-read them from the original path before work; never rely on a copied summary. If a rule here differs from this profile, follow the source file. Apply a workflow behavior that the project's rules do not have only after the user confirms it.
 
 ${answers.ruleSources.length ? table(['Path', 'Covers'], answers.ruleSources.map((r) => [r.path, r.covers ?? 'unchecked'])) : 'None recorded. Ask the user whether the project has rule files (CLAUDE.md, AGENTS.md, lint or format config, verification method, branch rules) before assuming none.'}
 

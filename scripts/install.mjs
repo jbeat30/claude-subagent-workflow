@@ -380,7 +380,7 @@ function buildPlan(dir, answers, options) {
   const source = sourceInfo();
   const environment = { node: nodeStatus(), claude: claudeStatus() };
   const blockers = [];
-  if (environment.node.status === 'below') blockers.push(`Node below ${MIN_NODE}`);
+  if (environment.node.status === 'below') blockers.push(`Node ${environment.node.version} < minimum ${MIN_NODE}; no automatic upgrade`);
   if (environment.claude.status === 'below') blockers.push(`Claude Code ${environment.claude.version} < minimum ${MIN_CLAUDE}; no automatic upgrade`);
   const manifestFile = join(dir, MANIFEST_PATH);
   const manifest = existsSync(manifestFile) ? readJson(manifestFile).value : null;

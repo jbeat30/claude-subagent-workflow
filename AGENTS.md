@@ -62,7 +62,7 @@
 | `tools/` | 정적 검사(`validate-template.mjs`)와 단위 테스트(`*.test.mjs`) |
 | `INSTALL.md` | 설치를 수행하는 Claude Code 에이전트용 절차 |
 
-- 변경 후 `npm test`(Node 18 이상) 실행, 정적 검사와 단위 테스트 전체 통과 확인
+- 변경 후 `npm test`(Node 20 이상) 실행, 정적 검사와 단위 테스트 전체 통과 확인
 - 정적 검사·단위 테스트의 통과는 권한 차단·위임 정확도·프롬프트 품질의 입증이 아님, 실제 Claude 실행 결과와 구분해 보고
 - 실제 Claude를 띄우는 end-to-end 확인은 기능 개발이 끝난 뒤 한 번 수행
 - 역할 정의를 바꾸면 `tools/validate-template.mjs`의 도구 상한·참조 검사를 함께 갱신

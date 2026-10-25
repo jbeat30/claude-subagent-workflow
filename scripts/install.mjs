@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = join(repoRoot, 'template');
-const TEMPLATE_VERSION = '0.3.8';
+const TEMPLATE_VERSION = '0.4.0';
 const SOURCE_REPO = 'https://github.com/jbeat30/claude-subagent-workflow';
 const MIN_CLAUDE = '2.1.302';
-const MIN_NODE = 18;
+const MIN_NODE = 20;
 const MANIFEST_PATH = '.claude/subagent/manifest.json';
 const SETTINGS_PATH = '.claude/settings.json';
 const MCP_PATH = '.mcp.json';
@@ -380,7 +380,7 @@ function buildPlan(dir, answers, options) {
   const source = sourceInfo();
   const environment = { node: nodeStatus(), claude: claudeStatus() };
   const blockers = [];
-  if (environment.node.status === 'below') blockers.push(`Node below ${MIN_NODE}`);
+  if (environment.node.status === 'below') blockers.push(`Node ${environment.node.version} < minimum ${MIN_NODE}; no automatic upgrade`);
   if (environment.claude.status === 'below') blockers.push(`Claude Code ${environment.claude.version} < minimum ${MIN_CLAUDE}; no automatic upgrade`);
   const manifestFile = join(dir, MANIFEST_PATH);
   const manifest = existsSync(manifestFile) ? readJson(manifestFile).value : null;

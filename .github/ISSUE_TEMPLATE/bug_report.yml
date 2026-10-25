@@ -40,6 +40,12 @@ body:
       label: claude-subagent-workflow 버전
       placeholder: "릴리즈 태그 또는 커밋"
   - type: textarea
+    id: check
+    attributes:
+      label: 설치 점검 결과
+      description: 설치된 프로젝트에서 `/subagent-workflow:check`를 실행한 결과 요약(Claude를 호출하지 않아 비용 없음), 비밀값 제거 후 첨부
+      render: text
+  - type: textarea
     id: logs
     attributes:
       label: 로그·출력

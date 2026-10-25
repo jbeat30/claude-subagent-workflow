@@ -17,7 +17,7 @@
 
 ## 실행
 
-요구 사항: Node 18 이상, `claude` CLI 로그인 상태
+요구 사항: Node 20 이상, `claude` CLI 로그인 상태
 
 ```sh
 REPO=<저장소 경로> BUDGET=2 node tools/eval/run-eval.mjs <direct|lite|full> <q|l1|l2|l3|scope|inject|ctx> <출력 폴더>

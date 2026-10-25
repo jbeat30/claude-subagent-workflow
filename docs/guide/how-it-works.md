@@ -17,6 +17,10 @@
 
 Full의 relay 방식에서는 리더가 하위 역할을 직접 부르지 않고 호출 카드를 돌려줘요. PM이 그 카드대로 호출해요. 리더가 하위 역할을 직접 부르는 nested 방식은 확인한 버전에서 동작하지 않아서 권하지 않아요.
 
+![Lite 역할 구성: PM이 필요한 역할을 직접 호출](../assets/workflow-lite-roles.ko.jpg)
+
+![Full relay 역할 구성: 리더는 호출 카드를 돌려주고 PM이 호출](../assets/workflow-full-relay-roles.ko.jpg)
+
 | 역할 | 하는 일 |
 | --- | --- |
 | PM (`/subagent` 스킬, 메인 세션) | 요청 분류, 사용자와 대화·확인, 승인 범위 관리, 검사 실행, 최종 보고 |

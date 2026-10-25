@@ -17,6 +17,10 @@ When you call the workflow, the main session acts as the PM for that request, ta
 
 Full runs in relay mode: leaders do not call sub-roles directly but return call cards, and the PM calls them as written. Nested mode, where the leader calls sub-roles, did not work in the version checked and is not recommended.
 
+![Lite roles: the PM calls the needed roles directly](../assets/workflow-lite-roles.en.jpg)
+
+![Full relay roles: leaders return call cards and the PM makes the calls](../assets/workflow-full-relay-roles.en.jpg)
+
 | Role | Responsibility |
 | --- | --- |
 | PM (`/subagent` skill, main session) | Request classification, user conversation and confirmation, approval scope, running checks, final report |

@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/hero.en.png" alt="agent-team-base" width="100%">
+  <img src="docs/assets/hero.en.png" alt="claude-subagent-workflow" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/jbeat30/agent-team-base/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/agent-team-base/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/release-v0.3.7-blue" alt="release: v0.3.7">
+  <a href="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/release-v0.3.8-blue" alt="release: v0.3.8">
   <img src="https://img.shields.io/badge/Claude%20Code-%E2%89%A5%202.1.302-5A67D8" alt="Claude Code 2.1.302 or later">
   <img src="https://img.shields.io/badge/Node-%E2%89%A5%2018-339933" alt="Node 18 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
@@ -12,17 +12,19 @@
 
 <p align="center"><a href="README.md">한국어</a></p>
 
-# agent-team-base
+# claude-subagent-workflow
 
-**A plugin that sets up a Claude Code agent team in your project with one skill.**
+**A plugin that sets up a Claude Code subagent workflow in your project with one skill.**
 
-It installs a team in which a PM, specialist agents, and an independent QA work through stage gates, while respecting your project's existing rules and tools.
+It installs a workflow in which a PM, specialist agents, and an independent QA work through stage gates, while respecting your project's existing rules and tools.
 Requirement coverage, discovery of missed items, scope control, evidence, and finishing quality come before speed.
 
-- **The team works only when you call it.** Installing does not change your normal Claude conversations. Use `/team <request>` or say something like "solve this with the agent team", and the team handles just that request.
-- When the team runs, the PM classifies the request: simple ones are handled directly, large ones go through plan, confirm, build, verify.
+- **The workflow works only when you call it.** Installing does not change your normal Claude conversations. Use `/team <request>` or say something like "solve this with the subagent workflow", and the workflow handles just that request.
+- When the workflow runs, the PM classifies the request: simple ones are handled directly, large ones go through plan, confirm, build, verify.
 - The skill guides install, update, and removal in conversation and asks for confirmation of the change plan only once.
 - Existing files are never overwritten, and global settings and your feature code are left alone.
+
+> **Rename notice (v0.3.8)**: This project was renamed from `agent-team-base` to `claude-subagent-workflow`. It is a **subagent workflow** (the main session acts as the PM and delegates to role subagents), not an agent team, so the name now says so. The plugin ID is `subagent-workflow` (the `claude-` prefix is reserved) and the commands are `/subagent-workflow:setup`, `check`, and `setting`. In projects already installed, the `/team` call and the `.claude/team/` paths keep working. If you installed under the old name, reinstall the plugin under the new name, then run `/subagent-workflow:setup update`.
 
 ## Quick start
 
@@ -30,33 +32,33 @@ Requirements: Claude Code 2.1.302 or later, Node 18 or later.
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins
-/plugin install agent-team-base@jbeat-plugins
-/agent-team-base:setup
+/plugin install subagent-workflow@jbeat-plugins
+/subagent-workflow:setup
 ```
 
 ![Install flow](docs/assets/install-flow.en.png)
 
-1. Install the plugin and run `/agent-team-base:setup` in your project.
+1. Install the plugin and run `/subagent-workflow:setup` in your project.
 2. The skill surveys the project and asks only what it needs.
 3. It shows the change plan in 10 lines or fewer and asks for confirmation **once**.
 4. The installer copies and merges files, then checks the guard.
-5. When you need the team, call it with `/team <request>`.
+5. When you need the workflow, call it with `/team <request>`.
 
 You can also fetch the repository directly. In Claude Code, ask:
 
 ```text
-Read INSTALL.md at https://github.com/jbeat30/agent-team-base and set this project up
+Read INSTALL.md at https://github.com/jbeat30/claude-subagent-workflow and set this project up
 ```
 
 ## Skills
 
 | Skill | Purpose | Cost |
 | --- | --- | --- |
-| `/agent-team-base:setup` | **Install, update, or remove** the team; pass `install`, `update`, or `remove` as an argument | One Claude call for the guard check after install |
-| `/agent-team-base:check` | Check the installation (file hashes, hook registration, role files, version) | None; it does not call Claude without `--live` |
-| `/agent-team-base:setting` | **View and change settings**: the default mode (Lite/Full), the protection mode, which MCP servers the team can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
+| `/subagent-workflow:setup` | **Install, update, or remove** the workflow; pass `install`, `update`, or `remove` as an argument | One Claude call for the guard check after install |
+| `/subagent-workflow:check` | Check the installation (file hashes, hook registration, role files, version) | None; it does not call Claude without `--live` |
+| `/subagent-workflow:setting` | **View and change settings**: the default mode (Lite/Full), the protection mode, which MCP servers the workflow can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
 
-Plain requests work too: "set up the agent team", "check the team installation", "show the team settings", "switch the mode to Full", "remove the team".
+Plain requests work too: "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
 
 ## What you choose at setup
 
@@ -73,7 +75,7 @@ Plain requests work too: "set up the agent team", "check the team installation",
 | Task records | Add `.claude-team-docs/` to `.gitignore` | Add |
 | Conflict handling | If files collide, per item: skip or replace with backup | Asked on conflict |
 
-The mode is not asked at install. All 9 role files are always installed and the default mode is Lite. Later you can switch to Full in `/agent-team-base:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker agents → qa-agent (checked once).
+The mode is not asked at install. All 9 role files are always installed and the default mode is Lite. Later you can switch to Full in `/subagent-workflow:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker agents → qa-agent (checked once).
 
 Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwright, Chrome DevTools) can see the content of the browser they open, so avoid personal tabs and sensitive data. A registered server's tool definitions are added to every call of those two roles, which costs tokens, and `npx` runs external packages, so choose them only when you need them. The agents never invent spacing, colors, or copy that the design does not state, and mark visual checks they could not make as `unchecked`.
 
@@ -82,45 +84,45 @@ Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwr
 
 ## Using it after install
 
-The team starts only when you call it; otherwise you talk to Claude as usual.
+The workflow starts only when you call it; otherwise you talk to Claude as usual.
 
-![Ordinary requests versus calling the team](docs/assets/team-on-demand.en.png)
+![Ordinary requests versus calling the workflow](docs/assets/team-on-demand.en.png)
 
-- `/team <request>`: starts the team for sure.
-- In words: "solve this with the agent team" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/team` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
-- For a simple question or a small edit, asking Claude directly is faster and cheaper than calling the team.
+- `/team <request>`: starts the workflow for sure.
+- In words: "solve this with the subagent workflow" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/team` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
+- For a simple question or a small edit, asking Claude directly is faster and cheaper than calling the workflow.
 
 ```text
 /team Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
 ```
 
 ```text
-Solve this with the agent team: add shipping status to the order API response and wire it to the screen. Start by laying out the contract and impact.
+Solve this with the subagent workflow: add shipping status to the order API response and wire it to the screen. Start by laying out the contract and impact.
 ```
 
 ```text
 Explain what this function does.
 ```
 
-### When to call the team
+### When to call the workflow
 
-| Call the team | Just ask directly |
+| Call the workflow | Just ask directly |
 | --- | --- |
 | Changing a function's return shape or an API contract so several callers must change | Explaining code, questions |
 | Adding a feature where unstated requirements (validation, error handling) are easy to miss | Typos, comments, wording |
 | Changes to data structures, permissions, or security where the impact has to be worked out first | A small edit to a single file |
 
-In the evaluation the team appeared to help on changes with hidden callers and on tasks with unstated requirements. There are too few repeated runs to be sure. Details are in the [results and limits](docs/verification/EVAL_RESULTS_v0.2.0.md) (Korean).
+In the evaluation the workflow appeared to help on changes with hidden callers and on tasks with unstated requirements. There are too few repeated runs to be sure. Details are in the [results and limits](docs/verification/EVAL_RESULTS_v0.2.0.md) (Korean).
 
-A request like the last one, without calling the team, is answered by regular Claude. The PM answers and asks questions in the language you write in.
+A request like the last one, without calling the workflow, is answered by regular Claude. The PM answers and asks questions in the language you write in.
 
 ## How it works
 
-### The agent team
+### The subagent workflow
 
-![Agent team: Lite and Full](docs/assets/agent-team.en.png)
+![Subagent workflow: Lite and Full](docs/assets/subagent-workflow.en.png)
 
-When you call the team, the main session acts as the PM for that request, talks with you, and calls only the roles it needs (the PM instructions are the `/team` skill).
+When you call the workflow, the main session acts as the PM for that request, talks with you, and calls only the roles it needs (the PM instructions are the `/team` skill).
 
 | Mode | Structure | Fits |
 | --- | --- | --- |
@@ -144,7 +146,7 @@ Full runs in relay mode: leaders do not call sub-roles directly but return call 
 
 | Grade | Example | Path |
 | --- | --- | --- |
-| Q | Questions, explanations | The PM answers directly, even after the team is called |
+| Q | Questions, explanations | The PM answers directly, even after the workflow is called |
 | L1 | Comments, typos, wording, behavior unchanged | The PM edits directly and self-checks with the checklist |
 | L2 | Ordinary behavior changes | Plan, confirm, build, final verification. The PM self-confirms when no item needs approval and there is a single interpretation |
 | L3 | Contracts, permissions, data, security, many areas | The L2 path with required impact analysis; the user is always asked to confirm |
@@ -158,16 +160,16 @@ Full runs in relay mode: leaders do not call sub-roles directly but return call 
 
 ### Project rules come first
 
-This team is a base layer, so it always ranks below the rules a project already has. The order is: your request > the project's rule files (`CLAUDE.md`, `AGENTS.md`, lint config, verification method, branch rules) > existing conventions > the profile > team defaults. Details: [rule-priority.md](template/.claude/team/rule-priority.md).
+This workflow is a base layer, so it always ranks below the rules a project already has. The order is: your request > the project's rule files (`CLAUDE.md`, `AGENTS.md`, lint config, verification method, branch rules) > existing conventions > the profile > team defaults. Details: [rule-priority.md](template/.claude/team/rule-priority.md).
 
 - The profile does not copy rules; it points to the **original paths**. Agents re-read the originals before work, so edits to them apply immediately.
-- Team behaviors fall into three classes.
+- Workflow behaviors fall into three classes.
   1. **Defaults**: plan and card forms, requirement IDs, report structure, risk grades. Where the project already defines the same thing, the project's way wins.
-  2. **Confirm first**: behaviors the project lacks that change how you work (UI/UX walkthrough, a browser check in place of the project's own verification, strict mode, reports in the team's structure). Asked once before applying.
-  3. **Fixed safety**: the guard hook, no edits before confirmation, assigned files only, never reporting unchecked items as passed. If a project rule conflicts, you are told and the team stops.
+  2. **Confirm first**: behaviors the project lacks that change how you work (UI/UX walkthrough, a browser check in place of the project's own verification, strict mode, reports in the workflow's structure). Asked once before applying.
+  3. **Fixed safety**: the guard hook, no edits before confirmation, assigned files only, never reporting unchecked items as passed. If a project rule conflicts, you are told and the workflow stops.
 - If the project defines its own verification method (for example measuring computed styles), it is used first; the browser check covers only what that method does not.
-- The guard protects only the team's policy files (hooks, team, the team skill, team role definitions, settings), not all of `.claude/`, so your own rules under `.claude/` stay editable.
-- Strict mode still applies to every edit of the main session (it is not limited to team runs). When no approval is registered, the block message states the reason and the fix.
+- The guard protects only the workflow's policy files (hooks, team, the team skill, workflow role definitions, settings), not all of `.claude/`, so your own rules under `.claude/` stay editable.
+- Strict mode still applies to every edit of the main session (it is not limited to workflow runs). When no approval is registered, the block message states the reason and the fix.
 
 ### Against hallucination and unrequested edits
 
@@ -179,9 +181,9 @@ This team is a base layer, so it always ranks below the rules a project already 
 
 ### Token efficiency
 
-- When you do not call the team, the PM instructions are not added to the session; they are read only when `/team` runs.
+- When you do not call the workflow, the PM instructions are not added to the session; they are read only when `/team` runs.
 - Agent prompts (roles, forms, guard messages) are written in English, about 26% fewer always-injected tokens than the Korean version (measured on all 10 roles plus forms, one model).
-- Simple requests (Q and L1) never call the team.
+- Simple requests (Q and L1) never call the workflow.
 - Files and requirements of the same owner are bundled into one call.
 - The relay procedure and design-work guidance live in files read only when that work happens (PM instruction input about 18% smaller, measured on one model), and a checker confirms the required rules by list.
 
@@ -201,44 +203,44 @@ This team is a base layer, so it always ranks below the rules a project already 
 ## Changing settings
 
 ```text
-/agent-team-base:setting
+/subagent-workflow:setting
 ```
 
-A skill to view and change the team settings after install.
+A skill to view and change the workflow settings after install.
 
-- **See the current settings**: the default mode (Lite/Full), the protection mode, and the MCP servers the team can use with whether each is selected (with its purpose and caution). This list differs from Claude Code's `/mcp`: `/mcp` shows every connected server, while this shows only the servers the team uses.
+- **See the current settings**: the default mode (Lite/Full), the protection mode, and the MCP servers the workflow can use with whether each is selected (with its purpose and caution). This list differs from Claude Code's `/mcp`: `/mcp` shows every connected server, while this shows only the servers the workflow uses.
 - **Change the default mode** between Lite and Full. To change it for one request only, say "handle this in Full mode".
 - **Change the protection mode** between advisory and strict. Strict takes effect immediately and blocks ordinary edits by the main session until you register an approval, so you are told this first and asked to confirm once more. You can switch back to advisory at any time.
-- **Add or remove an MCP server**: add one you did not select at install (Context7, anymd, Playwright, Chrome DevTools, shadcn/ui, Figma) and it is registered in `.mcp.json`; design tools can also be removed, and the Figma connection can be switched (Context7 cannot be removed). Entries the team did not create, or that you changed after install, are left alone. Start a new Claude Code session for it to take effect.
+- **Add or remove an MCP server**: add one you did not select at install (Context7, anymd, Playwright, Chrome DevTools, shadcn/ui, Figma) and it is registered in `.mcp.json`; design tools can also be removed, and the Figma connection can be switched (Context7 cannot be removed). Entries the workflow did not create, or that you changed after install, are left alone. Start a new Claude Code session for it to take effect.
 - It shows a preview first and applies only after you confirm, and backs up the files it changes.
 - An MCP server that already has a different setting is not overwritten; it is reported as a conflict.
 
 ## Getting a new version
 
-An installed plugin does not update by itself. Auto-update is off by default for a self-made marketplace, and updating the plugin does not change the team files already installed in a project, so two steps are needed.
+An installed plugin does not update by itself. Auto-update is off by default for a self-made marketplace, and updating the plugin does not change the workflow files already installed in a project, so two steps are needed.
 
 1. Update the plugin (terminal)
 
 ```text
 claude plugin marketplace update jbeat-plugins
-claude plugin update agent-team-base@jbeat-plugins
+claude plugin update subagent-workflow@jbeat-plugins
 ```
 
 2. Start a new session or run `/reload-plugins`
-3. Update the team files in the project: `/agent-team-base:setup update`
+3. Update the workflow files in the project: `/subagent-workflow:setup update`
 
-- To see whether an update is needed, run `/agent-team-base:check`; a `team version` item with status `update` means the project's team files are older than the plugin
+- To see whether an update is needed, run `/subagent-workflow:check`; a `team version` item with status `update` means the project's workflow files are older than the plugin
 - Inside a session: `/plugin` → Marketplaces tab → `jbeat-plugins` → Update marketplace (also updates the installed plugins)
 - Optional auto-update: `/plugin` → Marketplaces tab → `jbeat-plugins` → Enable auto-update. It updates only the plugin; step 3 is still run by you
 
 ## Update and removal
 
 ```text
-/agent-team-base:setup update
-/agent-team-base:setup remove
+/subagent-workflow:setup update
+/subagent-workflow:setup remove
 ```
 
-- Update: **fully replaces** the installed team files with the new version. It shows the changes as a plan and applies them after confirmation. Files you edited after install are never overwritten automatically; you choose skip or replace with backup.
+- Update: **fully replaces** the installed workflow files with the new version. It shows the changes as a plan and applies them after confirmation. Files you edited after install are never overwritten automatically; you choose skip or replace with backup.
 - Updating from v0.2.x or earlier releases the `agent=pm-agent` setting that version added, so the main session is no longer pinned to the PM, and deletes the unmodified legacy PM agent file (settings and files you changed are kept).
 - Removal: shows a preview and, after confirmation, reverts only what was installed. Files you edited are kept, and task records (`.claude-team-docs`) and backups are not deleted.
 - From v0.2.0 prompts and record labels are English, so runs left in progress by an older version are not read by the new one. Finish them before updating.
@@ -264,7 +266,7 @@ claude plugin update agent-team-base@jbeat-plugins
 | Core | Skill install, update, and removal, Lite, role files, advisory-mode guard, check runner |
 | Experimental or optional | Full, relay execution mode, strict mode (direct approval tracking), requirement-preservation trace check (`team-check.mjs trace`) |
 
-- Strict mode applies to every edit of the main session, so it can affect ordinary conversations where the team was not called. Limiting it to team runs is still to be done.
+- Strict mode applies to every edit of the main session, so it can affect ordinary conversations where the workflow was not called. Limiting it to workflow runs is still to be done.
 - Experimental features are not verified in a real Claude environment, and there is no comparison yet showing they beat handling tasks directly.
 - **Following the L3 procedure depends on the prompt alone and is not enforced**: in the v0.2.0 evaluation the PM classified a request as L3 and still edited directly without a plan, impact analysis, or user confirmation. That may have been caused by the direct path of that version; this version removed it but did not measure again. Behavior in interactive use has not been checked.
 - Marketplace install and the `/team` call were checked in real Claude. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
@@ -277,8 +279,8 @@ claude plugin update agent-team-base@jbeat-plugins
 - [v0.3.3 check results](docs/verification/EVAL_RESULTS_v0.3.3.md) (Korean): one check of switching the protection mode (advisory/strict) and of edits being blocked and released; not a usefulness evaluation
 - [v0.3.2 check results](docs/verification/EVAL_RESULTS_v0.3.2.md) (Korean): one check each of switching the mode after install and the `setting` skill; not a usefulness evaluation
 - [v0.3.0 check results](docs/verification/EVAL_RESULTS_v0.3.0.md) (Korean): a check of how `/team` is called and one run of the hard task l1; not a usefulness evaluation
-- [v0.2.0 evaluation results](docs/verification/EVAL_RESULTS_v0.2.0.md) (Korean; 8 tasks, one run each, one model, raw JSON included): the team's value can only be judged on the hard tasks (hidden callers l1, implicit requirements m1), which have few measurements and one run each, so they cannot be judged against the design criteria. Easy tasks are not requests anyone would hand to a team, so their cost figures are not used as evidence of the team's usefulness.
-- There is no guarantee that the team structure improves quality over handling tasks directly.
+- [v0.2.0 evaluation results](docs/verification/EVAL_RESULTS_v0.2.0.md) (Korean; 8 tasks, one run each, one model, raw JSON included): the workflow's value can only be judged on the hard tasks (hidden callers l1, implicit requirements m1), which have few measurements and one run each, so they cannot be judged against the design criteria. Easy tasks are not requests anyone would hand to a team, so their cost figures are not used as evidence of the workflow's usefulness.
+- There is no guarantee that the workflow structure improves quality over handling tasks directly.
 
 ## Roadmap
 
@@ -295,7 +297,7 @@ claude plugin update agent-team-base@jbeat-plugins
 
 Issues and fork PRs are welcome. Only the owner has write access, and every change is merged after the owner reviews and approves it.
 
-- Bug reports and feature ideas: [Issues](https://github.com/jbeat30/agent-team-base/issues/new/choose)
+- Bug reports and feature ideas: [Issues](https://github.com/jbeat30/claude-subagent-workflow/issues/new/choose)
 - Proposing changes: fork, then open a PR against the `feature/vX.Y.Z` branch the owner names.
 - `main`, `release`, and `feature` require PRs and forbid force pushes; outside contributors cannot push or merge directly.
 - Fork PR workflows from outside contributors need the owner's approval to run, regardless of contribution history.

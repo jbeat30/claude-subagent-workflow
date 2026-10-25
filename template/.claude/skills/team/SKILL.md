@@ -1,6 +1,6 @@
 ---
 name: team
-description: Run the PM-led agent team for this request. Use only when the user explicitly asks for the agent team, the PM, pm-agent, or invokes /team (for example "solve this with the agent team", "work on this as pm-agent"). Never use it for ordinary requests the user did not route to the team.
+description: Run the PM-led subagent workflow for this request. Use only when the user explicitly asks for the subagent workflow (or the earlier "agent team" wording), the PM, pm-agent, or invokes /team (for example "solve this with the subagent workflow", "work on this as pm-agent"). Never use it for ordinary requests the user did not route to the workflow.
 argument-hint: "<request>"
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash, AskUserQuestion, mcp__context7__resolve-library-id, mcp__context7__query-docs, Agent(planning-lead, dev-lead, planner-agent, architecture-agent, frontend-agent, backend-agent, api-agent, test-agent, qa-agent)
 ---

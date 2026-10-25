@@ -17,8 +17,8 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = join(repoRoot, 'template');
-const TEMPLATE_VERSION = '0.3.7';
-const SOURCE_REPO = 'https://github.com/jbeat30/agent-team-base';
+const TEMPLATE_VERSION = '0.3.8';
+const SOURCE_REPO = 'https://github.com/jbeat30/claude-subagent-workflow';
 const MIN_CLAUDE = '2.1.302';
 const MIN_NODE = 18;
 const MANIFEST_PATH = '.claude/team/manifest.json';
@@ -26,11 +26,10 @@ const SETTINGS_PATH = '.claude/settings.json';
 const MCP_PATH = '.mcp.json';
 const GITIGNORE_PATH = '.gitignore';
 const DOCS_DIR = '.claude-team-docs';
-const GITIGNORE_BEGIN = '# >>> agent-team-base';
-const GITIGNORE_END = '# <<< agent-team-base';
-// 플러그인 이름 변경(claude-team-base) 이전 설치의 표식, 중복 추가 방지와 제거에서 함께 인식
-const LEGACY_GITIGNORE_BEGIN = '# >>> claude-team-base';
-const LEGACY_GITIGNORE_END = '# <<< claude-team-base';
+const GITIGNORE_BEGIN = '# >>> subagent-workflow';
+const GITIGNORE_END = '# <<< subagent-workflow';
+// 플러그인 이름 변경(claude-team-base, agent-team-base) 이전 설치의 표식, 중복 추가 방지와 제거에서 함께 인식
+const LEGACY_GITIGNORE_NAMES = ['agent-team-base', 'claude-team-base'];
 // 등록하는 MCP 서버, 형식은 각 공식 문서의 Claude Code 설정을 따름
 // Figma는 연결 방식이 셋이고 서버 이름이 도구 이름 접두사를 정하므로 이름을 바꾸지 않음
 // figma: 원격 서버(mcp__figma__*), figma-desktop: 데스크톱 앱 서버(mcp__figma-desktop__*)
@@ -375,7 +374,7 @@ function mergeSettings(existing, fragment, answers, legacyAgent) {
 function mergeGitignoreBlock(text) {
   const block = `${GITIGNORE_BEGIN}\n${DOCS_DIR}/\n${GITIGNORE_END}`;
   if (text === null) return { text: `${block}\n`, changed: true };
-  if (text.includes(GITIGNORE_BEGIN) || text.includes(LEGACY_GITIGNORE_BEGIN)) return { text, changed: false };
+  if (text.includes(GITIGNORE_BEGIN) || LEGACY_GITIGNORE_NAMES.some((n) => text.includes(`# >>> ${n}`))) return { text, changed: false };
   return { text: `${text}${text.endsWith('\n') || text === '' ? '' : '\n'}${block}\n`, changed: true };
 }
 
@@ -589,7 +588,7 @@ function apply(dir, options) {
 
   const manifest = {
     schema: 1,
-    name: 'agent-team-base',
+    name: 'subagent-workflow',
     templateVersion: TEMPLATE_VERSION,
     source: plan.source,
     installedAt: new Date().toISOString(),
@@ -654,8 +653,8 @@ function verify(dir, options) {
   // 플러그인을 새 버전으로 받아도 프로젝트에 설치된 팀 파일은 자동으로 바뀌지 않으므로 버전 차이를 알림, 실패가 아닌 안내
   const cmp = isVersion(manifest.templateVersion) ? compareVersions(manifest.templateVersion, TEMPLATE_VERSION) : null;
   if (cmp === null) add('team version', 'unverified', `installed version ${manifest.templateVersion ?? 'unknown'} cannot be compared with ${TEMPLATE_VERSION}`);
-  else if (cmp < 0) add('team version', 'update', `installed ${manifest.templateVersion}, this plugin has ${TEMPLATE_VERSION}; run /agent-team-base:setup update to apply the new version to this project`);
-  else if (cmp > 0) add('team version', 'unverified', `installed ${manifest.templateVersion} is newer than this plugin (${TEMPLATE_VERSION}); update the plugin first (/plugin marketplace update jbeat-plugins, then claude plugin update agent-team-base@jbeat-plugins)`);
+  else if (cmp < 0) add('team version', 'update', `installed ${manifest.templateVersion}, this plugin has ${TEMPLATE_VERSION}; run /subagent-workflow:setup update to apply the new version to this project`);
+  else if (cmp > 0) add('team version', 'unverified', `installed ${manifest.templateVersion} is newer than this plugin (${TEMPLATE_VERSION}); update the plugin first (/plugin marketplace update jbeat-plugins, then claude plugin update subagent-workflow@jbeat-plugins)`);
   else add('team version', 'pass', `${manifest.templateVersion} matches this plugin`);
   const settings = readJson(join(dir, SETTINGS_PATH));
   const missingHooks = (manifest.settings.hooks ?? []).filter((h) => !(settings.value?.hooks?.[h.event] ?? []).some((g) => (g.hooks ?? []).some((x) => x.command === h.command)));
@@ -769,7 +768,8 @@ function remove(dir, options) {
   const gAbs = join(dir, GITIGNORE_PATH);
   if (manifest.gitignore === 'added' && existsSync(gAbs)) {
     const text = readFileSync(gAbs, 'utf8');
-    const pattern = new RegExp(`\\n?(?:${GITIGNORE_BEGIN}[\\s\\S]*?${GITIGNORE_END}|${LEGACY_GITIGNORE_BEGIN}[\\s\\S]*?${LEGACY_GITIGNORE_END})\\n?`);
+    const blocks = [[GITIGNORE_BEGIN, GITIGNORE_END], ...LEGACY_GITIGNORE_NAMES.map((n) => [`# >>> ${n}`, `# <<< ${n}`])];
+    const pattern = new RegExp(`\\n?(?:${blocks.map(([b, e]) => `${b}[\\s\\S]*?${e}`).join('|')})\\n?`);
     if (pattern.test(text)) {
       const next = text.replace(pattern, '\n').replace(/^\n+/, '');
       actions.push('removed .gitignore block');

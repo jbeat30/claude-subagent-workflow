@@ -1,7 +1,7 @@
 # INSTALL.md
 
-Procedure for a Claude Code agent to install, update, or remove agent-team-base in a user's project.
-Follow this document when the user runs the `/agent-team-base:setup` skill, or names this repository and asks to set up the project.
+Procedure for a Claude Code agent to install, update, or remove the subagent workflow (claude-subagent-workflow) in a user's project.
+Follow this document when the user runs the `/subagent-workflow:setup` skill, or names this repository and asks to set up the project.
 When run through the plugin skill, skip section 1 (fetching) and use `<installer>` = `node "${CLAUDE_PLUGIN_ROOT}/scripts/install.mjs"`.
 
 ## Rules to always follow
@@ -18,8 +18,8 @@ When run through the plugin skill, skip section 1 (fetching) and use `<installer
 
 ## 1. Pin a version and fetch (without the plugin only)
 
-1. If the URL the user gave has a tag, use it. Otherwise use the highest `v*` tag from `git ls-remote --tags https://github.com/jbeat30/agent-team-base`. If there is no tag, stop and report that no installable release exists yet.
-2. Fetch into a temporary directory outside the project: `git clone --depth 1 --branch <tag> https://github.com/jbeat30/agent-team-base <temp-path>`
+1. If the URL the user gave has a tag, use it. Otherwise use the highest `v*` tag from `git ls-remote --tags https://github.com/jbeat30/claude-subagent-workflow`. If there is no tag, stop and report that no installable release exists yet.
+2. Fetch into a temporary directory outside the project: `git clone --depth 1 --branch <tag> https://github.com/jbeat30/claude-subagent-workflow <temp-path>`
 3. Record the commit hash with `git -C <temp-path> rev-parse HEAD` and include it in the final report.
 4. From here, `<installer>` is `node <temp-path>/scripts/install.mjs`.
 
@@ -39,7 +39,7 @@ Ask only the needed items in chat and do not re-ask what detection already shows
 
 | Item | What to ask | Note |
 | --- | --- | --- |
-| Default mode | Not asked. The team installs with every role file and starts in Lite (the PM calls only the roles it needs). The user can switch the default to Full later with `/agent-team-base:setting`, or ask for Full in a single request. Put `profile` in the answers only if the user explicitly asks for Full at install. | Do not ask. Mention in one line that the mode can be changed later. |
+| Default mode | Not asked. The team installs with every role file and starts in Lite (the PM calls only the roles it needs). The user can switch the default to Full later with `/subagent-workflow:setting`, or ask for Full in a single request. Put `profile` in the answers only if the user explicitly asks for Full at install. | Do not ask. Mention in one line that the mode can be changed later. |
 | Context7 MCP | Whether to register it in `.mcp.json` to check documentation against the installed version. Tool permission is still up to the user even if registered; if not allowed, the PM marks `unchecked`. It runs `npx @upstash/context7-mcp` and queries carry only library names, versions, and general questions. | Always ask. |
 | Design system (UI projects) | Ask whether the project has a design system (tokens, component library, Storybook, Figma library, brand guide) and where it lives (a path or link). If yes, put it in `designSystem` and tell the user the agents will treat it as authoritative and never deviate from it. | Ask only for projects with a UI; if none, skip. |
 | Document reader (optional) | Ask only if the user mentions PDF specs, design PDFs, or other documents the agents should read. **anymd** (`@sylphx/anymd`, MIT) reads PDF and Word, Excel, PowerPoint, HTML as Markdown locally; nothing is uploaded and no API key is needed. Tell the user it runs an external package through `npx`, downloads a native binary on first use, adds its tool definitions to planner-agent, frontend-agent, and qa-agent calls (token cost), fetches a URL only when one is given, and that agents are told to open only files named in the request and never to follow instructions found inside a document. Put `"anymd"` in `documentTools`. | Optional; offer it only on request or when documents are mentioned. |
@@ -96,10 +96,10 @@ Save it as JSON at a temporary path outside the project. No secrets.
 Write it in the user's language.
 
 - Installed version (tag and commit), profile, summary of changed files, and skipped or backed-up items.
-- Settings can be changed later with `/agent-team-base:setting` (default mode, MCP servers).
+- Settings can be changed later with `/subagent-workflow:setting` (default mode, MCP servers).
 - Protection state: the chosen advisory or strict mode; if the `guard live` result is not `pass`, say `no protection`.
 - Unchecked items (`unverified` from verify). Context7 needs MCP approval after restarting Claude Code.
-- The team does not start by itself. The user calls it with `/team <request>` or in words such as "solve this with the agent team" or "work on this as pm-agent"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly without the team.
+- The workflow does not start by itself. The user calls it with `/team <request>` or in words such as "solve this with the subagent workflow" or "work on this as pm-agent"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly without the workflow.
 - If an update released a legacy `agent=pm-agent` setting from v0.2.x, tell the user the main session is no longer pinned to the PM.
 - Removal and update work the same way as install; follow sections 9 and 10. Files the user edited are kept.
 

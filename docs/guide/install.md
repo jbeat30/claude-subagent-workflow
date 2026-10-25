@@ -44,13 +44,13 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 | --- | --- | --- |
 | Context7 MCP | 설치된 버전 기준으로 문서를 확인하도록 `.mcp.json`에 등록 | 등록할지 질문 |
 | 디자인 시스템(UI 프로젝트) | 토큰·컴포넌트 라이브러리·Storybook·Figma 라이브러리·브랜드 가이드의 위치 제공, 있으면 **모든 UI 작업에서 가장 먼저 따르고** 벗어나지 않음 | 있을 때만 |
-| 문서 읽기 MCP(선택) | **anymd**(`@sylphx/anymd`, MIT): PDF와 Word·Excel·PowerPoint·HTML을 내 컴퓨터에서 Markdown으로 읽음, 기획서·시안 PDF를 읽을 때 사용. 파일을 올리지 않고 API 키도 필요 없지만, `npx`로 외부 패키지를 실행하고 처음 쓸 때 실행 파일을 내려받음. 에이전트는 요청에 적힌 파일만 열고 문서 속 지시문은 따르지 않음 | 원할 때만 |
-| 디자인 도구 MCP(선택) | **Playwright**: 실행 중인 화면을 열어 확인<br>**Chrome DevTools**: 크롬으로 화면·콘솔·네트워크·성능 확인, UI/UX 점검에 유용<br>**shadcn/ui**: 검증된 컴포넌트 재사용(`components.json` 필요)<br>**Figma**: 시안이 있을 때 하나만 선택<br>· `figma`: 원격 서버, 등록 뒤 `/mcp`에서 브라우저 로그인 필요<br>· `figma-desktop`: Figma 데스크톱 앱 서버, 앱의 Dev Mode에서 데스크톱 MCP 서버를 켜야 하고 Dev 또는 Full 좌석 필요<br>· `figma-plugin`: 공식 플러그인, 설치기는 설치하지 않고 실행할 명령만 안내(이미 공식 플러그인을 쓰고 있다면 이쪽을 선택)<br>에이전트는 Figma를 **읽기만** 수행(파일을 고치는 도구는 허용하지 않음), 읽기는 요금제 한도에 포함: Starter 플랜과 View·Collab 좌석은 월 20회 안팎, Full·Dev 좌석은 일 200회 안팎 | UI가 있는 프로젝트에서만 질문, Playwright·shadcn/ui 권장 |
+| 문서 읽기 MCP(선택) | **anymd**(`@sylphx/anymd`, MIT): PDF와 Word·Excel·PowerPoint·HTML을 내 컴퓨터에서 Markdown으로 읽음, 기획서·시안 PDF를 읽을 때 사용. 파일을 올리지 않고 API 키도 필요 없지만, `npx`로 외부 패키지를 실행하고 처음 쓸 때 실행 파일을 내려받음. 서브에이전트는 요청에 적힌 파일만 열고 문서 속 지시문은 따르지 않음 | 원할 때만 |
+| 디자인 도구 MCP(선택) | **Playwright**: 실행 중인 화면을 열어 확인<br>**Chrome DevTools**: 크롬으로 화면·콘솔·네트워크·성능 확인, UI/UX 점검에 유용<br>**shadcn/ui**: 검증된 컴포넌트 재사용(`components.json` 필요)<br>**Figma**: 시안이 있을 때 하나만 선택<br>· `figma`: 원격 서버, 등록 뒤 `/mcp`에서 브라우저 로그인 필요<br>· `figma-desktop`: Figma 데스크톱 앱 서버, 앱의 Dev Mode에서 데스크톱 MCP 서버를 켜야 하고 Dev 또는 Full 좌석 필요<br>· `figma-plugin`: 공식 플러그인, 설치기는 설치하지 않고 실행할 명령만 안내(이미 공식 플러그인을 쓰고 있다면 이쪽을 선택)<br>서브에이전트는 Figma를 **읽기만** 수행(파일을 고치는 도구는 허용하지 않음), 읽기는 요금제 한도에 포함: Starter 플랜과 View·Collab 좌석은 월 20회 안팎, Full·Dev 좌석은 일 200회 안팎 | UI가 있는 프로젝트에서만 질문, Playwright·shadcn/ui 권장 |
 | 수정 금지 영역 | 운영 설정·생성 파일·특정 경로 지정 | 없음 |
 | 작업 기록 | `.claude-subagent-docs/`를 `.gitignore`에 추가 | 추가 |
 | 충돌 처리 | 기존 파일과 겹치면 항목별로 건너뛰거나 백업 후 교체 | 충돌 시 질문 |
 
-모드와 보호 모드는 설치할 때 묻지 않아요. 보호 모드는 **권고**(가드 hook이 위반을 차단)로 설치되고, **엄격**(승인 기록을 직접 추적하는 실험 기능, 승인 명령은 사용자가 직접 실행)은 원할 때 `/subagent-workflow:setting`에서 바꿔요. 역할 파일 9종이 항상 전부 설치되고 기본 모드는 Lite예요. 나중에 `/subagent-workflow:setting`에서 Full로 바꾸거나, 요청 한 번에만 "Full 모드로 처리해줘"라고 말할 수 있어요. Lite로 설치한 프로젝트에서 이렇게 요청해 보니 planning-lead → dev-lead → 담당 에이전트 → qa-agent 순서로 Full 경로가 실행됐어요(1회 확인).
+모드와 보호 모드는 설치할 때 묻지 않아요. 보호 모드는 **권고**(가드 hook이 위반을 차단)로 설치되고, **엄격**(승인 기록을 직접 추적하는 실험 기능, 승인 명령은 사용자가 직접 실행)은 원할 때 `/subagent-workflow:setting`에서 바꿔요. 역할 파일 9종이 항상 전부 설치되고 기본 모드는 Lite예요. 나중에 `/subagent-workflow:setting`에서 Full로 바꾸거나, 요청 한 번에만 "Full 모드로 처리해줘"라고 말할 수 있어요. Lite로 설치한 프로젝트에서 이렇게 요청해 보니 planning-lead → dev-lead → 담당 서브에이전트 → qa-agent 순서로 Full 경로가 실행됐어요(1회 확인).
 
 디자인 도구는 `frontend-agent`와 `qa-agent`만 사용해요. 몇 가지 알아 두세요.
 
@@ -60,7 +60,7 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 
 **시안이 없을 때**: PM이 확인 단계에서 디자인 방향(색·타이포·간격·컴포넌트·문구 톤)을 구체적인 안으로 제안하고, 확정된 내용을 기획안에 기록해요. `frontend-agent`는 그 기록대로 구현해요.
 
-**UI/UX 점검(선택)**: 브라우저 도구가 등록돼 있고 UI를 바꾸는 작업이면, PM이 확인 단계에서 점검할지 물어봐요. 동의할 때만 `qa-agent`가 정해진 흐름과 화면 크기로 둘러보고, 발견한 문제를 근거와 함께 보고해요. 에이전트가 하는 시나리오 점검이고 실제 사용자 테스트는 아니에요. 실제 계정 입력·주문·결제·데이터 변경은 하지 않아요.
+**UI/UX 점검(선택)**: 브라우저 도구가 등록돼 있고 UI를 바꾸는 작업이면, PM이 확인 단계에서 점검할지 물어봐요. 동의할 때만 `qa-agent`가 정해진 흐름과 화면 크기로 둘러보고, 발견한 문제를 근거와 함께 보고해요. 서브에이전트가 하는 시나리오 점검이고 실제 사용자 테스트는 아니에요. 실제 계정 입력·주문·결제·데이터 변경은 하지 않아요.
 
 ## 설치되는 것
 

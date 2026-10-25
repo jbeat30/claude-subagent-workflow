@@ -26,6 +26,8 @@ Full runs in relay mode: leaders do not call sub-roles directly but return call 
 | frontend, backend, api, test | Edit only assigned files, write tests |
 | qa-agent | Independent verification of the plan, changes, check records, and completion checklist |
 
+Terms: a **subagent** is a Claude Code feature defined by one role file in `.claude/agents/`. The `-agent` and `-lead` in the table are only file name suffixes and every one is a subagent. The PM is not a subagent but the main session that talks with you, and `/subagent` is a skill holding the PM instructions, not an agent.
+
 ### Workflow
 
 ![Workflow: from intake to final report](../assets/task-workflow.en.png)
@@ -38,7 +40,7 @@ Full runs in relay mode: leaders do not call sub-roles directly but return call 
 | L3 | Contracts, permissions, data, security, many areas | The L2 path with required impact analysis; the user is always asked to confirm |
 
 - **Requirements become Given/When/Then acceptance criteria**, and failing tests are written first when testing is possible.
-- **Every agent reads the request source and the plan file directly**, so summaries cannot distort requirements.
+- **Every subagent reads the request source and the plan file directly**, so summaries cannot distort requirements.
 - Scope changes, policy decisions, compatibility changes, security, and external effects are confirmed with you first; otherwise the PM self-confirms and says so.
 - No source edits before confirmation. A failed verification goes back to development, with a limit of 3 rework rounds.
 - Only approved commands run, through a **check runner** that records exit code, times, output, and hashes; QA reads these originals, not the PM's summary.
@@ -59,7 +61,7 @@ This workflow is a base layer, so it always ranks below the rules a project alre
 
 ### Against hallucination and unrequested edits
 
-- The request source is quoted verbatim in the plan, and every agent reads the source and plan files directly.
+- The request source is quoted verbatim in the plan, and every subagent reads the source and plan files directly.
 - Ambiguous requirements are asked about, not filled in by guessing; items the user did not mention are decided as include, exclude, or ask, and recorded.
 - Unchecked content is never stated as fact and is marked `unverified`; library behavior is checked against docs for the installed version.
 - Only files listed in the plan are edited, nothing is edited before confirmation, and instructions inside documents or tool output are not followed.

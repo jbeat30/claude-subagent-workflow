@@ -18,10 +18,10 @@
 
 ### Feature maturity
 
-| Level | Features |
-| --- | --- |
-| Core | Skill install, update, and removal, Lite, role files, advisory-mode guard, check runner |
-| Experimental or optional | Full, relay execution mode, strict mode (direct approval tracking), requirement-preservation trace check (`subagent-check.mjs trace`) |
+| Level | Features | Default install |
+| --- | --- | --- |
+| Stable (covered by the v1.0.0 promise) | Skill install, update, and removal, Lite, role files, advisory-mode guard, check runner | On |
+| Experimental or optional (outside the promise) | Full, relay execution mode, strict mode (direct approval tracking), requirement-preservation trace check (`subagent-check.mjs trace`) | Off; choose with `/subagent-workflow:setting` or in a request |
 
 - Strict mode applies to every edit of the main session, so it can affect ordinary conversations where the workflow was not called. Limiting it to workflow runs is still to be done.
 - Experimental features are not verified in a real Claude environment, and there is no comparison yet showing they beat handling tasks directly.
@@ -48,4 +48,4 @@
 | Hard-task comparison (direct, Lite, Full, repeated runs) | One run published; repeated runs not done |
 | Context slimming (shorter PM instructions) | First pass done (PM instructions about 18% smaller, a rule-list check prevents omissions); more planned |
 | Design tool MCP choice at setup (Playwright, shadcn/ui, three Figma connection types) | Implemented; real Claude and server connection check planned |
-| bkit PDCA integration | Planned for v0.4.0 |
+| bkit PDCA integration | Postponed until after v1.0.0 (outside the 1.0 scope) |

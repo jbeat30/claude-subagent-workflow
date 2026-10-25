@@ -31,6 +31,7 @@
 ![Cost, time, and tokens by mode](../verification/assets/mode-compare.en.svg)
 
 - [Small fixture run record](../verification/2026-10-19-small-fixture.md) (Korean), 14 runs, one each, non-interactive, with Korean prompts before the English switch: Lite cost about 12x and took 30x+ longer than direct handling on L2/L3 tasks, so Lite is the default and Full is opt-in for large work.
+- [v0.4.0 evaluation results](../verification/EVAL_RESULTS_v0.4.0.md) (Korean): two hard tasks (l1, m1) compared between direct handling and Lite, three runs each. On both tasks direct handling missed one caller and one implicit requirement in all three runs, and Lite missed none. Lite cost about 5 to 8 times more and took about 5 to 8 times longer. Two tasks, one model, and a small fixture, so it cannot be generalized.
 - [v0.3.7 check results](../verification/EVAL_RESULTS_v0.3.7.md) (Korean): one check each of five situations for deciding the UI verification method per target from the project's own rules. Not a utility evaluation.
 - [v0.3.6 check results](../verification/EVAL_RESULTS_v0.3.6.md) (Korean): one check each of the Figma connection types, rule priority, and the guard's `.claude/` protection scope; not a usefulness evaluation.
 - [v0.3.3 check results](../verification/EVAL_RESULTS_v0.3.3.md) (Korean): one check of switching the protection mode (advisory/strict) and of edits being blocked and released; not a usefulness evaluation

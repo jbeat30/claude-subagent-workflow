@@ -9,4 +9,4 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
-.claude-team-docs/
+.claude-subagent-docs/

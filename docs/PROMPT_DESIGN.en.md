@@ -1,7 +1,7 @@
 # Prompt design principles
 
-The rules this team's role prompts use to reduce **guessing, unsupported answers (hallucination), and edits nobody asked for**, and what enforces each rule.
-The English originals are in `template/.claude/agents/` and `template/.claude/team/`.
+The rules this workflow's role prompts use to reduce **guessing, unsupported answers (hallucination), and edits nobody asked for**, and what enforces each rule.
+The English originals are in `template/.claude/agents/` and `template/.claude/subagent/`.
 
 [한국어](PROMPT_DESIGN.md)
 
@@ -12,7 +12,7 @@ The English originals are in `template/.claude/agents/` and `template/.claude/te
 | Prompt | Delivered only as instructions; the model is expected to follow it and can fail to |
 | Guard hook | Code checks at tool-call time and blocks violations (advisory mode) |
 | Check runner | Runs only approved commands and records original output and hashes |
-| Trace check | Cross-document consistency comparison (`team-check.mjs trace`); not proof that the implementation is correct |
+| Trace check | Cross-document consistency comparison (`subagent-check.mjs trace`); not proof that the implementation is correct |
 
 Prompt rules **reduce risk but guarantee nothing**; only items enforced by code are actually blocked.
 
@@ -76,7 +76,7 @@ Prompt rules **reduce risk but guarantee nothing**; only items enforced by code 
 ## 7. Token efficiency
 
 - Prompts are written in English, about 26% fewer always-injected tokens than Korean (all 10 roles plus forms, one model; delegation quality is evaluated separately).
-- Q and L1 never call the team; the PM handles them directly.
+- Q and L1 never call the workflow; the PM handles them directly.
 - Messages to the user follow the user's language.
 
 ## Limits

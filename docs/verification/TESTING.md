@@ -1,7 +1,7 @@
 # 검사 방법
 
 이 저장소의 검사는 두 층으로 나뉨
-정적 검사·단위 테스트의 통과는 팀의 권한 차단·위임 정확도·프롬프트 품질의 입증이 아니며, 실제 Claude 실행 결과와 구분해 보고
+정적 검사·단위 테스트의 통과는 워크플로의 권한 차단·위임 정확도·프롬프트 품질의 입증이 아니며, 실제 Claude 실행 결과와 구분해 보고
 
 | 층 | 명령 | 비용 | CI | 확인하는 것 |
 | --- | --- | --- | --- | --- |
@@ -19,10 +19,10 @@ npm test
 | 구성 | 내용 |
 | --- | --- |
 | `tools/validate-template.mjs` | `template/` 구조, 역할 파일의 도구 상한·참조·필수 문구 검사 |
-| `tools/team-check.test.mjs` | 검사 실행기 `run`·`verify`·`diff`·`trace` |
-| `tools/team-guard.test.mjs` | 가드 hook의 허용·거부 판정, relay 모드 |
+| `tools/subagent-check.test.mjs` | 검사 실행기 `run`·`verify`·`diff`·`trace` |
+| `tools/subagent-guard.test.mjs` | 가드 hook의 허용·거부 판정, relay 모드 |
 | `tools/install.test.mjs` | 설치 `detect`·`plan`·`apply`·`verify`·`remove`, 기존 설정 보존, 갱신·재설치 |
-| `tools/team-approval.test.mjs` | 엄격 모드 승인 흐름 |
+| `tools/subagent-approval.test.mjs` | 엄격 모드 승인 흐름 |
 
 - 변경한 뒤 PR 전에 항상 실행, CI도 같은 명령을 Ubuntu·Windows(Node 20)에서 실행
 - 역할 정의를 바꾸면 `tools/validate-template.mjs`의 도구 상한·참조 검사를 함께 갱신
@@ -37,9 +37,9 @@ npm test
 
 | 조건 | 설명 |
 | --- | --- |
-| `direct` | 팀 설치 없이 Claude가 직접 처리 |
-| `lite` | 팀 설치(Lite), PM이 역할을 직접 호출 |
-| `full` | 팀 설치(Full), 리드가 호출 카드를 반환하고 PM이 호출 |
+| `direct` | 워크플로 설치 없이 Claude가 직접 처리 |
+| `lite` | 워크플로 설치(Lite), PM이 역할을 직접 호출 |
+| `full` | 워크플로 설치(Full), 리드가 호출 카드를 반환하고 PM이 호출 |
 
 ### 과제
 
@@ -63,7 +63,7 @@ npm test
 REPO=<저장소 절대 경로> BUDGET=2 node tools/eval/run-eval.mjs <direct|lite|full> <q|l1|l2|l3|scope|inject|ctx> <출력 폴더>
 ```
 
-- 임시 폴더에 fixture를 복사하고 `git init`, 팀 조건이면 설치 스크립트로 `plan` → `apply` 수행
+- 임시 폴더에 fixture를 복사하고 `git init`, 워크플로 조건이면 설치 스크립트로 `plan` → `apply` 수행
 - `claude -p`를 비대화형으로 실행하고 `--output-format stream-json`으로 이벤트 전체 저장
 - 실행 뒤 `git status`·`git diff`로 변경 파일을 집계하고 fixture의 `npm test` 통과 여부 확인
 - 저장소 파일은 수정하지 않으며 출력 폴더는 저장소 밖 권장
@@ -92,7 +92,7 @@ node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-
 ### 비용 예산
 
 - 호출 수 × 호출당 상한(`BUDGET`)이 최대 지출, 시작 전에 계산해 승인
-- 직접 처리는 호출당 0.1~0.2달러, 팀 조건 L2·L3는 호출당 1~2달러 수준이 나왔음(환산 값)
+- 직접 처리는 호출당 0.1~0.2달러, 워크플로 조건 L2·L3는 호출당 1~2달러 수준이 나왔음(환산 값)
 - 구독 로그인이면 표시 비용은 청구액이 아닌 환산 값이며 사용 한도를 소모
 
 ### 결과 기록

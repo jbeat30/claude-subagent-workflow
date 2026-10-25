@@ -4,7 +4,7 @@
 
 ## Install flow
 
-Requirements: Claude Code 2.1.302 or later, Node 18 or later.
+Requirements: Claude Code 2.1.302 or later, Node 20 or later.
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins

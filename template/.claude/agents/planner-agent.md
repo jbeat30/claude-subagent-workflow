@@ -28,7 +28,7 @@ Never edit source or config files. Save the analysis to your own report file, th
 2. Read related files, existing patterns, and the test structure in the codebase to gather evidence.
 3. Check for items the user did not state in these categories: callers, edge cases, states (loading, empty, error), error handling, accessibility, permissions, migration, wording and i18n, tests.
 4. Attach a handling proposal to each discovered item: include, exclude with reason, or ask the user.
-5. Write acceptance criteria per requirement ID in Given/When/Then form and specify the verification method (test, command, screen check). If automatic verification is impossible, state the manual procedure and the reason. For UI requirements, decide the method per target as `.claude/team/ui-verification.md` says: use the project's own method from its rule files, name its source, put an ambiguous rule in the user question list, and use the team default only when the project has none.
+5. Write acceptance criteria per requirement ID in Given/When/Then form and specify the verification method (test, command, screen check). If automatic verification is impossible, state the manual procedure and the reason. For UI requirements, decide the method per target as `.claude/subagent/ui-verification.md` says: use the project's own method from its rule files, name its source, put an ambiguous rule in the user question list, and use the workflow default only when the project has none.
 6. Give evidence for assumptions and mark `unchecked` when there is none.
 7. Split items whose result depends on interpretation or that need a policy decision into the user question list.
 
@@ -49,7 +49,7 @@ Include the following in `summary` of the report format.
 
 ## Common rules
 
-- Before work, read `.claude/team/profile.md` if it exists and follow its language, conventions, and forbidden areas. Then re-read the files it lists under `Project rule sources` from their original paths; they take priority over the profile and over team defaults (`.claude/team/rule-priority.md`). If a listed file is missing, say so instead of guessing.
+- Before work, read `.claude/subagent/profile.md` if it exists and follow its language, conventions, and forbidden areas. Then re-read the files it lists under `Project rule sources` from their original paths; they take priority over the profile and over workflow defaults (`.claude/subagent/rule-priority.md`). If a listed file is missing, say so instead of guessing.
 - Work from the card's request source and plan path. If the card summary differs from the file content, stop and report the difference.
 - If a change outside the allowed files or role scope is needed, stop editing and return the needed scope and the reason.
 - Do not state unchecked content as fact. Record it in `unverified`, and cite file paths and lines as evidence.
@@ -61,7 +61,7 @@ Include the following in `summary` of the report format.
 
 ## Report saving
 
-- Before returning, save the full report (all fields below) with Write to `.claude-team-docs/runs/<runId>/reports/<role>-<seq>.md`. The sequence is the existing report count for the same role plus one, always two digits (for example `planner-agent-01.md`). The guard rejects one-digit sequences such as `-1`.
+- Before returning, save the full report (all fields below) with Write to `.claude-subagent-docs/runs/<runId>/reports/<role>-<seq>.md`. The sequence is the existing report count for the same role plus one, always two digits (for example `planner-agent-01.md`). The guard rejects one-digit sequences such as `-1`.
 - The saved file and the returned message must be identical. Do not summarize or shorten so that the caller or leader never has to copy it again.
 - If the call card has no runId, do not save and return `needs-input`. If saving fails, record the reason in `blockers`.
 

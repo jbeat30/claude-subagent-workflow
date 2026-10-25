@@ -1,4 +1,4 @@
-// 소규모 실제 Claude 확인 실행기: 직접 처리 대 Lite/Full 팀, 호출당 비용 상한 고정
+// 소규모 실제 Claude 확인 실행기: 직접 처리 대 Lite/Full 워크플로, 호출당 비용 상한 고정
 // 사용법: node run-eval.mjs <condition: direct|lite|full> <taskId> <outDir>
 // 환경 변수: BUDGET(호출당 달러 상한), PERM(권한 모드), EXEC_MODE(relay|nested), CTX7=1(Context7 등록)
 import { spawnSync } from 'node:child_process';
@@ -46,14 +46,14 @@ if (condition !== 'direct') {
   const applied = install(['apply', '--target', work, '--answers', answers, '--plan-hash', plan.hash]);
   if (applied.status !== 0) throw new Error(`install failed: ${applied.stderr}${applied.stdout}`);
   sh('git', ['add', '-A']);
-  sh('git', ['-c', 'user.name=e', '-c', 'user.email=e@e', 'commit', '-qm', 'team']);
+  sh('git', ['-c', 'user.name=e', '-c', 'user.email=e@e', 'commit', '-qm', 'init']);
 }
 
 const started = Date.now();
 const run = sh('claude', [
   '-p', tasks[taskId], '--output-format', 'stream-json', '--verbose', '--model', 'sonnet',
   '--permission-mode', PERMISSION, '--max-budget-usd', BUDGET,
-  '--allowedTools', 'Bash(npm test)', 'Bash(node .claude/team/bin/*)', 'Bash(git diff:*)', 'Bash(git status:*)', ...(process.env.EXTRA_TOOLS ? process.env.EXTRA_TOOLS.split(',') : []),
+  '--allowedTools', 'Bash(npm test)', 'Bash(node .claude/subagent/bin/*)', 'Bash(git diff:*)', 'Bash(git status:*)', ...(process.env.EXTRA_TOOLS ? process.env.EXTRA_TOOLS.split(',') : []),
 ], { maxBuffer: 256 * 1024 * 1024, timeout: 30 * 60 * 1000 });
 const wall = Date.now() - started;
 

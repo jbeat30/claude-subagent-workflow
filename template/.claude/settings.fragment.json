@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/team-guard.mjs",
+            "command": "node .claude/hooks/subagent-guard.mjs",
             "onFailure": "block"
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/team-guard.mjs"
+            "command": "node .claude/hooks/subagent-guard.mjs"
           }
         ]
       }
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/team-guard.mjs"
+            "command": "node .claude/hooks/subagent-guard.mjs"
           }
         ]
       }

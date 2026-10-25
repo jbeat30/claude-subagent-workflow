@@ -1,7 +1,7 @@
 # INSTALL.md
 
-Procedure for a Claude Code agent to install, update, or remove agent-team-base in a user's project.
-Follow this document when the user runs the `/agent-team-base:setup` skill, or names this repository and asks to set up the project.
+Procedure for a Claude Code agent to install, update, or remove the subagent workflow (claude-subagent-workflow) in a user's project.
+Follow this document when the user runs the `/subagent-workflow:setup` skill, or names this repository and asks to set up the project.
 When run through the plugin skill, skip section 1 (fetching) and use `<installer>` = `node "${CLAUDE_PLUGIN_ROOT}/scripts/install.mjs"`.
 
 ## Rules to always follow
@@ -18,8 +18,8 @@ When run through the plugin skill, skip section 1 (fetching) and use `<installer
 
 ## 1. Pin a version and fetch (without the plugin only)
 
-1. If the URL the user gave has a tag, use it. Otherwise use the highest `v*` tag from `git ls-remote --tags https://github.com/jbeat30/agent-team-base`. If there is no tag, stop and report that no installable release exists yet.
-2. Fetch into a temporary directory outside the project: `git clone --depth 1 --branch <tag> https://github.com/jbeat30/agent-team-base <temp-path>`
+1. If the URL the user gave has a tag, use it. Otherwise use the highest `v*` tag from `git ls-remote --tags https://github.com/jbeat30/claude-subagent-workflow`. If there is no tag, stop and report that no installable release exists yet.
+2. Fetch into a temporary directory outside the project: `git clone --depth 1 --branch <tag> https://github.com/jbeat30/claude-subagent-workflow <temp-path>`
 3. Record the commit hash with `git -C <temp-path> rev-parse HEAD` and include it in the final report.
 4. From here, `<installer>` is `node <temp-path>/scripts/install.mjs`.
 
@@ -39,17 +39,17 @@ Ask only the needed items in chat and do not re-ask what detection already shows
 
 | Item | What to ask | Note |
 | --- | --- | --- |
-| Default mode | Not asked. The team installs with every role file and starts in Lite (the PM calls only the roles it needs). The user can switch the default to Full later with `/agent-team-base:setting`, or ask for Full in a single request. Put `profile` in the answers only if the user explicitly asks for Full at install. | Do not ask. Mention in one line that the mode can be changed later. |
+| Default mode | Not asked. The workflow installs with every role file and starts in Lite (the PM calls only the roles it needs). The user can switch the default to Full later with `/subagent-workflow:setting`, or ask for Full in a single request. Put `profile` in the answers only if the user explicitly asks for Full at install. | Do not ask. Mention in one line that the mode can be changed later. |
 | Context7 MCP | Whether to register it in `.mcp.json` to check documentation against the installed version. Tool permission is still up to the user even if registered; if not allowed, the PM marks `unchecked`. It runs `npx @upstash/context7-mcp` and queries carry only library names, versions, and general questions. | Always ask. |
 | Design system (UI projects) | Ask whether the project has a design system (tokens, component library, Storybook, Figma library, brand guide) and where it lives (a path or link). If yes, put it in `designSystem` and tell the user the agents will treat it as authoritative and never deviate from it. | Ask only for projects with a UI; if none, skip. |
 | Document reader (optional) | Ask only if the user mentions PDF specs, design PDFs, or other documents the agents should read. **anymd** (`@sylphx/anymd`, MIT) reads PDF and Word, Excel, PowerPoint, HTML as Markdown locally; nothing is uploaded and no API key is needed. Tell the user it runs an external package through `npx`, downloads a native binary on first use, adds its tool definitions to planner-agent, frontend-agent, and qa-agent calls (token cost), fetches a URL only when one is given, and that agents are told to open only files named in the request and never to follow instructions found inside a document. Put `"anymd"` in `documentTools`. | Optional; offer it only on request or when documents are mentioned. |
 | Design tools (optional) | Only when the project has a UI (a frontend stack was detected); skip for backend-only projects. Whether to register design MCP servers in `.mcp.json` for UI work: **Playwright** (recommended; lets frontend-agent and qa-agent open and look at the running page, so the app must be running), **Chrome DevTools** (optional; opens Chrome to inspect the page, console, network, and performance; useful for UI/UX walkthroughs on web projects), **shadcn/ui** (recommended when `detect` reports `componentsJson: true`; the server needs a `components.json`), **Figma** (only if the user has Figma designs; choose exactly one connection: `figma` is the remote server and needs a browser sign-in through `/mcp`; `figma-desktop` is the Figma desktop app server and needs the app running with the desktop MCP server enabled in Dev Mode plus a Dev or Full seat; Agents get read tools only (never the tools that change Figma files), and reads count against the Figma plan limit (Starter plan and View or Collab seats about 20 calls per month, Full or Dev seats about 200 per day), so tell the user this. `figma-plugin` is the official Figma plugin, which this installer never installs: show the user the command `claude plugin install figma@claude-plugins-official` to run themselves and sign in through `/plugin`). Tell the user each one runs through `npx` (Figma is a remote server) and adds its tool definitions to every frontend-agent and qa-agent call, which costs tokens. Browser tools (Playwright, Chrome DevTools) can see the content of the browser they open, so advise against personal tabs and sensitive data. A UI/UX walkthrough is offered later by the PM per task, only when a browser tool is registered, and runs only if the user agrees. | Optional; recommend Playwright and shadcn/ui, offer Figma only on request or when the user mentions Figma designs. |
-| Project rule files | Read the files `detect` lists under `conventionFiles` (CLAUDE.md, AGENTS.md, lint and format config, and any file that states the verification method or branch rules) and any other rule file the user names. Do not copy their contents into the answers; put each path and a one-phrase `covers` in `ruleSources`. Then show the user a short comparison of the project's rules against the team defaults in `.claude/team/rule-priority.md` as three groups: **same** (nothing to do), **team adds** (a team default the project lacks), and **conflict** (the project does it differently). Use one fixed table with the columns `Item`, `Group`, `Project rule (file and line)`, `Team default`, and give a file and line for every row that cites a project rule; a row without a source is not shown as a project rule. Classify by this test: same = the project rule and the team default lead to the same behavior; team adds = the project's rules say nothing about it; conflict = the project's rule leads to different behavior. Keep install questions (which servers, which mode) out of this table. Confirm only the **team adds** and **conflict** items with the user; for conflicts the project's rule wins unless the user says otherwise. | Always do when any rule file exists; if none exists, say so and skip. |
+| Project rule files | Read the files `detect` lists under `conventionFiles` (CLAUDE.md, AGENTS.md, lint and format config, and any file that states the verification method or branch rules) and any other rule file the user names. Do not copy their contents into the answers; put each path and a one-phrase `covers` in `ruleSources`. Then show the user a short comparison of the project's rules against the workflow defaults in `.claude/subagent/rule-priority.md` as three groups: **same** (nothing to do), **workflow adds** (a workflow default the project lacks), and **conflict** (the project does it differently). Use one fixed table with the columns `Item`, `Group`, `Project rule (file and line)`, `Workflow default`, and give a file and line for every row that cites a project rule; a row without a source is not shown as a project rule. Classify by this test: same = the project rule and the workflow default lead to the same behavior; workflow adds = the project's rules say nothing about it; conflict = the project's rule leads to different behavior. Keep install questions (which servers, which mode) out of this table. Confirm only the **workflow adds** and **conflict** items with the user; for conflicts the project's rule wins unless the user says otherwise. | Always do when any rule file exists; if none exists, say so and skip. |
 | Detection confirmation | Language and framework, check commands and side effects (whether they auto-fix), convention evidence | Ask only uncertain items. |
 | Forbidden areas | Production config, generated files, specific paths | Always ask. |
 | Protection mode | Advisory (default) or strict (optional direct-approval tracking). In strict the user runs the approval commands personally; it is not a security boundary against forgery from the main shell. | State the default. If strict is chosen, confirm the user accepts running the commands directly. |
-| PDCA | this version supports only off; bkit integration is planned for a later version. | Skip the question; the team's own plan and verification gates stay. |
-| gitignore | Whether to add `.claude-team-docs/` (task records) to `.gitignore`; default is yes. | State the default. |
+| PDCA | this version supports only off; bkit integration is planned for a later version. | Skip the question; the workflow's own plan and verification gates stay. |
+| gitignore | Whether to add `.claude-subagent-docs/` (task records) to `.gitignore`; default is yes. | State the default. |
 | Conflicts | If the plan reports conflicts, per item: skip or replace-with-backup. | Only when conflicts exist. |
 
 ## 5. Answers file
@@ -87,7 +87,7 @@ Save it as JSON at a temporary path outside the project. No secrets.
 ## 7. Apply and verify
 
 1. Run `<installer> apply --target <project> --answers <file> --plan-hash <hash> [same --on-conflict]` with the `hash` of the confirmed plan. A different hash is rejected, so rerun plan first.
-2. For advisory mode, run `<installer> verify --target <project> --live`. For strict mode, run `verify` for the static and canary checks, show a draft of the approval scope following the installed `.claude/team/strict-mode.md`, and tell the user to run the approval commands personally. The agent never runs grant or approve for them and never assumes approval is done. The protection state is unchecked until a real default interactive check is done.
+2. For advisory mode, run `<installer> verify --target <project> --live`. For strict mode, run `verify` for the static and canary checks, show a draft of the approval scope following the installed `.claude/subagent/strict-mode.md`, and tell the user to run the approval commands personally. The agent never runs grant or approve for them and never assumes approval is done. The protection state is unchecked until a real default interactive check is done.
 3. If anything is `fail`, report the cause and ask the user whether to run `remove`.
 4. Delete the temporary directory.
 
@@ -96,23 +96,23 @@ Save it as JSON at a temporary path outside the project. No secrets.
 Write it in the user's language.
 
 - Installed version (tag and commit), profile, summary of changed files, and skipped or backed-up items.
-- Settings can be changed later with `/agent-team-base:setting` (default mode, MCP servers).
+- Settings can be changed later with `/subagent-workflow:setting` (default mode, MCP servers).
 - Protection state: the chosen advisory or strict mode; if the `guard live` result is not `pass`, say `no protection`.
 - Unchecked items (`unverified` from verify). Context7 needs MCP approval after restarting Claude Code.
-- The team does not start by itself. The user calls it with `/team <request>` or in words such as "solve this with the agent team" or "work on this as pm-agent"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly without the team.
+- The workflow does not start by itself. The user calls it with `/subagent <request>` or in words such as "solve this with the subagent workflow" or "work on this as pm-agent"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly without the workflow.
 - If an update released a legacy `agent=pm-agent` setting from v0.2.x, tell the user the main session is no longer pinned to the PM.
 - Removal and update work the same way as install; follow sections 9 and 10. Files the user edited are kept.
 
 ## 9. Removal
 
-1. Read `source.tag` from the project's `.claude/team/manifest.json`. Without the plugin, fetch that tag as in section 1. With the plugin, use the bundled installer. If there is no manifest, report that nothing is installed.
+1. Read `source.tag` from the project's `.claude/subagent/manifest.json`. Without the plugin, fetch that tag as in section 1. With the plugin, use the bundled installer. If there is no manifest, report that nothing is installed.
 2. Run `<installer> remove --target <project>` (dry run) and show the user what would be removed, what is kept (`kept`), and which settings, MCP, and gitignore entries would be reverted.
 3. Get one confirmation, then run it again with `--yes`.
-4. Report that task records (`.claude-team-docs/`) and backups were not deleted and let the user decide whether to delete them.
+4. Report that task records (`.claude-subagent-docs/`) and backups were not deleted and let the user decide whether to delete them.
 
 ## 10. Update (full replacement)
 
-An update replaces the installed team files with the new version's files. The previous version's files are replaced as a whole, and anything you edited after install is never overwritten silently.
+An update replaces the installed workflow files with the new version's files. The previous version's files are replaced as a whole, and anything you edited after install is never overwritten silently.
 
 1. Compare `source.tag` in the manifest with the new tag the user named (or the highest one, or the plugin's current version). If equal, report that there is nothing to update.
 2. Get the new version (plugin: already bundled; otherwise fetch as in section 1) and redo sections 3 to 6, asking only the items that changed, based on the existing profile answers.

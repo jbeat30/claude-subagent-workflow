@@ -1,9 +1,9 @@
 ---
 name: setup
 description: |
-  Set up, update, or remove the Claude Team Base agent team (Lite or Full) in the current project.
+  Set up, update, or remove the Claude Subagent Workflow (Lite or Full) in the current project.
   Runs the bundled deterministic installer, shows a short plan, asks for one confirmation, and verifies the guard.
-  Triggers: set up agent team, install agent team, update agent team, remove agent team, claude team base setup, 에이전트 팀 세팅, 팀 설치, 팀 갱신, 팀 제거
+  Triggers: set up subagent workflow, install subagent workflow, update subagent workflow, remove subagent workflow, claude subagent workflow setup, 서브에이전트 워크플로 세팅, 서브에이전트 워크플로 세팅, 설치, 갱신, 제거
 argument-hint: "[install | update | remove]"
 user-invocable: true
 allowed-tools:
@@ -14,11 +14,11 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# Claude Team Base Setup
+# Claude Subagent Workflow Setup
 
 The installer ships inside the plugin, so no repository fetch is needed.
 `<installer>` = `node "${CLAUDE_PLUGIN_ROOT}/scripts/install.mjs"`
-If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*agent-team-base*/scripts/install.mjs" | head -1`.
+If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*subagent-workflow*/scripts/install.mjs" | head -1`.
 
 ## Steps
 
@@ -32,7 +32,7 @@ If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*agent-
 
 ## Usage mode
 
-Do not ask for a mode at install. Every role file is installed and the team starts in Lite. Say in one line that the default mode (Lite or Full) and the MCP servers can be changed later with `/agent-team-base:setting`, and that a single request can ask for Full ("handle this in Full mode").
+Do not ask for a mode at install. Every role file is installed and the workflow starts in Lite. Say in one line that the default mode (Lite or Full) and the MCP servers can be changed later with `/subagent-workflow:setting`, and that a single request can ask for Full ("handle this in Full mode").
 
 ## Rules
 

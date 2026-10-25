@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// 설치 스크립트: detect(조사) · plan(계획) · apply(적용) · verify(검증) · remove(제거)
-// LLM이 파일 복사·병합·해시를 직접 수행하지 않도록 결정적으로 동작하며 모든 결과를 JSON 한 객체로 출력
-// 프로젝트(--target) 안의 파일만 변경하고 홈·전역 설정은 건드리지 않음
-// 종료 코드: 0 성공, 1 검증 실패·진행 불가(결과 JSON 참고), 2 사용법·입력 오류
+// 설치 스크립트: detect(조사), plan(계획), apply(적용), verify(검증), remove(제거)
+// LLM이 파일 복사, 병합, 해시를 직접 수행하지 않도록 결정적으로 동작하며 모든 결과를 JSON 한 객체로 출력
+// 프로젝트(--target) 안의 파일만 변경하고 홈, 전역 설정은 건드리지 않음
+// 종료 코드: 0 성공, 1 검증 실패, 진행 불가(결과 JSON 참고), 2 사용법, 입력 오류
 //
 //   node install.mjs detect --target <dir>
 //   node install.mjs plan   --target <dir> --answers <file> [--on-conflict skip|replace-with-backup]
@@ -17,20 +17,17 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = join(repoRoot, 'template');
-const TEMPLATE_VERSION = '0.3.7';
-const SOURCE_REPO = 'https://github.com/jbeat30/agent-team-base';
+const TEMPLATE_VERSION = '0.3.8';
+const SOURCE_REPO = 'https://github.com/jbeat30/claude-subagent-workflow';
 const MIN_CLAUDE = '2.1.302';
 const MIN_NODE = 18;
-const MANIFEST_PATH = '.claude/team/manifest.json';
+const MANIFEST_PATH = '.claude/subagent/manifest.json';
 const SETTINGS_PATH = '.claude/settings.json';
 const MCP_PATH = '.mcp.json';
 const GITIGNORE_PATH = '.gitignore';
-const DOCS_DIR = '.claude-team-docs';
-const GITIGNORE_BEGIN = '# >>> agent-team-base';
-const GITIGNORE_END = '# <<< agent-team-base';
-// 플러그인 이름 변경(claude-team-base) 이전 설치의 표식, 중복 추가 방지와 제거에서 함께 인식
-const LEGACY_GITIGNORE_BEGIN = '# >>> claude-team-base';
-const LEGACY_GITIGNORE_END = '# <<< claude-team-base';
+const DOCS_DIR = '.claude-subagent-docs';
+const GITIGNORE_BEGIN = '# >>> subagent-workflow';
+const GITIGNORE_END = '# <<< subagent-workflow';
 // 등록하는 MCP 서버, 형식은 각 공식 문서의 Claude Code 설정을 따름
 // Figma는 연결 방식이 셋이고 서버 이름이 도구 이름 접두사를 정하므로 이름을 바꾸지 않음
 // figma: 원격 서버(mcp__figma__*), figma-desktop: 데스크톱 앱 서버(mcp__figma-desktop__*)
@@ -55,10 +52,10 @@ const GUIDED = {
   'figma-plugin': { command: 'claude plugin install figma@claude-plugins-official' },
 };
 const ROLE_FILES = ['planning-lead', 'dev-lead', 'planner-agent', 'architecture-agent', 'frontend-agent', 'backend-agent', 'api-agent', 'test-agent', 'qa-agent'];
-// v0.2.x까지 설치된 PM 정의: v0.3.0부터 PM은 .claude/skills/team 스킬, 갱신 때 사용자가 수정하지 않았으면 삭제
+// v0.2.x까지 설치된 PM 정의: v0.3.0부터 PM은 .claude/skills/subagent 스킬, 갱신 때 사용자가 수정하지 않았으면 삭제
 const RETIRED_FILES = ['.claude/agents/pm-agent.md'];
 // 복사하지 않는 템플릿 파일: settings는 병합, 프로필은 조사 결과로 생성
-const NOT_COPIED = new Set(['.claude/settings.fragment.json', '.claude/team/profile.template.md']);
+const NOT_COPIED = new Set(['.claude/settings.fragment.json', '.claude/subagent/profile.template.md']);
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
 const posix = (p) => p.split(sep).join('/');
@@ -96,9 +93,9 @@ function compareVersions(a, b) {
   return 0;
 }
 
-// TEAM_CLAUDE_BIN은 테스트에서 claude 명령을 대체하기 위한 환경 변수
+// SUBAGENT_CLAUDE_BIN은 테스트에서 claude 명령을 대체하기 위한 환경 변수
 function runClaude(args, input, cwd) {
-  const bin = process.env.TEAM_CLAUDE_BIN;
+  const bin = process.env.SUBAGENT_CLAUDE_BIN;
   return spawnSync(bin ?? 'claude', args, { cwd, input, encoding: 'utf8', shell: Boolean(bin) || process.platform === 'win32', timeout: 180000 });
 }
 
@@ -248,7 +245,7 @@ function detect(dir) {
   };
 }
 
-// ---------- answers · profile ----------
+// ---------- answers, profile ----------
 
 // 규칙 원본은 프로젝트 안의 상대 경로만 허용: 프로필이 프로젝트 밖 파일이나 URL을 규칙으로 가리키지 않도록 함
 function validRulePath(p) {
@@ -307,7 +304,7 @@ ${table(['Purpose', 'Command', 'Working directory', 'Side effects (auto-fix, ext
 
 ## Project rule sources
 
-The project's own rule files below take priority over this profile and over the team defaults. Re-read them from the original path before work; never rely on a copied summary. If a rule here differs from this profile, follow the source file. Apply a team behavior that the project's rules do not have only after the user confirms it.
+The project's own rule files below take priority over this profile and over the workflow defaults. Re-read them from the original path before work; never rely on a copied summary. If a rule here differs from this profile, follow the source file. Apply a workflow behavior that the project's rules do not have only after the user confirms it.
 
 ${answers.ruleSources.length ? table(['Path', 'Covers'], answers.ruleSources.map((r) => [r.path, r.covers ?? 'unchecked'])) : 'None recorded. Ask the user whether the project has rule files (CLAUDE.md, AGENTS.md, lint or format config, verification method, branch rules) before assuming none.'}
 
@@ -327,7 +324,7 @@ Authoritative for all UI work. Agents follow it without deviation and never intr
 
 ${table(['Item', 'Content', 'Location'], answers.designSystem.map((d) => [d.item, d.content ?? '', d.location ?? 'unchecked']))}
 ` : ''}
-## Team settings
+## Workflow settings
 
 - Execution profile: ${answers.profile}
 - Execution mode: ${answers.executionMode ?? 'n/a (lite)'}
@@ -375,7 +372,7 @@ function mergeSettings(existing, fragment, answers, legacyAgent) {
 function mergeGitignoreBlock(text) {
   const block = `${GITIGNORE_BEGIN}\n${DOCS_DIR}/\n${GITIGNORE_END}`;
   if (text === null) return { text: `${block}\n`, changed: true };
-  if (text.includes(GITIGNORE_BEGIN) || text.includes(LEGACY_GITIGNORE_BEGIN)) return { text, changed: false };
+  if (text.includes(GITIGNORE_BEGIN)) return { text, changed: false };
   return { text: `${text}${text.endsWith('\n') || text === '' ? '' : '\n'}${block}\n`, changed: true };
 }
 
@@ -394,7 +391,7 @@ function buildPlan(dir, answers, options) {
   const operations = [];
   const conflicts = [];
   const desired = templateFiles().map((f) => ({ path: f.path, content: readFileSync(f.abs) }));
-  desired.push({ path: '.claude/team/profile.md', content: Buffer.from(renderProfile(answers, source), 'utf8') });
+  desired.push({ path: '.claude/subagent/profile.md', content: Buffer.from(renderProfile(answers, source), 'utf8') });
 
   for (const file of desired) {
     const abs = join(dir, file.path);
@@ -435,7 +432,7 @@ function buildPlan(dir, answers, options) {
     settingsPlan = { action: merged.conflicts.length ? 'blocked' : changed ? (existingSettings.value ? 'merge' : 'create') : 'unchanged', agent: merged.agent, addedHooks: merged.added, content: merged.conflicts.length ? null : `${JSON.stringify(merged.settings, null, 2)}\n` };
   }
 
-  // MCP 등록: Context7과 선택한 디자인 도구를 한 번에 병합, 서버별로 추가·동일·충돌 판정
+  // MCP 등록: Context7과 선택한 디자인 도구를 한 번에 병합, 서버별로 추가, 동일, 충돌 판정
   let mcpPlan = { action: 'none', servers: {} };
   const wanted = [...(answers.context7 ? ['context7'] : []), ...answers.designTools, ...answers.documentTools].filter((n) => MCP_SERVERS[n]);
   const guided = answers.designTools.filter((n) => GUIDED[n]);
@@ -589,7 +586,7 @@ function apply(dir, options) {
 
   const manifest = {
     schema: 1,
-    name: 'agent-team-base',
+    name: 'subagent-workflow',
     templateVersion: TEMPLATE_VERSION,
     source: plan.source,
     installedAt: new Date().toISOString(),
@@ -608,18 +605,18 @@ function apply(dir, options) {
 // ---------- verify ----------
 
 function guardCanary(dir) {
-  const script = join(dir, '.claude', 'hooks', 'team-guard.mjs');
-  if (!existsSync(script)) return { status: 'fail', detail: 'team-guard.mjs not found' };
+  const script = join(dir, '.claude', 'hooks', 'subagent-guard.mjs');
+  if (!existsSync(script)) return { status: 'fail', detail: 'subagent-guard.mjs not found' };
   const run = (input) => spawnSync(process.execPath, [script], { cwd: dir, env: { ...process.env, CLAUDE_PROJECT_DIR: dir }, input: JSON.stringify({ cwd: dir, permission_mode: 'default', hook_event_name: 'PreToolUse', ...input }), encoding: 'utf8' });
-  const denied = run({ tool_name: 'Write', agent_type: 'pm-agent', tool_input: { file_path: '.git/team-canary' } });
-  const allowed = run({ tool_name: 'Write', agent_type: 'pm-agent', tool_input: { file_path: '.claude-team-docs/runs/team-canary/request.md' } });
+  const denied = run({ tool_name: 'Write', agent_type: 'pm-agent', tool_input: { file_path: '.git/subagent-canary' } });
+  const allowed = run({ tool_name: 'Write', agent_type: 'pm-agent', tool_input: { file_path: '.claude-subagent-docs/runs/subagent-canary/request.md' } });
   const broken = spawnSync(process.execPath, [script], { cwd: dir, input: '{not json', encoding: 'utf8' });
   const ok = denied.status === 2 && allowed.status === 0 && broken.status === 2;
   return { status: ok ? 'pass' : 'fail', detail: ok ? 'protected path denied, PM run record path allowed, blocks on error (script run alone; check hook firing in Claude with --live)' : `denied ${denied.status}, allowed ${allowed.status}, error ${broken.status}` };
 }
 
 function liveCanary(dir) {
-  const result = runClaude(['-p', '--permission-mode', 'acceptEdits', '--output-format', 'json', '--max-turns', '4'], 'Use the Write tool to create the file .git/team-canary.txt with the content x. Then report whether the write was created or refused, quoting any refusal message.', dir);
+  const result = runClaude(['-p', '--permission-mode', 'acceptEdits', '--output-format', 'json', '--max-turns', '4'], 'Use the Write tool to create the file .git/subagent-canary.txt with the content x. Then report whether the write was created or refused, quoting any refusal message.', dir);
   if (result.status !== 0) return { status: 'unverified', detail: `claude run failed (exit ${result.status})` };
   let text = '';
   try {
@@ -627,15 +624,15 @@ function liveCanary(dir) {
   } catch {
     return { status: 'unverified', detail: 'failed to parse output' };
   }
-  const created = existsSync(join(dir, '.git', 'team-canary.txt'));
+  const created = existsSync(join(dir, '.git', 'subagent-canary.txt'));
   if (created) {
-    rmSync(join(dir, '.git', 'team-canary.txt'), { force: true });
+    rmSync(join(dir, '.git', 'subagent-canary.txt'), { force: true });
     return { status: 'fail', detail: 'write to a protected path was allowed; guard not working' };
   }
-  return /team-guard/.test(text) ? { status: 'pass', detail: 'hook firing and blocking confirmed in Claude Code' } : { status: 'unverified', detail: 'the write was not made, but no team-guard denial message was seen' };
+  return /subagent-guard/.test(text) ? { status: 'pass', detail: 'hook firing and blocking confirmed in Claude Code' } : { status: 'unverified', detail: 'the write was not made, but no subagent-guard denial message was seen' };
 }
 
-// 설치된 팀 버전 비교용, 숫자 세 마디가 아니면 null
+// 설치된 워크플로 버전 비교용, 숫자 세 마디가 아니면 null
 const isVersion = (v) => /^\d+\.\d+\.\d+$/.test(String(v ?? ''));
 
 function verify(dir, options) {
@@ -651,17 +648,17 @@ function verify(dir, options) {
     else if (sha256(readFileSync(abs)) !== f.sha256) bad.push(`${f.path}(modified)`);
   }
   add('files', bad.length ? 'fail' : 'pass', bad.length ? bad.join(', ') : `${manifest.files.length} file hashes match`);
-  // 플러그인을 새 버전으로 받아도 프로젝트에 설치된 팀 파일은 자동으로 바뀌지 않으므로 버전 차이를 알림, 실패가 아닌 안내
+  // 플러그인을 새 버전으로 받아도 프로젝트에 설치된 워크플로 파일은 자동으로 바뀌지 않으므로 버전 차이를 알림, 실패가 아닌 안내
   const cmp = isVersion(manifest.templateVersion) ? compareVersions(manifest.templateVersion, TEMPLATE_VERSION) : null;
-  if (cmp === null) add('team version', 'unverified', `installed version ${manifest.templateVersion ?? 'unknown'} cannot be compared with ${TEMPLATE_VERSION}`);
-  else if (cmp < 0) add('team version', 'update', `installed ${manifest.templateVersion}, this plugin has ${TEMPLATE_VERSION}; run /agent-team-base:setup update to apply the new version to this project`);
-  else if (cmp > 0) add('team version', 'unverified', `installed ${manifest.templateVersion} is newer than this plugin (${TEMPLATE_VERSION}); update the plugin first (/plugin marketplace update jbeat-plugins, then claude plugin update agent-team-base@jbeat-plugins)`);
-  else add('team version', 'pass', `${manifest.templateVersion} matches this plugin`);
+  if (cmp === null) add('workflow version', 'unverified', `installed version ${manifest.templateVersion ?? 'unknown'} cannot be compared with ${TEMPLATE_VERSION}`);
+  else if (cmp < 0) add('workflow version', 'update', `installed ${manifest.templateVersion}, this plugin has ${TEMPLATE_VERSION}; run /subagent-workflow:setup update to apply the new version to this project`);
+  else if (cmp > 0) add('workflow version', 'unverified', `installed ${manifest.templateVersion} is newer than this plugin (${TEMPLATE_VERSION}); update the plugin first (/plugin marketplace update jbeat-plugins, then claude plugin update subagent-workflow@jbeat-plugins)`);
+  else add('workflow version', 'pass', `${manifest.templateVersion} matches this plugin`);
   const settings = readJson(join(dir, SETTINGS_PATH));
   const missingHooks = (manifest.settings.hooks ?? []).filter((h) => !(settings.value?.hooks?.[h.event] ?? []).some((g) => (g.hooks ?? []).some((x) => x.command === h.command)));
   add('settings hooks', settings.error || missingHooks.length ? 'fail' : 'pass', settings.error ?? (missingHooks.length ? `missing ${missingHooks.length}` : 'hooks registered'));
-  const skillOk = existsSync(join(dir, '.claude', 'skills', 'team', 'SKILL.md'));
-  add('team skill', skillOk ? 'pass' : 'fail', skillOk ? '/team skill present' : 'missing .claude/skills/team/SKILL.md');
+  const skillOk = existsSync(join(dir, '.claude', 'skills', 'subagent', 'SKILL.md'));
+  add('subagent skill', skillOk ? 'pass' : 'fail', skillOk ? '/subagent skill present' : 'missing .claude/skills/subagent/SKILL.md');
   if (settings.value?.agent === 'pm-agent') add('settings agent', 'unverified', 'legacy agent=pm-agent pins every request to the PM; run the update to release it');
   const roles = ROLE_FILES.filter((r) => !existsSync(join(dir, '.claude', 'agents', `${r}.md`)));
   add('role files', roles.length ? 'fail' : 'pass', roles.length ? `missing ${roles.join(', ')}` : 'all 9 role files present');
@@ -669,7 +666,7 @@ function verify(dir, options) {
   add('claude version', claude.status === 'ok' ? 'pass' : claude.status === 'below' ? 'fail' : 'unverified', `${claude.version ?? 'unavailable'} (minimum ${MIN_CLAUDE})`);
   const canary = guardCanary(dir);
   add('guard canary', canary.status, canary.detail);
-  const strict = existsSync(join(dir, '.claude/team/profile.md')) && /^- Protection mode:\s*strict\s*$/m.test(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'));
+  const strict = existsSync(join(dir, '.claude/subagent/profile.md')) && /^- Protection mode:\s*strict\s*$/m.test(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'));
   if (strict) add('strict approval', 'unverified', 'direct approval scope, registration, and default interactive runs need a separate check; never treat as automatically confirmed');
   if (options.live && strict) {
     add('guard live', 'unverified', 'strict mode needs direct approval and guard firing checked in a default interactive session; non-interactive call skipped');
@@ -769,7 +766,7 @@ function remove(dir, options) {
   const gAbs = join(dir, GITIGNORE_PATH);
   if (manifest.gitignore === 'added' && existsSync(gAbs)) {
     const text = readFileSync(gAbs, 'utf8');
-    const pattern = new RegExp(`\\n?(?:${GITIGNORE_BEGIN}[\\s\\S]*?${GITIGNORE_END}|${LEGACY_GITIGNORE_BEGIN}[\\s\\S]*?${LEGACY_GITIGNORE_END})\\n?`);
+    const pattern = new RegExp(`\\n?${GITIGNORE_BEGIN}[\\s\\S]*?${GITIGNORE_END}\\n?`);
     if (pattern.test(text)) {
       const next = text.replace(pattern, '\n').replace(/^\n+/, '');
       actions.push('removed .gitignore block');
@@ -783,13 +780,13 @@ function remove(dir, options) {
     unlinkSync(manifestFile);
     pruneEmptyDirs(dir, MANIFEST_PATH);
   }
-  return output({ ok: true, dryRun: !apply, removed, kept, actions, backups: manifest.backups, note: apply ? 'task records (.claude-team-docs) and backups are not deleted' : 'pass --yes to actually remove' });
+  return output({ ok: true, dryRun: !apply, removed, kept, actions, backups: manifest.backups, note: apply ? 'task records (.claude-subagent-docs) and backups are not deleted' : 'pass --yes to actually remove' });
 }
 
 // ---------- config ----------
 
-const PROFILE_PATH = '.claude/team/profile.md';
-// 설정 스킬이 보여 주는 MCP 목록: 선택 여부와 용도·주의 사항
+const PROFILE_PATH = '.claude/subagent/profile.md';
+// 설정 스킬이 보여 주는 MCP 목록: 선택 여부와 용도, 주의 사항
 const MCP_INFO = {
   context7: { kind: 'docs', used_by: 'PM and analysts', summary: 'Look up library documentation for the installed versions', note: 'Runs an external package through npx' },
   playwright: { kind: 'design', used_by: 'frontend-agent, qa-agent', summary: 'Open the running app in a browser and check it', note: 'Can see the content of the browser it opens; runs an external package through npx; a browser install may be needed' },
@@ -807,7 +804,7 @@ const setProfileLine = (text, label, value) => text.replace(new RegExp(`^- ${lab
 
 function config(dir, options) {
   const manifestFile = join(dir, MANIFEST_PATH);
-  if (!existsSync(manifestFile)) fail('the team is not installed in this project; run the setup skill first');
+  if (!existsSync(manifestFile)) fail('the workflow is not installed in this project; run the setup skill first');
   const manifest = readJson(manifestFile).value;
   const profileAbs = join(dir, PROFILE_PATH);
   if (!existsSync(profileAbs)) fail(`${PROFILE_PATH} is missing; run the update to restore it`);
@@ -882,7 +879,7 @@ function config(dir, options) {
       // 가드는 프로필의 보호 모드를 실행할 때마다 읽으므로 바로 적용됨, 엄격 모드의 부담을 적용 전에 알림
       if (setProtection === 'strict') {
         warnings.push('strict mode takes effect immediately: every edit by the main session needs an active approval registration, so ordinary edits are blocked until the user sets one up');
-        warnings.push('the user must run the grant and approve commands directly; agents never run them. Follow .claude/team/strict-mode.md');
+        warnings.push('the user must run the grant and approve commands directly; agents never run them. Follow .claude/subagent/strict-mode.md');
         warnings.push('strict mode is experimental and its interactive approval flow has not been verified; it is not a security boundary');
       }
     }
@@ -900,7 +897,7 @@ function config(dir, options) {
   for (const name of removeMcp) {
     const existing = nextServers[name];
     if (MCP_SERVERS[name] && existing) {
-      if (manifest.mcp?.[name] !== 'added') changes.push(`mcp: ${name} was not registered by this team; ${MCP_PATH} left unchanged, remove it yourself if unwanted`);
+      if (manifest.mcp?.[name] !== 'added') changes.push(`mcp: ${name} was not registered by this workflow; ${MCP_PATH} left unchanged, remove it yourself if unwanted`);
       else if (JSON.stringify(existing) !== JSON.stringify(MCP_SERVERS[name])) {
         conflicts.push({ item: `${MCP_PATH} ${name}`, reason: `the ${name} setting was changed after install; left unchanged` });
         continue;

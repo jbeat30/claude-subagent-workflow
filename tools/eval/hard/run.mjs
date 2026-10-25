@@ -1,7 +1,7 @@
-// 어려운 과제 1회 실행기: 격리된 환경에서 직접 처리·Lite·Full을 같은 조건으로 실행하고 코드로 채점
+// 어려운 과제 1회 실행기: 격리된 환경에서 직접 처리, Lite, Full을 같은 조건으로 실행하고 코드로 채점
 // 사용법: REPO=<저장소 경로> BUDGET=2 node run.mjs <direct|lite|full> <taskId> <rep> <출력 폴더>
 // 환경 변수: BUDGET(호출당 달러 상한), MODEL(기본 sonnet), CLAUDE_BIN(claude 실행 파일), PERM(기본 acceptEdits)
-// 격리: 사용자 플러그인·MCP·슬래시 명령·전역 설정을 끄고 프로젝트 설정만 사용(없으면 호출당 약 14만 토큰이 더해짐)
+// 격리: 사용자 플러그인, MCP, 슬래시 명령, 전역 설정을 끄고 프로젝트 설정만 사용(없으면 호출당 약 14만 토큰이 더해짐)
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -17,7 +17,7 @@ const MODEL = process.env.MODEL ?? 'sonnet';
 const CLAUDE = process.env.CLAUDE_BIN ?? 'claude';
 const PERMISSION = process.env.PERM ?? 'acceptEdits';
 if (!['direct', 'lite', 'full'].includes(condition) || !tasks[taskId] || !outDir) throw new Error('usage: run.mjs <direct|lite|full> <taskId> <rep> <outDir>');
-if (condition !== 'direct' && !repo) throw new Error('REPO is required for team conditions');
+if (condition !== 'direct' && !repo) throw new Error('REPO is required for workflow conditions');
 
 const task = tasks[taskId];
 const work = realpathSync.native(mkdtempSync(join(tmpdir(), `evalhard-${condition}-${taskId}-r${rep}-`)));
@@ -41,17 +41,17 @@ if (condition !== 'direct') {
   const applied = install(['apply', '--target', work, '--answers', answersFile, '--plan-hash', plan.hash]);
   if (applied.status !== 0) throw new Error(`install failed: ${applied.stderr}${applied.stdout}`);
   sh('git', ['add', '-A']);
-  sh('git', ['-c', 'user.name=e', '-c', 'user.email=e@e', 'commit', '-qm', 'team']);
+  sh('git', ['-c', 'user.name=e', '-c', 'user.email=e@e', 'commit', '-qm', 'init']);
 }
 
 const version = spawnSync(CLAUDE, ['--version'], { encoding: 'utf8' }).stdout?.trim();
 const repoCommit = repo ? spawnSync('git', ['-C', repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim() : null;
 const started = Date.now();
 const run = sh(CLAUDE, [
-  '-p', (condition === 'direct' ? '' : '/team ') + task.prompt + AUTOMATION_NOTE, '--output-format', 'stream-json', '--verbose', '--model', MODEL,
+  '-p', (condition === 'direct' ? '' : '/subagent ') + task.prompt + AUTOMATION_NOTE, '--output-format', 'stream-json', '--verbose', '--model', MODEL,
   '--permission-mode', PERMISSION, '--max-budget-usd', BUDGET,
   '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--setting-sources', 'project',
-  '--allowedTools', 'Bash(npm test)', 'Bash(node .claude/team/bin/*)', 'Bash(git diff:*)', 'Bash(git status:*)',
+  '--allowedTools', 'Bash(npm test)', 'Bash(node .claude/subagent/bin/*)', 'Bash(git diff:*)', 'Bash(git status:*)',
 ], { maxBuffer: 256 * 1024 * 1024, timeout: 40 * 60 * 1000 });
 const wallMs = Date.now() - started;
 
@@ -94,7 +94,7 @@ const summary = {
   costUsd: result.total_cost_usd ?? null, turns: result.num_turns ?? null, wallMs,
   tokens: { input: usage.input_tokens ?? 0, cacheCreation: usage.cache_creation_input_tokens ?? 0, cacheRead: usage.cache_read_input_tokens ?? 0, output: usage.output_tokens ?? 0 },
   resultEvents: results.length, delegations, delegationCount: delegations.length,
-  usedPlanFiles: calls.some((c) => c.name === 'Write') && events.some((e) => JSON.stringify(e).includes('.claude-team-docs/runs/')),
+  usedPlanFiles: calls.some((c) => c.name === 'Write') && events.some((e) => JSON.stringify(e).includes('.claude-subagent-docs/runs/')),
   score, workdir: work, stderr: (run.stderr ?? '').slice(0, 1000),
 };
 writeFileSync(join(outDir, `${stem}.json`), JSON.stringify(summary, null, 2));

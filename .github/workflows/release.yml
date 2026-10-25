@@ -47,7 +47,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
           MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
-          PLUGIN_NAME: agent-team-base
+          PLUGIN_NAME: subagent-workflow
           MARKETPLACE_REPO: jbeat30/jbeat-plugins
         shell: bash
         run: |

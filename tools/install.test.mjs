@@ -387,10 +387,10 @@ test('기존 .mcp.json·.gitignore의 사용자 항목은 설치·갱신·제거
   assert.equal(existsSync(join(dir, '.claude', 'team', 'manifest.json')), false);
 });
 
-test('이름 변경 이전 설치의 .gitignore 표식(claude-team-base)도 중복 없이 인식하고 제거', () => {
+for (const legacy of ['claude-team-base', 'agent-team-base']) test(`이름 변경 이전 설치의 .gitignore 표식(${legacy})도 중복 없이 인식하고 제거`, () => {
   const { dir, file } = installFresh({ '.gitignore': 'node_modules/\n' });
   const gitignore = join(dir, '.gitignore');
-  writeFileSync(gitignore, readFileSync(gitignore, 'utf8').replaceAll('agent-team-base', 'claude-team-base'));
+  writeFileSync(gitignore, readFileSync(gitignore, 'utf8').replaceAll('subagent-workflow', legacy));
 
   assert.equal(install(planArgs(dir, file)).json.gitignore.action, 'already');
 
@@ -662,7 +662,7 @@ test('verify: 설치된 팀 버전이 플러그인보다 낮으면 갱신 안내
   const older = versionCheck();
   const olderCheck = older.checks.find((c) => c.name === 'team version');
   assert.equal(olderCheck.status, 'update');
-  assert.match(olderCheck.detail, /agent-team-base:setup update/);
+  assert.match(olderCheck.detail, /subagent-workflow:setup update/);
   assert.equal(older.ok, true, '버전 차이는 실패가 아닌 안내');
 
   manifest.templateVersion = '99.0.0';
@@ -670,7 +670,7 @@ test('verify: 설치된 팀 버전이 플러그인보다 낮으면 갱신 안내
   const newer = versionCheck();
   const newerCheck = newer.checks.find((c) => c.name === 'team version');
   assert.equal(newerCheck.status, 'unverified');
-  assert.match(newerCheck.detail, /claude plugin update agent-team-base@jbeat-plugins/);
+  assert.match(newerCheck.detail, /claude plugin update subagent-workflow@jbeat-plugins/);
 
   manifest.templateVersion = 'abc';
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));

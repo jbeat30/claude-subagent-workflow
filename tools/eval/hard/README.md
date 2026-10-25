@@ -14,7 +14,7 @@
 
 ## 실행
 
-요구 사항: Node 18 이상, `claude` CLI 로그인
+요구 사항: Node 20 이상, `claude` CLI 로그인
 
 ```sh
 REPO=<저장소 경로> BUDGET=2 CLAUDE_BIN=<claude 실행 파일> node tools/eval/hard/run.mjs <direct|lite|full> <s1|s2|x1|m1|m2|m3|l1|l2> <반복 번호> <출력 폴더>

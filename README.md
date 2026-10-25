@@ -6,7 +6,7 @@
   <a href="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/release-v0.3.8-blue" alt="release: v0.3.8">
   <img src="https://img.shields.io/badge/Claude%20Code-%E2%89%A5%202.1.302-5A67D8" alt="Claude Code 2.1.302 이상">
-  <img src="https://img.shields.io/badge/Node-%E2%89%A5%2018-339933" alt="Node 18 이상">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A5%2020-339933" alt="Node 20 이상">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
 </p>
 
@@ -38,7 +38,7 @@
 
 ## 빠른 시작
 
-요구 사항: Claude Code 2.1.302 이상, Node 18 이상
+요구 사항: Claude Code 2.1.302 이상, Node 20 이상
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins
@@ -101,7 +101,7 @@
 - 변경 제안: 저장소를 포크한 뒤 PR을 보내 주세요. 대상은 소유자가 지정한 `feature/vX.Y.Z`예요.
 - `main`·`release`·`feature`는 PR이 필수이고 강제 푸시가 금지돼요. 외부 기여자는 직접 푸시하거나 머지할 수 없어요.
 - 외부 기여자의 포크 PR 워크플로는 기여 이력과 관계없이 소유자의 실행 승인이 필요해요.
-- 개발 환경은 Node 18 이상이에요. `npm test`로 정적 검사와 단위 테스트를 돌려요. 실제 Claude 측정까지의 검사 방법은 [검사 방법](docs/verification/TESTING.md)을 보세요.
+- 개발 환경은 Node 20 이상이에요. `npm test`로 정적 검사와 단위 테스트를 돌려요. 실제 Claude 측정까지의 검사 방법은 [검사 방법](docs/verification/TESTING.md)을 보세요.
 - 자세한 규칙: [기여 안내](.github/CONTRIBUTING.md), [브랜치 전략](.github/BRANCH_STRATEGY.md), [개발 규칙](AGENTS.md)
 - 보안 취약점은 [SECURITY.md](SECURITY.md)를 보고 비공개로 제보해 주세요.
 

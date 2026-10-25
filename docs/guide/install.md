@@ -4,7 +4,7 @@
 
 ## 설치 흐름
 
-요구 사항: Claude Code 2.1.302 이상, Node 18 이상
+요구 사항: Claude Code 2.1.302 이상, Node 20 이상
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins

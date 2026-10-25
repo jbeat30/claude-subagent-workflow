@@ -73,7 +73,8 @@ git clean으로 미추적·ignored 파일을 삭제하는 작업은 초기화에
 - 타입: feat, fix, refactor, perf, style, docs, test, chore, ci, build, revert, release
 - 관련 커밋을 쌓아 기능별 PR 구성, 커밋마다 PR 생성 금지
 - 본문: 개요 / 변경 사항 / 검증 / 참고
-- AI 생성 문구 금지, 소유자 예외로 `Co-Authored-By: Claude <noreply@anthropic.com>` 트레일러만 허용(v0.2.0부터)
+- AI 생성 문구 금지, 소유자 예외로 `Co-Authored-By: Claude <noreply@anthropic.com>` 트레일러만 허용(v0.2.0부터, Contributors 표기 목적)
+- 트레일러 예외는 `feat`, `fix`, `refactor`, `perf`, `test` 커밋의 도구 코드에만 적용, `chore`, `docs`, `ci`, `style`, `build`, `release` 커밋과 모든 PR 본문에는 넣지 않음
 - 소유자 검토 후 머지, QA 통과와 머지·배포 승인 구분
 
 ## 보호

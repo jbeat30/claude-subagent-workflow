@@ -32,7 +32,7 @@ If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*subage
 
 ## Usage mode
 
-Do not ask for a mode at install. Every role file is installed and the workflow starts in Lite. Say in one line that the default mode (Lite or Full) and the MCP servers can be changed later with `/subagent-workflow:setting`, and that a single request can ask for Full ("handle this in Full mode").
+Do not ask for a mode at install. Every role file is installed and the workflow starts in Lite. Do not ask for the protection mode either; it installs in advisory mode and strict is only on explicit request. Say in one line that the default mode (Lite or Full), the protection mode, and the MCP servers can be changed later with `/subagent-workflow:setting`, and that a single request can ask for Full ("handle this in Full mode").
 
 ## Rules
 

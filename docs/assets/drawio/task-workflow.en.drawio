@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="32.6.1">
+  <diagram name="task-workflow.en">
+    <mxGraphModel page="1" pageWidth="2000" pageHeight="700" background="#FAF8F2" adaptiveColors="none" grid="0" shadow="0">
+      <root>
+        <mxCell id="0" style="" />
+        <mxCell id="1" parent="0" style="" />
+        <mxCell id="2" vertex="1" parent="1" value="" style="shape=rectangle;fillColor=#FAF8F2;strokeColor=none;locked=1;connectable=0;">
+          <mxGeometry as="geometry" x="0" y="0" width="2000" height="700" />
+        </mxCell>
+        <mxCell id="3" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G0, /subagent, Triage&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;classify as Q, L1, L2, L3&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="40.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="4" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G1, Plan&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;requirements, acceptance&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;criteria, impact&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#eaf0df;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="365.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="5" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G2, Confirm&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;L3: always ask the user&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="690.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="6" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G3, Build&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;approved files only,&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;sequential writes&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f8e6cd;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1015.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="7" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G4, Independent QA&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;check records, checklist&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e8e1f0;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1340.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="8" vertex="1" parent="1" value="&lt;div style=&quot;font-size:24.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;G5, Final report&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;per-requirement status,&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;unverified&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1665.0" y="110.0" width="288.0" height="245.0" />
+        </mxCell>
+        <mxCell id="9" vertex="1" parent="1" value="&lt;div style=&quot;font-size:21.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Q, L1: handled directly by the PM&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;L1: self-check, raise to L2 if impact appears&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="40.0" y="430.0" width="530.0" height="90.0" />
+        </mxCell>
+        <mxCell id="10" vertex="1" parent="1" value="&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Ask the user for L3, or when&lt;/div&gt;&lt;div style=&quot;font-size:18.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;a decision is needed&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="690.0" y="430.0" width="288.0" height="130.0" />
+        </mxCell>
+        <mxCell id="11" vertex="1" parent="1" value="Rework failed items (max 3 rounds)" style="text;html=0;align=left;verticalAlign=top;whiteSpace=wrap;fontFamily=Malgun Gothic;fontSize=21.0;fontStyle=0;fontColor=#303B40;fillColor=none;strokeColor=none;spacing=0;">
+          <mxGeometry as="geometry" x="1165.0" y="428.0" width="370.984375" height="33.6" />
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="328.0" y="205.0" />
+            <mxPoint as="targetPoint" x="365.0" y="205.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="653.0" y="205.0" />
+            <mxPoint as="targetPoint" x="690.0" y="205.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="978.0" y="205.0" />
+            <mxPoint as="targetPoint" x="1015.0" y="205.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1303.0" y="205.0" />
+            <mxPoint as="targetPoint" x="1340.0" y="205.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1628.0" y="205.0" />
+            <mxPoint as="targetPoint" x="1665.0" y="205.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#b1835e;endArrow=open;endSize=10;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="184.0" y="355.0" />
+            <mxPoint as="targetPoint" x="184.0" y="430.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="18" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#b1835e;endArrow=open;endSize=10;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="305.0" y="520.0" />
+            <mxPoint as="targetPoint" x="1848.0" y="110.0" />
+            <Array as="points">
+              <mxPoint x="305.0" y="620.0" />
+              <mxPoint x="1975.0" y="620.0" />
+              <mxPoint x="1975.0" y="75.0" />
+              <mxPoint x="1848.0" y="75.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="19" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#b1835e;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="834.0" y="355.0" />
+            <mxPoint as="targetPoint" x="834.0" y="430.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="20" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1484.0" y="355.0" />
+            <mxPoint as="targetPoint" x="1159.0" y="365.0" />
+            <Array as="points">
+              <mxPoint x="1484.0" y="415.0" />
+              <mxPoint x="1159.0" y="415.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

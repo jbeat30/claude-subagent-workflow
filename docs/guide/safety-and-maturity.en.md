@@ -4,7 +4,7 @@
 
 ## Safeguards and limits
 
-- **Guard hook (advisory mode)**: checks per-role write paths, source writes only after the plan is confirmed, edits only to assigned files, leaders' call targets, and sequential writing agents, and blocks on error.
+- **Guard hook (advisory mode)**: checks per-role write paths, source writes only after the plan is confirmed, edits only to assigned files, leaders' call targets, and sequential writing subagents, and blocks on error.
 - **A mistake-prevention aid, not a security boundary**: it does not stop main-session shell commands or changes to user and hook settings.
 - Check records are results the main session ran through the runner and are not fully tamper-proof; the QA report states the source.
 - Right after install the guard is checked with a real Claude call; if that is not confirmed, treat it as `no protection`.
@@ -12,7 +12,7 @@
 
 ### What are the protection mode and the guard hook?
 
-- **Guard hook**: a small script Claude Code runs right before it writes a file or calls another agent in this project. It blocks actions that break the rules, such as editing a file that is not in the confirmed plan or calling an agent that should not be called.
+- **Guard hook**: a small script Claude Code runs right before it writes a file or calls another subagent in this project. It blocks actions that break the rules, such as editing a file that is not in the confirmed plan or calling an subagent that should not be called.
 - **Advisory mode (default)**: the guard blocks rule violations. It is a safety net against mistakes, not a security boundary.
 - **Strict mode (optional)**: adds approval records on top of advisory mode. You approve the allowed paths and commands directly. It is experimental and applies to every edit of the main session.
 
@@ -31,6 +31,7 @@
 ![Cost, time, and tokens by mode](../verification/assets/mode-compare.en.svg)
 
 - [Small fixture run record](../verification/2026-10-19-small-fixture.md) (Korean), 14 runs, one each, non-interactive, with Korean prompts before the English switch: Lite cost about 12x and took 30x+ longer than direct handling on L2/L3 tasks, so Lite is the default and Full is opt-in for large work.
+- [v0.4.0 evaluation results](../verification/EVAL_RESULTS_v0.4.0.md) (Korean): two hard tasks (l1, m1) compared between direct handling and Lite, three runs each. On both tasks direct handling missed one caller and one implicit requirement in all three runs, and Lite missed none. Lite cost about 5 to 8 times more and took about 5 to 8 times longer. Two tasks, one model, and a small fixture, so it cannot be generalized.
 - [v0.3.7 check results](../verification/EVAL_RESULTS_v0.3.7.md) (Korean): one check each of five situations for deciding the UI verification method per target from the project's own rules. Not a utility evaluation.
 - [v0.3.6 check results](../verification/EVAL_RESULTS_v0.3.6.md) (Korean): one check each of the Figma connection types, rule priority, and the guard's `.claude/` protection scope; not a usefulness evaluation.
 - [v0.3.3 check results](../verification/EVAL_RESULTS_v0.3.3.md) (Korean): one check of switching the protection mode (advisory/strict) and of edits being blocked and released; not a usefulness evaluation

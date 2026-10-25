@@ -8,10 +8,9 @@
 ## 기준 문서
 
 - 작업 전 `.github/BRANCH_STRATEGY.md`와 `README.md` 확인
-- 개발 컨벤션: `docs/development/jbeat-conventions/CONVENTIONS.md`
-- 주석 상세: `docs/development/jbeat-conventions/references/comment-conventions.md`
-- 문서 확인: `docs/development/jbeat-conventions/references/tooling-verification.md`
-- 보고 상세: `docs/development/jbeat-conventions/references/reporting-format.md`
+- 개발 컨벤션: jbeat-conventions 플러그인(<https://github.com/jbeat30/jbeat-conventions>)의 `/jbeat-apply`로 불러 적용, 주석·언어·커밋·PR·보고·도구 검증 규칙을 모두 포함
+- 설치: `/plugin marketplace add jbeat30/jbeat-plugins` 후 `/plugin install jbeat-conventions@jbeat-plugins`, 컨벤션이 갱신되면 `/plugin update`로 반영
+- 컨벤션 본문을 이 저장소에 복사해 두지 않음, 규칙이 필요하면 플러그인 쪽에서 수정
 
 ## 소유자와 기여자 구분
 
@@ -25,15 +24,10 @@
 
 ## 이 저장소의 추가 방침
 
-- 한국어 기본, 영어 README와 영어 사용 예시는 허용
-- 주석·코멘트·안내 문구는 간결한 명사형 또는 지시형 사용
-- `~입니다`, `~하고 있습니다`, `~하는 로직입니다` 형태의 문구 지양
-- 주석은 의도·제약·정책 중심, 마침표 생략
-- 커밋·PR 제목은 타입과 한국어 명사형 설명 사용
-- AI 생성 문구 금지, 소유자 예외로 커밋·PR에 `Co-Authored-By: Claude <noreply@anthropic.com>` 트레일러 허용(v0.2.0부터, Contributors 표기 목적), 그 외 서명 문구는 금지
-- develop은 개발·검증용 직접 커밋 허용, main 반영은 release PR 경유
-- main·feature·release 머지와 공개 릴리즈 실행은 사용자 지시 범위 확인
-- 설치·원격 변경·권한 변경의 승인을 다른 작업 권한으로 확대 해석 금지
+- 문체, 주석, 커밋·PR 형식, 지시 범위와 승인 범위 규칙은 jbeat-conventions를 따름
+- 이 저장소만의 규칙은 아래 두 가지
+  1. develop은 개발·검증용 직접 커밋 허용, main 반영은 release PR 경유
+  2. 커밋 서명 예외는 `.github/BRANCH_STRATEGY.md`의 커밋·PR 절 참고
 
 ## 사용자 프로젝트 적용 원칙
 

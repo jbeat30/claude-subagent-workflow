@@ -28,6 +28,6 @@ claude plugin update subagent-workflow@jbeat-plugins
 ```
 
 - Update: **fully replaces** the installed workflow files with the new version. It shows the changes as a plan and applies them after confirmation. Files you edited after install are never overwritten automatically; you choose skip or replace with backup.
-- Updating from v0.2.x or earlier releases the `agent=pm-agent` setting that version added, so the main session is no longer pinned to the PM, and deletes the unmodified legacy PM agent file (settings and files you changed are kept).
+- Updating from v0.2.x or earlier releases the `agent=pm-agent` setting that version added, so the main session is no longer pinned to the PM, and deletes the unmodified legacy PM subagent file (settings and files you changed are kept).
 - Removal: shows a preview and, after confirmation, reverts only what was installed. Files you edited are kept, and task records (`.claude-subagent-docs`) and backups are not deleted.
 - From v0.2.0 prompts and record labels are English, so runs left in progress by an older version are not read by the new one. Finish them before updating.

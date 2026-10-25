@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="32.6.1">
+  <diagram name="subagent-on-demand.ko">
+    <mxGraphModel page="1" pageWidth="2000" pageHeight="700" background="#FAF8F2" adaptiveColors="none" grid="0" shadow="0">
+      <root>
+        <mxCell id="0" style="" />
+        <mxCell id="1" parent="0" style="" />
+        <mxCell id="2" vertex="1" parent="1" value="" style="shape=rectangle;fillColor=#FAF8F2;strokeColor=none;locked=1;connectable=0;">
+          <mxGeometry as="geometry" x="0" y="0" width="2000" height="700" />
+        </mxCell>
+        <mxCell id="3" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;내 요청&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="40.0" y="280.0" width="320.0" height="130.0" />
+        </mxCell>
+        <mxCell id="4" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;평소처럼 요청&lt;/div&gt;&lt;div style=&quot;font-size:21.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;그냥 말하기&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="470.0" y="60.0" width="430.0" height="160.0" />
+        </mxCell>
+        <mxCell id="5" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;Claude가 바로 처리&lt;/div&gt;&lt;div style=&quot;font-size:21.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;간단한 질문, 작은 수정에 알맞아요&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1000.0" y="60.0" width="760.0" height="160.0" />
+        </mxCell>
+        <mxCell id="6" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;워크플로 호출&lt;/div&gt;&lt;div style=&quot;font-size:19.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;/subagent 요청 또는 &amp;quot;서브에이전트로 해줘&amp;quot;&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#f3eadc;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="470.0" y="400.0" width="430.0" height="160.0" />
+        </mxCell>
+        <mxCell id="7" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;PM이 분류&lt;/div&gt;&lt;div style=&quot;font-size:19.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;간단하면 바로 처리, 크면 워크플로가 나서요&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e2edf8;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1000.0" y="400.0" width="420.0" height="160.0" />
+        </mxCell>
+        <mxCell id="8" vertex="1" parent="1" value="&lt;div style=&quot;font-size:29.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;기획 → 확인 → 개발 → 검증&lt;/div&gt;&lt;div style=&quot;font-size:21.0px;font-weight:normal;line-height:1.35;color:#303B40;&quot;&gt;호출처, 계약, 빠뜨린 요구를 챙겨요&lt;/div&gt;" style=";whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontFamily=Malgun Gothic;fontColor=#303B40;fillColor=#e8e1f0;spacing=12;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;fontStyle=0;">
+          <mxGeometry as="geometry" x="1520.0" y="400.0" width="440.0" height="160.0" />
+        </mxCell>
+        <mxCell id="9" vertex="1" parent="1" value="가장 빠르고 토큰이 적어요" style="text;html=0;align=left;verticalAlign=top;whiteSpace=wrap;fontFamily=Malgun Gothic;fontSize=23.0;fontStyle=0;fontColor=#303B40;fillColor=none;strokeColor=none;spacing=0;">
+          <mxGeometry as="geometry" x="1000.0" y="245.0" width="312.0" height="36.800000000000004" />
+        </mxCell>
+        <mxCell id="10" vertex="1" parent="1" value="시간과 토큰이 더 들어요" style="text;html=0;align=left;verticalAlign=top;whiteSpace=wrap;fontFamily=Malgun Gothic;fontSize=23.0;fontStyle=0;fontColor=#303B40;fillColor=none;strokeColor=none;spacing=0;">
+          <mxGeometry as="geometry" x="1000.0" y="585.0" width="289.0" height="36.800000000000004" />
+        </mxCell>
+        <mxCell id="11" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="900.0" y="140.0" />
+            <mxPoint as="targetPoint" x="990.0" y="140.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="900.0" y="480.0" />
+            <mxPoint as="targetPoint" x="990.0" y="480.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1420.0" y="480.0" />
+            <mxPoint as="targetPoint" x="1510.0" y="480.0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=none;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="360.0" y="345.0" />
+            <mxPoint as="targetPoint" x="470.0" y="140.0" />
+            <Array as="points">
+              <mxPoint x="415.0" y="345.0" />
+              <mxPoint x="415.0" y="140.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" style="edgeStyle=none;rounded=0;sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=none;endSize=10;dashed=0;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="360.0" y="345.0" />
+            <mxPoint as="targetPoint" x="470.0" y="480.0" />
+            <Array as="points">
+              <mxPoint x="415.0" y="345.0" />
+              <mxPoint x="415.0" y="480.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

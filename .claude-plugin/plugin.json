@@ -1,6 +1,6 @@
 {
   "name": "subagent-workflow",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Jbeat Claude Code subagent workflow (a PM session delegating to role subagents) that respects existing project policies, installed through a skill.",
   "author": {
     "name": "jbeat",

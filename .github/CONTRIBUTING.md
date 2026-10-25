@@ -9,6 +9,12 @@
 - `npm test`로 정적 검사와 단위 테스트 실행, 통과 결과와 실행하지 못한 검사를 PR에 명시, 전체 검사 방법은 [검사 방법](../docs/verification/TESTING.md)
 - `template/`은 사용자 프로젝트에 복사되는 배포 원본, 역할 정의를 바꾸면 `tools/validate-template.mjs`도 함께 갱신
 
+## 문서 이미지
+
+- 원본은 `docs/assets/drawio/`의 draw.io 파일, 수정은 draw.io로 열어 편집한 뒤 같은 이름의 이미지(`docs/assets/`)로 내보내기
+- 한국어와 영어 이미지는 `.ko`, `.en` 접미사로 짝을 맞추고 함께 갱신
+- `docs/assets/drawio/all-diagrams.drawio`는 전체 도식을 한 파일에 모은 것
+
 ## 검사 종류
 
 | 검사 | 비용 | 필요한 경우 |

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'template');
 const agentsDir = join(root, '.claude', 'agents');
-const teamDir = join(root, '.claude', 'team');
+const subagentDir = join(root, '.claude', 'subagent');
 
 // 역할별 허용 도구 상한, pm-agent는 Agent 호출 대상 검사를 별도로 수행
 const context7 = ['mcp__context7__resolve-library-id', 'mcp__context7__query-docs'];
@@ -93,7 +93,7 @@ for (const file of agentFiles) {
   const tools = fields.tools ? splitTools(fields.tools) : [];
 
   if (name === 'pm-agent') {
-    fail(file, 'PM은 agents가 아니라 skills/team/SKILL.md, 에이전트로 두면 서브에이전트로 오인되어 호출될 수 있음');
+    fail(file, 'PM은 agents가 아니라 skills/subagent/SKILL.md, 에이전트로 두면 서브에이전트로 오인되어 호출될 수 있음');
     continue;
   }
 
@@ -126,36 +126,36 @@ for (const file of agentFiles) {
   }
 }
 
-// PM 스킬: 사용자가 부를 때만 켜지는 /team, 호출 대상 제한과 필수 절 확인
-const skillPath = join(root, '.claude', 'skills', 'team', 'SKILL.md');
-if (!existsSync(skillPath)) fail('skills/team/SKILL.md', 'PM 스킬 파일 없음');
+// PM 스킬: 사용자가 부를 때만 켜지는 /subagent, 호출 대상 제한과 필수 절 확인
+const skillPath = join(root, '.claude', 'skills', 'subagent', 'SKILL.md');
+if (!existsSync(skillPath)) fail('skills/subagent/SKILL.md', 'PM 스킬 파일 없음');
 else {
   const skill = parseFrontmatter(readFileSync(skillPath, 'utf8'));
-  if (!skill) fail('skills/team/SKILL.md', 'frontmatter 없음');
+  if (!skill) fail('skills/subagent/SKILL.md', 'frontmatter 없음');
   else {
     const { fields, body } = skill;
-    if (fields.name !== 'team') fail('skills/team/SKILL.md', 'name은 team');
-    if (!fields.description) fail('skills/team/SKILL.md', 'description 없음');
+    if (fields.name !== 'subagent') fail('skills/subagent/SKILL.md', 'name은 subagent');
+    if (!fields.description) fail('skills/subagent/SKILL.md', 'description 없음');
     else {
-      if (/[가-힣]/.test(fields.description)) fail('skills/team/SKILL.md', 'description은 영어로 작성');
-      if (!/explicitly/.test(fields.description)) fail('skills/team/SKILL.md', 'description에 사용자가 명시적으로 요청할 때만 쓴다는 조건 필요');
+      if (/[가-힣]/.test(fields.description)) fail('skills/subagent/SKILL.md', 'description은 영어로 작성');
+      if (!/explicitly/.test(fields.description)) fail('skills/subagent/SKILL.md', 'description에 사용자가 명시적으로 요청할 때만 쓴다는 조건 필요');
     }
-    if (fields['disable-model-invocation'] === 'true') fail('skills/team/SKILL.md', '말로 부르는 호출을 막으면 안 됨');
+    if (fields['disable-model-invocation'] === 'true') fail('skills/subagent/SKILL.md', '말로 부르는 호출을 막으면 안 됨');
     const agentTool = splitTools(fields['allowed-tools'] ?? '').find((x) => x.startsWith('Agent('));
-    if (!agentTool) fail('skills/team/SKILL.md', 'Agent 호출 대상 제한(Agent(...)) 필요');
+    if (!agentTool) fail('skills/subagent/SKILL.md', 'Agent 호출 대상 제한(Agent(...)) 필요');
     else {
       for (const target of agentTool.slice(6, -1).split(',').map((s) => s.trim())) {
-        if (!agentNames.has(target)) fail('skills/team/SKILL.md', `Agent 대상 ${target}의 정의 파일 없음`);
+        if (!agentNames.has(target)) fail('skills/subagent/SKILL.md', `Agent 대상 ${target}의 정의 파일 없음`);
       }
     }
-    for (const needle of ['# Relay mode', '# Requirement preservation check', 'team-check.mjs trace']) {
-      if (!body.includes(needle)) fail('skills/team/SKILL.md', `${needle} 없음`);
+    for (const needle of ['# Relay mode', '# Requirement preservation check', 'subagent-check.mjs trace']) {
+      if (!body.includes(needle)) fail('skills/subagent/SKILL.md', `${needle} 없음`);
     }
   }
 }
 
 // PM 지침의 필수 규칙: 분리된 참조 파일까지 합친 본문에서 확인
-const pmText = ['skills/team/SKILL.md', 'team/relay-mode.md', 'team/design-tools.md', 'team/strict-mode.md', 'team/rule-priority.md', 'team/ui-verification.md']
+const pmText = ['skills/subagent/SKILL.md', 'subagent/relay-mode.md', 'subagent/design-tools.md', 'subagent/strict-mode.md', 'subagent/rule-priority.md', 'subagent/ui-verification.md']
   .map((p) => (existsSync(join(root, '.claude', p)) ? readFileSync(join(root, '.claude', p), 'utf8') : ''))
   .join('\n');
 for (const [label, re] of PM_RULES) {
@@ -165,7 +165,7 @@ for (const [label, re] of PM_RULES) {
 // UI 검증 방식 문서를 UI 검증 역할이 참조하는지 확인
 for (const role of ['planner-agent', 'frontend-agent', 'qa-agent']) {
   const p = join(root, '.claude', 'agents', `${role}.md`);
-  if (existsSync(p) && !readFileSync(p, 'utf8').includes('.claude/team/ui-verification.md')) fail(`agents/${role}.md`, 'ui-verification.md 참조 없음');
+  if (existsSync(p) && !readFileSync(p, 'utf8').includes('.claude/subagent/ui-verification.md')) fail(`agents/${role}.md`, 'ui-verification.md 참조 없음');
 }
 
 // 문체와 참조 검사
@@ -182,10 +182,10 @@ for (const path of walk(root).filter((p) => p.endsWith('.md'))) {
   for (const phrase of bannedPhrases) {
     if (text.includes(phrase)) fail(rel, `지양 문구 "${phrase}" 포함`);
   }
-  for (const m of text.matchAll(/\.claude\/team\/((?:bin\/)?[A-Za-z0-9._-]+\.(?:md|mjs))/g)) {
+  for (const m of text.matchAll(/\.claude\/subagent\/((?:bin\/)?[A-Za-z0-9._-]+\.(?:md|mjs))/g)) {
     const ref = m[1];
     if (generatedRefs.has(ref)) continue;
-    if (!existsSync(join(teamDir, ref))) fail(rel, `참조 파일 .claude/team/${ref} 없음`);
+    if (!existsSync(join(subagentDir, ref))) fail(rel, `참조 파일 .claude/subagent/${ref} 없음`);
   }
 }
 
@@ -194,10 +194,10 @@ const fragmentPath = join(root, '.claude', 'settings.fragment.json');
 if (!existsSync(fragmentPath)) fail('.claude/settings.fragment.json', '파일 없음');
 else {
   const fragment = JSON.parse(readFileSync(fragmentPath, 'utf8'));
-  if (fragment.agent !== undefined) fail('settings.fragment.json', 'agent 설정 금지, 팀은 요청 시에만 켜짐(/team)');
+  if (fragment.agent !== undefined) fail('settings.fragment.json', 'agent 설정 금지, 워크플로는 요청 시에만 켜짐(/subagent)');
   const pre = (fragment.hooks?.PreToolUse ?? []).flatMap((g) => g.hooks.map((h) => ({ ...h, matcher: g.matcher })));
-  const guard = pre.find((h) => /team-guard\.mjs/.test(h.command));
-  if (!guard) fail('settings.fragment.json', 'PreToolUse에 team-guard 없음');
+  const guard = pre.find((h) => /subagent-guard\.mjs/.test(h.command));
+  if (!guard) fail('settings.fragment.json', 'PreToolUse에 subagent-guard 없음');
   else {
     if (guard.onFailure !== 'block') fail('settings.fragment.json', 'PreToolUse hook에 onFailure block 필요');
     for (const tool of ['Write', 'Edit', 'Agent']) {
@@ -206,17 +206,17 @@ else {
     const script = guard.command.match(/(\.claude\/hooks\/[\w.-]+\.mjs)/)?.[1];
     if (!script || !existsSync(join(root, script))) fail('settings.fragment.json', 'hook 스크립트 파일 없음');
   }
-  if (!JSON.stringify(fragment.hooks?.PostToolUse ?? []).includes('team-guard')) fail('settings.fragment.json', 'PostToolUse에 team-guard 없음');
+  if (!JSON.stringify(fragment.hooks?.PostToolUse ?? []).includes('subagent-guard')) fail('settings.fragment.json', 'PostToolUse에 subagent-guard 없음');
 }
 
 // 기획안 양식의 12개 구성 번호 확인
-const planPath = join(teamDir, 'plan-template.md');
+const planPath = join(subagentDir, 'plan-template.md');
 if (existsSync(planPath)) {
   const plan = readFileSync(planPath, 'utf8');
   for (let i = 1; i <= 12; i++) {
-    if (!new RegExp(`^## ${i}\\. `, 'm').test(plan)) fail('.claude/team/plan-template.md', `구성 ${i}번 없음`);
+    if (!new RegExp(`^## ${i}\\. `, 'm').test(plan)) fail('.claude/subagent/plan-template.md', `구성 ${i}번 없음`);
   }
-} else fail('.claude/team/plan-template.md', '파일 없음');
+} else fail('.claude/subagent/plan-template.md', '파일 없음');
 
 // 플러그인 배포: 이름은 저장소명과 일치, 제작자 jbeat, 마켓플레이스는 jbeat-plugins(별도 저장소)에서 등록
 const repoRoot = join(root, '..');
@@ -254,4 +254,4 @@ if (errors.length) {
   for (const e of errors) console.error(`- ${e}`);
   process.exit(1);
 }
-console.log(`통과: 역할 정의 ${agentFiles.length}종, 양식 ${walk(teamDir).length}종 정적 검사 (문구·참조 확인이며 동작 검증 아님)`);
+console.log(`통과: 역할 정의 ${agentFiles.length}종, 양식 ${walk(subagentDir).length}종 정적 검사 (문구·참조 확인이며 동작 검증 아님)`);

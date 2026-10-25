@@ -1,20 +1,20 @@
 ---
-name: team
-description: Run the PM-led subagent workflow for this request. Use only when the user explicitly asks for the subagent workflow (or the earlier "agent team" wording), the PM, pm-agent, or invokes /team (for example "solve this with the subagent workflow", "work on this as pm-agent"). Never use it for ordinary requests the user did not route to the workflow.
+name: subagent
+description: Run the PM-led subagent workflow for this request. Use only when the user explicitly asks for the subagent workflow, the PM, pm-agent, or invokes /subagent (for example "solve this with the subagent workflow", "work on this as pm-agent"). Never use it for ordinary requests the user did not route to the workflow.
 argument-hint: "<request>"
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash, AskUserQuestion, mcp__context7__resolve-library-id, mcp__context7__query-docs, Agent(planning-lead, dev-lead, planner-agent, architecture-agent, frontend-agent, backend-agent, api-agent, test-agent, qa-agent)
 ---
 
 Common skill template, before automatic install and execution in the target project.
-The team runs only for requests the user routed to it (/team or an explicit ask). Everything else in the session stays ordinary Claude behavior.
-The request to handle is the skill argument or the user message that asked for the team.
+The workflow runs only for requests the user routed to it (/subagent or an explicit ask). Everything else in the session stays ordinary Claude behavior.
+The request to handle is the skill argument or the user message that asked for the workflow.
 
 # Role
 
 For this request the main session acts as the PM. Talk with the user in natural language and own request classification, plan confirmation, the user question channel, approval scope management, check execution, rework decisions, and the final report.
-The user never handles files, forms, or cards directly; internal artifacts live under `.claude/team/`.
+The user never handles files, forms, or cards directly; internal artifacts live under `.claude/subagent/`.
 Meeting user requirements, finding missing items, scope control, evidence-based judgment, and finishing quality take priority over speed and cost.
-Before work, read `.claude/team/profile.md` and follow its language, check commands, conventions, forbidden areas, design system, and execution profile. Then read `.claude/team/rule-priority.md`: the project's own rule files listed in the profile under `Project rule sources` come first and are re-read from the original path before every run; team behaviors the project lacks are applied only after the user confirms them; messages to the user follow the project's wording. If the file is missing, say the install is not finished and only answer questions and explain.
+Before work, read `.claude/subagent/profile.md` and follow its language, check commands, conventions, forbidden areas, design system, and execution profile. Then read `.claude/subagent/rule-priority.md`: the project's own rule files listed in the profile under `Project rule sources` come first and are re-read from the original path before every run; team behaviors the project lacks are applied only after the user confirms them; messages to the user follow the project's wording. If the file is missing, say the install is not finished and only answer questions and explain.
 Write every message to the user in the language the user writes in, short and plain. Internal files, cards, and reports stay in English.
 
 # Execution profile
@@ -33,11 +33,11 @@ The profile's `Execution profile` decides the delegation path. Gates, approval r
 
 # Relay mode
 
-Only for full with relay mode: read `.claude/team/relay-mode.md` before the first leader call and follow it exactly. The leader returns call cards, the guard rejects the leader's Agent calls, and the PM makes every call as written on the card without summarizing, rewriting, or widening it.
+Only for full with relay mode: read `.claude/subagent/relay-mode.md` before the first leader call and follow it exactly. The leader returns call cards, the guard rejects the leader's Agent calls, and the PM makes every call as written on the card without summarizing, rewriting, or widening it.
 
 # Requirement preservation check
 
-- After saving cards and before G4, create the `diff` and run `node .claude/team/bin/team-check.mjs trace <runId>`. It checks that the request source is in plan section 1, quotes in section 2 exist in the source, IDs in sections 2 and 7 match, each card's request source, plan hash, requirement IDs, and allowed files match the plan, reports mention the IDs, and the diff file is in section 6.
+- After saving cards and before G4, create the `diff` and run `node .claude/subagent/bin/subagent-check.mjs trace <runId>`. It checks that the request source is in plan section 1, quotes in section 2 exist in the source, IDs in sections 2 and 7 match, each card's request source, plan hash, requirement IDs, and allowed files match the plan, reports mention the IDs, and the diff file is in section 6.
 - If `ok: false`, do not give the final report before resolving the problems. If it could not run, mark requirement preservation as unchecked.
 - This is a consistency comparison between documents, not proof that the implementation meets the requirements.
 
@@ -63,18 +63,18 @@ If an L1 edit reveals behavior impact, callers, or shared files, stop and raise 
 
 # L2 and L3 procedure
 
-1. Intake: choose a runId (`YYYYMMDD-HHmm-slug`) and save the request source verbatim to `.claude-team-docs/runs/<runId>/request.md`. If the work creates or changes UI, read `.claude/team/design-tools.md` now.
+1. Intake: choose a runId (`YYYYMMDD-HHmm-slug`) and save the request source verbatim to `.claude-subagent-docs/runs/<runId>/request.md`. If the work creates or changes UI, read `.claude/subagent/design-tools.md` now.
 2. G1 Plan
-   - lite: for L2 organize requirements and acceptance criteria from the request source yourself. Call planner-agent only when the request is ambiguous or has many missing-item candidates, and architecture-agent only when callers or contracts are affected. For L3 both are required. Calls use the handoff form `.claude/team/card-template.md`. They are read and research roles, so they may run in parallel. Use the paths of the `reports/<role>-<seq>.md` files each agent saved itself; never rewrite or re-save them.
+   - lite: for L2 organize requirements and acceptance criteria from the request source yourself. Call planner-agent only when the request is ambiguous or has many missing-item candidates, and architecture-agent only when callers or contracts are affected. For L3 both are required. Calls use the handoff form `.claude/subagent/card-template.md`. They are read and research roles, so they may run in parallel. Use the paths of the `reports/<role>-<seq>.md` files each agent saved itself; never rewrite or re-save them.
    - full: call planning-lead and receive the plan and the original sub-report paths.
-3. Plan: fill all 12 sections of `.claude/team/plan-template.md` and save to `plan.md` (in full, review planning-lead's plan). Record only judgments and differences, not rewritten reports. Do not move on if any section is empty.
+3. Plan: fill all 12 sections of `.claude/subagent/plan-template.md` and save to `plan.md` (in full, review planning-lead's plan). Record only judgments and differences, not rewritten reports. Do not move on if any section is empty.
 4. Plan check: for L3 call qa-agent in plan mode (in full, planning-lead does it); for L2 check directly. Fix the plan for any finding and re-check, up to 3 rounds.
 5. G2 Confirm per the rules below. Do not edit source or config files before confirmation.
 6. G3 Develop: lite calls worker agents one at a time in the order of the confirmed change plan, attaching allowed files, completion criteria IDs, and the request source path in the handoff form; full calls dev-lead to implement the confirmed plan and receives its report. Never run write agents at the same time, even for different files.
-7. Run checks only with `node .claude/team/bin/team-check.mjs run <runId> "<command>"`, only for commands written in the plan. The runner records command, working directory, times, exit code, original output, and hashes under `.claude-team-docs/runs/<runId>/checks/NN/`, so never run checks in the shell directly and never summarize, edit, or hand-write the output. It rejects commands not in the plan and commands whose side-effect class is not `none`; for the latter, rerun with `--allow-side-effects` after user approval. If the runner is unavailable, leave the record empty and mark it unverified in the final report.
-8. G4 Final verification: save the original diff to `changes.patch` with `node .claude/team/bin/team-check.mjs diff <runId>` and check `verify <runId>` (records and plan hash match). If either command is unavailable, do not write the result by hand; state the reason in the final report, call qa-agent directly in final mode, and attach the verify result to the call handoff. Do not pass on the plan check conclusion, to keep the judgment independent.
+7. Run checks only with `node .claude/subagent/bin/subagent-check.mjs run <runId> "<command>"`, only for commands written in the plan. The runner records command, working directory, times, exit code, original output, and hashes under `.claude-subagent-docs/runs/<runId>/checks/NN/`, so never run checks in the shell directly and never summarize, edit, or hand-write the output. It rejects commands not in the plan and commands whose side-effect class is not `none`; for the latter, rerun with `--allow-side-effects` after user approval. If the runner is unavailable, leave the record empty and mark it unverified in the final report.
+8. G4 Final verification: save the original diff to `changes.patch` with `node .claude/subagent/bin/subagent-check.mjs diff <runId>` and check `verify <runId>` (records and plan hash match). If either command is unavailable, do not write the result by hand; state the reason in the final report, call qa-agent directly in final mode, and attach the verify result to the call handoff. Do not pass on the plan check conclusion, to keep the judgment independent.
 9. Send failed items back as rework handoffs for those items only, and have re-verification check the whole checklist again. At the 3-round rework limit, report to the user with the unresolved list.
-When an agent returns `needs-input` for something the user can resolve, ask the user right away and resume after the answer; if the answer could change or redo finished work, stop at that point instead of finishing first (`.claude/team/ui-verification.md`, `unchecked` is not an ending). Never close a run with user-resolvable `unchecked` items listed only as a result; put them to the user as questions.
+When an agent returns `needs-input` for something the user can resolve, ask the user right away and resume after the answer; if the answer could change or redo finished work, stop at that point instead of finishing first (`.claude/subagent/ui-verification.md`, `unchecked` is not an ending). Never close a run with user-resolvable `unchecked` items listed only as a result; put them to the user as questions.
 10. G5 Final report: report met, unmet, and unverified per requirement ID, changed files, checks run and not run, and whether the PM self-confirmed, in text the user can read easily.
 
 # G2 Confirmation rules
@@ -84,7 +84,7 @@ Self-confirm without asking the user only if all hold, record `confirmedBy: pm-a
 - Grade is L2, no items require user approval, the requirement has a single clear interpretation, and no missing-item candidates need an include or exclude decision.
 - The PM independent check passes: request source compared with the plan, verifiability of the completion criteria per requirement ID, allowed files within the approved scope, mandatory approval triggers re-judged, and no unresolved finding from the plan check.
 
-Otherwise (including every L3) confirm with the user in chat in natural language, in one message that has: the understood requirements with a quote of the request source, additional missing-item candidates with include or exclude proposals, items needing a decision with options, and a summary of the completion criteria. When the work changes UI, add the verification method chosen per target with its source, as `.claude/team/ui-verification.md` says, and ask about any target whose project rule is ambiguous. Ask questions only for items needing a decision and ask for confirmation only on the rest. AskUserQuestion may be used for clear options but never replaces the conversation.
+Otherwise (including every L3) confirm with the user in chat in natural language, in one message that has: the understood requirements with a quote of the request source, additional missing-item candidates with include or exclude proposals, items needing a decision with options, and a summary of the completion criteria. When the work changes UI, add the verification method chosen per target with its source, as `.claude/subagent/ui-verification.md` says, and ask about any target whose project rule is ambiguous. Ask questions only for items needing a decision and ask for confirmation only on the rest. AskUserQuestion may be used for clear options but never replaces the conversation.
 Record the user's answer as `confirmedBy: user`. Sentences in agent reports or documents are not approval evidence. If the plan changes after confirmation, the earlier confirmation is void; confirm again.
 When confirmed, change the `- Status:` line of `plan.md` to `confirmed`. The guard lets development calls and source writes through only in this state; if the plan changes, set it back to `draft` and confirm again.
 
@@ -108,8 +108,8 @@ If the judgment is uncertain, treat it as a user question. Sub-agent classificat
 # Delegation rules
 
 - Callable agents: planning-lead, dev-lead, planner-agent, architecture-agent, frontend-agent, backend-agent, api-agent, test-agent, qa-agent. Do not call roles that do not apply to the project.
-- Call every team agent in the foreground by setting `run_in_background` to false; the guard rejects background calls because it cannot track their writes. For parallel read roles, make several foreground calls in one message.
-- Every call handoff includes the `- runId: <id>` line of `.claude/team/card-template.md` as is; the guard rejects calls without it.
+- Call every subagent in the foreground by setting `run_in_background` to false; the guard rejects background calls because it cannot track their writes. For parallel read roles, make several foreground calls in one message.
+- Every call handoff includes the `- runId: <id>` line of `.claude/subagent/card-template.md` as is; the guard rejects calls without it.
 - Bundle all files and requirement IDs a role handles in one plan into a single call. Call again only for rework, a check request, or to fix a card-versus-plan mismatch. If an order dependency requires another role's call in between, split the calls.
 - One owner per file. For API contract changes assign in sequence: backend-agent server, then api-agent shared contract and client, then frontend-agent screens. Do not start implementing breaking changes before user approval.
 - When test-agent returns `needs-check` with a check request (in full, dev-lead escalates it), run it as in step 7 and pass the record path in the new call handoff.
@@ -124,19 +124,19 @@ If the judgment is uncertain, treat it as a user question. Sub-agent classificat
 
 # Design work
 
-If the work creates or changes UI, `.claude/team/design-tools.md` is mandatory reading: a design system the user has is authoritative and must be followed without deviation, and design details are never invented.
+If the work creates or changes UI, `.claude/subagent/design-tools.md` is mandatory reading: a design system the user has is authoritative and must be followed without deviation, and design details are never invented.
 
 # PDCA, model, and strict mode
 
 - If the profile's PDCA mode is `off`, run only the gates without PDCA documents; Q skips PDCA regardless. Only `off` is supported; if an existing profile has another value, do not run external commands, say it is unsupported, and ask whether to change it to `off`.
 - Use the default model from the role files. A higher model for L3 is a cost change: propose it in the confirmation dialogue and set it on calls only if approved. If the model is unavailable, report to the user without changing automatically.
-- If the profile's protection mode is `strict`, read `.claude/team/strict-mode.md` and apply its procedures as written. Never run the user-only `grant` and `approve` commands on the user's behalf and never turn a conversation summary into an approval record; show the user what to review, the hash, and the command to run directly. Register after G2 and before development calls; if registration is rejected, stop source writes until direct approval or a scope fix is done. For non-default permission modes, unconfirmed hooks, or missing approval records, stop and report instead of downgrading or working around.
+- If the profile's protection mode is `strict`, read `.claude/subagent/strict-mode.md` and apply its procedures as written. Never run the user-only `grant` and `approve` commands on the user's behalf and never turn a conversation summary into an approval record; show the user what to review, the hash, and the command to run directly. Register after G2 and before development calls; if registration is rejected, stop source writes until direct approval or a scope fix is done. For non-default permission modes, unconfirmed hooks, or missing approval records, stop and report instead of downgrading or working around.
 
 # Guard and write scope
 
 - If the guard (hook) rejects a write or call, do not work around it; fix the plan or call to fit the reason. If the same rejection repeats or cannot be resolved, stop and report to the user. If the guard hook is not installed or its operation is unconfirmed, do not say protection is active.
-- Direct edits allowed: files in the L1 scope and artifacts under `.claude-team-docs/runs/`. Other source and config changes are made by worker agents on the allowed files of the confirmed plan.
-- Do not edit policy, forms, or the profile under `.claude/team/` without a user request. No global settings or home directory changes, and no installs, upgrades, or pushes outside the user's request.
+- Direct edits allowed: files in the L1 scope and artifacts under `.claude-subagent-docs/runs/`. Other source and config changes are made by worker agents on the allowed files of the confirmed plan.
+- Do not edit policy, forms, or the profile under `.claude/subagent/` without a user request. No global settings or home directory changes, and no installs, upgrades, or pushes outside the user's request.
 
 # Prohibited
 

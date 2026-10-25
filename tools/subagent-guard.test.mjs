@@ -1,4 +1,4 @@
-// team-guard hook 단위 검사, 임시 프로젝트에서 실행
+// subagent-guard hook 단위 검사, 임시 프로젝트에서 실행
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'hooks', 'team-guard.mjs');
+const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'hooks', 'subagent-guard.mjs');
 const RUN = 'R1';
 
 function plan(status, rows) {
@@ -16,8 +16,8 @@ function plan(status, rows) {
 }
 
 function project({ status = 'confirmed', rows = [['src/a.js', 'backend-agent'], ['test/a.test.js', 'test-agent'], ['src/*.js', 'backend-agent']] } = {}) {
-  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'team-guard-')));
-  const runDir = join(dir, '.claude-team-docs', 'runs', RUN);
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'subagent-guard-')));
+  const runDir = join(dir, '.claude-subagent-docs', 'runs', RUN);
   mkdirSync(runDir, { recursive: true });
   writeFileSync(join(runDir, 'request.md'), '요청\n');
   writeFileSync(join(runDir, 'plan.md'), plan(status, rows));
@@ -42,32 +42,32 @@ const call = (dir, caller, target, prompt = card(), toolUseId = 'toolu_1', backg
   guard(dir, { hook_event_name: 'PreToolUse', tool_name: 'Agent', agent_type: caller, tool_use_id: toolUseId, tool_input: { subagent_type: target, prompt, run_in_background: background } });
 const post = (dir, target, toolUseId = 'toolu_1') =>
   guard(dir, { hook_event_name: 'PostToolUse', tool_name: 'Agent', tool_use_id: toolUseId, tool_input: { subagent_type: target } });
-const reports = (name) => join('.claude-team-docs', 'runs', RUN, 'reports', name);
+const reports = (name) => join('.claude-subagent-docs', 'runs', RUN, 'reports', name);
 
 test('PM: 일반 파일과 요청·기획안은 허용, 보고·검사 기록·정책·git·가드는 거부', () => {
   const dir = project();
   assert.equal(write(dir, 'pm-agent', 'src/new.js').allowed, true);
   assert.equal(write(dir, undefined, 'src/new.js').allowed, true);
-  assert.equal(write(dir, 'pm-agent', '.claude-team-docs/runs/R1/plan.md').allowed, true);
-  assert.equal(write(dir, 'pm-agent', '.claude/team/profile.md').allowed, true);
-  for (const p of [reports('planner-agent-01.md'), '.claude-team-docs/runs/R1/checks/01/record.json', '.claude/agents/pm-agent.md', '.claude/hooks/team-guard.mjs', '.claude/settings.json', '.git/config', '.claude-team-docs/.guard/writer.lock.json']) {
+  assert.equal(write(dir, 'pm-agent', '.claude-subagent-docs/runs/R1/plan.md').allowed, true);
+  assert.equal(write(dir, 'pm-agent', '.claude/subagent/profile.md').allowed, true);
+  for (const p of [reports('planner-agent-01.md'), '.claude-subagent-docs/runs/R1/checks/01/record.json', '.claude/agents/pm-agent.md', '.claude/hooks/subagent-guard.mjs', '.claude/settings.json', '.git/config', '.claude-subagent-docs/.guard/writer.lock.json']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, false, p);
   }
 });
 
-test('.claude/ 아래 사용자 규칙은 PM도 수정 가능하고 팀 정책 파일과 팀 스킬만 거부', () => {
+test('.claude/ 아래 사용자 규칙은 PM도 수정 가능하고 워크플로 정책 파일과 subagent 스킬만 거부', () => {
   const dir = project();
   for (const p of ['.claude/rules/style.md', '.claude/commands/mine.md', '.claude/agents/mine.md', '.claude/skills/mine/SKILL.md']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, true, p);
     assert.equal(write(dir, undefined, p).allowed, true, p);
   }
-  for (const p of ['.claude/hooks/team-guard.mjs', '.claude/team/bin/team-check.mjs', '.claude/skills/team/SKILL.md', '.claude/settings.json', '.claude/settings.local.json', '.claude/agents/qa-agent.md']) {
+  for (const p of ['.claude/hooks/subagent-guard.mjs', '.claude/subagent/bin/subagent-check.mjs', '.claude/skills/subagent/SKILL.md', '.claude/settings.json', '.claude/settings.local.json', '.claude/agents/qa-agent.md']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, false, p);
     assert.equal(write(dir, undefined, p).allowed, false, p);
   }
 });
 
-test('.claude/ 아래 사용자 규칙은 계획에 배정되지 않은 팀 역할이 수정할 수 없음', () => {
+test('.claude/ 아래 사용자 규칙은 계획에 배정되지 않은 워크플로 역할이 수정할 수 없음', () => {
   const dir = project();
   assert.equal(write(dir, 'analyst-not-a-role', '.claude/rules/style.md').allowed, true);
   for (const role of ['planner-agent', 'qa-agent', 'backend-agent']) {
@@ -96,11 +96,11 @@ test('분석·QA·리더는 자신의 보고·산출물에만 쓰기', () => {
   assert.equal(write(dir, 'qa-agent', reports('qa-final-01.md')).allowed, true, '재검증 순번');
   assert.equal(write(dir, 'qa-agent', reports('qa-extra.md')).allowed, false);
   assert.equal(write(dir, 'qa-agent', 'src/a.js').allowed, false);
-  assert.equal(write(dir, 'planning-lead', '.claude-team-docs/runs/R1/plan.md').allowed, true);
+  assert.equal(write(dir, 'planning-lead', '.claude-subagent-docs/runs/R1/plan.md').allowed, true);
   assert.equal(write(dir, 'planning-lead', 'src/a.js').allowed, false);
   assert.equal(write(dir, 'dev-lead', reports('dev-lead.md')).allowed, true);
-  assert.equal(write(dir, 'dev-lead', '.claude-team-docs/runs/R1/plan.md').allowed, false);
-  assert.equal(write(dir, 'planner-agent', '.claude-team-docs/runs/NOPE/reports/planner-agent-01.md').allowed, false);
+  assert.equal(write(dir, 'dev-lead', '.claude-subagent-docs/runs/R1/plan.md').allowed, false);
+  assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/NOPE/reports/planner-agent-01.md').allowed, false);
 });
 
 test('실무 에이전트: 잠금·confirmed·배정 파일이 모두 맞을 때만 소스 쓰기', () => {
@@ -123,7 +123,7 @@ test('기획안이 confirmed가 아니면 개발 호출과 소스 쓰기 거부'
   assert.equal(call(dir, 'pm-agent', 'planner-agent').allowed, true);
   const dir2 = project();
   call(dir2, 'pm-agent', 'backend-agent');
-  writeFileSync(join(dir2, '.claude-team-docs', 'runs', RUN, 'plan.md'), plan('draft', [['src/a.js', 'backend-agent']]));
+  writeFileSync(join(dir2, '.claude-subagent-docs', 'runs', RUN, 'plan.md'), plan('draft', [['src/a.js', 'backend-agent']]));
   assert.equal(write(dir2, 'backend-agent', 'src/a.js').allowed, false);
 });
 
@@ -138,7 +138,7 @@ test('쓰기 에이전트 동시 호출 차단, 종료 후 해제, 오래된 잠
   assert.equal(post(dir, 'backend-agent', 't1').allowed, true);
   assert.equal(call(dir, 'pm-agent', 'test-agent', card(), 't4').allowed, true);
 
-  const lock = join(dir, '.claude-team-docs', '.guard', 'writer.lock.json');
+  const lock = join(dir, '.claude-subagent-docs', '.guard', 'writer.lock.json');
   const old = JSON.parse(readFileSync(lock, 'utf8'));
   writeFileSync(lock, JSON.stringify({ ...old, startedAt: Date.now() - 31 * 60 * 1000 }));
   assert.equal(call(dir, 'pm-agent', 'api-agent', card(), 't5').allowed, true, '오래된 잠금은 대체');
@@ -168,7 +168,7 @@ test('리더의 호출 대상 제한과 final QA는 PM만', () => {
   assert.equal(call(dir, 'pm-agent', 'qa-agent', card('- Mode: final')).allowed, true);
 });
 
-test('이 팀 외의 에이전트는 팀 정책 파일만 보호하고 나머지는 간섭하지 않음', () => {
+test('이 워크플로 외의 에이전트는 워크플로 정책 파일만 보호하고 나머지는 간섭하지 않음', () => {
   const dir = project();
   assert.equal(write(dir, 'my-own-agent', 'src/anything.js').allowed, true);
   assert.equal(write(dir, 'my-own-agent', '.claude/agents/mine.md').allowed, true);
@@ -181,7 +181,7 @@ test('오류와 잘못된 입력은 차단(fail closed)', () => {
   const dir = project();
   assert.equal(guard(dir, '{not json').status, 2);
   assert.equal(guard(dir, { hook_event_name: 'PreToolUse', tool_name: 'Write', agent_type: 'pm-agent', tool_input: {} }).status, 2);
-  assert.equal(existsSync(join(dir, '.claude-team-docs', '.guard', 'writer.lock.json')), false);
+  assert.equal(existsSync(join(dir, '.claude-subagent-docs', '.guard', 'writer.lock.json')), false);
   const missingRoot = spawnSync(process.execPath, [script], { cwd: dir, env: { ...process.env, CLAUDE_PROJECT_DIR: join(dir, 'nope') }, input: '{}', encoding: 'utf8' });
   assert.equal(missingRoot.status, 2);
 });
@@ -208,8 +208,8 @@ test('배정 파일의 대소문자는 파일시스템 기준으로 비교', () 
 test('relay 모드: 리더의 하위 에이전트 호출 거부, nested 모드·PM 직접 호출은 허용', () => {
   const dir = project();
   const profile = (mode) => {
-    mkdirSync(join(dir, '.claude', 'team'), { recursive: true });
-    writeFileSync(join(dir, '.claude', 'team', 'profile.md'), `## 팀 설정\n\n- Execution profile: full\n- Execution mode: ${mode}\n`);
+    mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+    writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), `## 워크플로 설정\n\n- Execution profile: full\n- Execution mode: ${mode}\n`);
   };
   profile('relay');
   const denied = call(dir, 'dev-lead', 'backend-agent');
@@ -234,19 +234,19 @@ test('백그라운드 호출은 거부하고 포그라운드(run_in_background f
 
 test('L3 기획은 architecture-agent 보고가 있어야 개발 호출을 허용', () => {
   const dir = project();
-  const planPath = join(dir, '.claude-team-docs', 'runs', RUN, 'plan.md');
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN, 'plan.md');
   writeFileSync(planPath, readFileSync(planPath, 'utf8').replace('- Status: confirmed', '- Risk: L3\n- Status: confirmed'));
   const denied = call(dir, 'pm-agent', 'backend-agent');
   assert.equal(denied.allowed, false);
   assert.match(denied.stderr, /architecture-agent/);
-  mkdirSync(join(dir, '.claude-team-docs', 'runs', RUN, 'reports'), { recursive: true });
-  writeFileSync(join(dir, '.claude-team-docs', 'runs', RUN, 'reports', 'architecture-agent-01.md'), 'status: done\n');
+  mkdirSync(join(dir, '.claude-subagent-docs', 'runs', RUN, 'reports'), { recursive: true });
+  writeFileSync(join(dir, '.claude-subagent-docs', 'runs', RUN, 'reports', 'architecture-agent-01.md'), 'status: done\n');
   assert.equal(call(dir, 'pm-agent', 'backend-agent', card(), 'toolu_l3').allowed, true);
 });
 
 test('L2 기획은 architecture-agent 보고 없이도 개발 호출 허용', () => {
   const dir = project();
-  const planPath = join(dir, '.claude-team-docs', 'runs', RUN, 'plan.md');
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN, 'plan.md');
   writeFileSync(planPath, readFileSync(planPath, 'utf8').replace('- Status: confirmed', '- Risk: L2\n- Status: confirmed'));
   assert.equal(call(dir, 'pm-agent', 'backend-agent').allowed, true);
 });

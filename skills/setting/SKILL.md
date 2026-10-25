@@ -2,7 +2,7 @@
 name: setting
 description: |
   Show and change the Claude Subagent Workflow settings of the current project: the default mode (Lite or Full), the protection mode, and which MCP servers the workflow uses. Offers to add, switch, or remove an MCP server (including the Figma connection type).
-  Triggers: workflow settings, team settings, change mode, switch to full, switch to lite, which mcp, add mcp, claude subagent workflow setting, 워크플로 설정, 모드 변경, mcp 추가, mcp 선택
+  Triggers: workflow settings, workflow settings, change mode, switch to full, switch to lite, which mcp, add mcp, claude subagent workflow setting, 워크플로 설정, 모드 변경, mcp 추가, mcp 선택
 argument-hint: "[mode | mcp]"
 user-invocable: true
 allowed-tools:
@@ -15,7 +15,7 @@ allowed-tools:
 
 `<installer>` = `node "${CLAUDE_PLUGIN_ROOT}/scripts/install.mjs"`
 If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*subagent-workflow*/scripts/install.mjs" | head -1`.
-This skill changes only the workflow's own files of the current project (`.claude/team/profile.md`, `.mcp.json`, the manifest). It never changes global settings or other plugins. The setup skill installs, updates, and removes; this skill adjusts what is installed.
+This skill changes only the workflow's own files of the current project (`.claude/subagent/profile.md`, `.mcp.json`, the manifest). It never changes global settings or other plugins. The setup skill installs, updates, and removes; this skill adjusts what is installed.
 
 ## Steps
 
@@ -25,10 +25,10 @@ This skill changes only the workflow's own files of the current project (`.claud
    - **MCP servers**: a table with each server's name, what it is for, who uses it, whether it is selected (`selected`) and registered in `.mcp.json` (`registered`), and its note. Mark a server with `differs: true` as "a different setting of yours exists, left unchanged". Figma has three connection types (`figma` remote server, `figma-desktop` desktop app server, `figma-plugin` official plugin); say that only one can be selected, and that `figma-plugin` is not installed by this tool (it has an `install_command` the user runs).
 2. If the argument or the request names what to change, go straight to it. Otherwise ask with AskUserQuestion what to change: the default mode, the protection mode, adding or removing an MCP server, switching the Figma connection, or nothing.
 3. Before applying, run the same command with `--set-mode lite|full`, `--set-protection advisory|strict`, `--add-mcp <name[,name]>`, and/or `--remove-mcp <name[,name]>` (design tools only; `context7` cannot be removed) **without** `--yes`. To switch the Figma connection, pass the old one in `--remove-mcp` and the new one in `--add-mcp` in the same call. It prints a preview. Show the preview, any `warnings`, and any `conflicts`, and ask for one confirmation. If `conflicts` is not empty, nothing is applied even with `--yes`; report the conflicts and stop.
-   - For `--set-protection strict`, always show every item of `warnings` in plain words before asking: it applies immediately; every edit of the main session, including ordinary conversations without the team, is blocked until the user registers an approval; the user runs the `grant` and `approve` commands directly (prefix `!` in the prompt), and the agent never runs them; the agent only drafts the approval scope and the user checks the `review-grant` hash before running `grant` (steps in `.claude/team/strict-mode.md`); it is experimental, its interactive approval flow is unverified, and it is not a security boundary. Ask whether to proceed with that one confirmation.
+   - For `--set-protection strict`, always show every item of `warnings` in plain words before asking: it applies immediately; every edit of the main session, including ordinary conversations without the workflow, is blocked until the user registers an approval; the user runs the `grant` and `approve` commands directly (prefix `!` in the prompt), and the agent never runs them; the agent only drafts the approval scope and the user checks the `review-grant` hash before running `grant` (steps in `.claude/subagent/strict-mode.md`); it is experimental, its interactive approval flow is unverified, and it is not a security boundary. Ask whether to proceed with that one confirmation.
    - Switching to `advisory` needs no warning; it removes the approval requirement at once.
 4. After confirmation run it again with `--yes`. Report what changed and the backup folder.
-5. After adding an MCP server, say that a new Claude Code session is needed to load it, that Claude asks once to approve project MCP servers, and show every item of `next` (the sign-in or setup steps, for example the Figma `/mcp` Authenticate step, the Figma desktop app setting, or the plugin install command the user runs) and the server's note (for example the browser-content warning). Say that a successful registration does not mean the connection works: it is unchecked until the user signs in and sees the server connected in `/mcp` (or `/plugin`). After removing a server, say that a registered entry the team did not create, or one changed after install, is left in `.mcp.json`.
+5. After adding an MCP server, say that a new Claude Code session is needed to load it, that Claude asks once to approve project MCP servers, and show every item of `next` (the sign-in or setup steps, for example the Figma `/mcp` Authenticate step, the Figma desktop app setting, or the plugin install command the user runs) and the server's note (for example the browser-content warning). Say that a successful registration does not mean the connection works: it is unchecked until the user signs in and sees the server connected in `/mcp` (or `/plugin`). After removing a server, say that a registered entry the workflow did not create, or one changed after install, is left in `.mcp.json`.
 6. Run `<installer> verify --target .` (no `--live`) and report only failures. If nothing is installed, point to `/subagent-workflow:setup`.
 
 ## Plain explanations to give when asked

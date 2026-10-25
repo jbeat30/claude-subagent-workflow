@@ -1,4 +1,4 @@
-// team-check 실행기 단위 검사, 임시 프로젝트에서 실행
+// subagent-check 실행기 단위 검사, 임시 프로젝트에서 실행
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'team', 'bin', 'team-check.mjs');
+const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'subagent', 'bin', 'subagent-check.mjs');
 const RUN_ID = '20260101-0000-test';
 
 function plan(rows) {
@@ -17,19 +17,19 @@ function plan(rows) {
 }
 
 function project(rows) {
-  const dir = mkdtempSync(join(tmpdir(), 'team-check-'));
+  const dir = mkdtempSync(join(tmpdir(), 'subagent-check-'));
   const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: dir });
   git('init', '-q');
   writeFileSync(join(dir, 'a.txt'), 'base\n');
   git('add', '-A');
   git('commit', '-qm', 'base');
-  mkdirSync(join(dir, '.claude-team-docs', 'runs', RUN_ID), { recursive: true });
-  writeFileSync(join(dir, '.claude-team-docs', 'runs', RUN_ID, 'plan.md'), plan(rows));
+  mkdirSync(join(dir, '.claude-subagent-docs', 'runs', RUN_ID), { recursive: true });
+  writeFileSync(join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md'), plan(rows));
   return dir;
 }
 
 const run = (dir, ...args) => spawnSync(process.execPath, [script, ...args], { cwd: dir, encoding: 'utf8' });
-const checksDir = (dir) => join(dir, '.claude-team-docs', 'runs', RUN_ID, 'checks');
+const checksDir = (dir) => join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'checks');
 
 test('승인된 명령을 실행하고 exit code와 원본 출력을 기록', () => {
   const cmd = `node -e "console.log('hello');process.exit(3)"`;
@@ -77,7 +77,7 @@ test('출력 변조와 기획안 변경을 verify가 탐지', () => {
 
   const dir2 = project([[cmd, '.', 'none']]);
   run(dir2, 'run', RUN_ID, cmd);
-  writeFileSync(join(dir2, '.claude-team-docs', 'runs', RUN_ID, 'plan.md'), `${plan([[cmd, '.', 'none']])}\n변경\n`);
+  writeFileSync(join(dir2, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md'), `${plan([[cmd, '.', 'none']])}\n변경\n`);
   const changed = run(dir2, 'verify', RUN_ID);
   assert.equal(changed.status, 1);
   assert.match(changed.stdout, /the plan changed/);
@@ -94,7 +94,7 @@ test('diff는 추적·미추적 변경을 원문 그대로 저장하고 실행 �
   writeFileSync(join(dir, 'new.txt'), 'brand new\n');
   const result = run(dir, 'diff', RUN_ID);
   assert.equal(result.status, 0, result.stderr);
-  const patch = readFileSync(join(dir, '.claude-team-docs', 'runs', RUN_ID, 'changes.patch'), 'utf8');
+  const patch = readFileSync(join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'changes.patch'), 'utf8');
   assert.match(patch, /\+changed/);
   assert.match(patch, /\+brand new/);
   assert.doesNotMatch(patch, /plan\.md/);
@@ -123,7 +123,7 @@ function cardText({ quote = REQUEST, ids = 'R1, R2', files = 'src/login.js', has
 
 function traceProject({ planOpts, card, report, patch } = {}) {
   const dir = project([[CMD, '.', 'none']]);
-  const runDir = join(dir, '.claude-team-docs', 'runs', RUN_ID);
+  const runDir = join(dir, '.claude-subagent-docs', 'runs', RUN_ID);
   writeFileSync(join(runDir, 'request.md'), REQUEST);
   const text = tracePlan(planOpts);
   writeFileSync(join(runDir, 'plan.md'), text);
@@ -157,7 +157,7 @@ test('trace: 요구·카드·보고·diff가 기획안과 일치하면 통과', 
 });
 
 test('trace: 실행 기록 파일(plan.md 등)을 허용 파일로 적은 카드는 소스 파일 비교에서 제외', () => {
-  const recordFile = `.claude-team-docs/runs/${RUN_ID}/plan.md`;
+  const recordFile = `.claude-subagent-docs/runs/${RUN_ID}/plan.md`;
   const ok = trace(traceProject({ card: { name: '01-planning-lead.md', opts: { files: recordFile } } }));
   assert.equal(ok.status, 0, JSON.stringify(ok.json));
   const sourceOutside = trace(traceProject({ card: { name: '01-planning-lead.md', opts: { files: `${recordFile}, src/other.js` } } }));
@@ -198,7 +198,7 @@ test('trace: 카드의 원문 축약·요구 ID·Allowed files·담당 이탈을
   assert.ok(uncovered.json.problems.includes('R2: not assigned to any worker card'));
 
   const stale = traceProject({ card: {} });
-  const planPath = join(stale, '.claude-team-docs', 'runs', RUN_ID, 'plan.md');
+  const planPath = join(stale, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md');
   writeFileSync(planPath, `${readFileSync(planPath, 'utf8')}\n변경\n`);
   assert.ok(trace(stale).json.problems.some((p) => p.includes('plan hash differs from the current plan')));
 });

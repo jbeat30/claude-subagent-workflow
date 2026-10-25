@@ -1,12 +1,12 @@
 # UI verification method
 
-Read this when verifying UI (planner, frontend, qa, and the PM at G2). The project decides how its UI is verified; the team never imposes its own method on a target the project has a method for. Do not assume one method fits a whole project: the method can differ by screen, component, or kind of change.
+Read this when verifying UI (planner, frontend, qa, and the PM at G2). The project decides how its UI is verified; the workflow never imposes its own method on a target the project has a method for. Do not assume one method fits a whole project: the method can differ by screen, component, or kind of change.
 
 ## Decide per target
 
 A target is one screen, component, or change that needs UI verification. For each target:
 
-1. Re-read the files listed under `Project rule sources` in `.claude/team/profile.md` from their original paths, and search them for statements about how UI is verified (any method: measured styles, a design-tool value comparison, a browser or test tool, a story or snapshot, a manual checklist, or something else). Rules may be scoped by path, screen, component, or change type; match the rule to the target.
+1. Re-read the files listed under `Project rule sources` in `.claude/subagent/profile.md` from their original paths, and search them for statements about how UI is verified (any method: measured styles, a design-tool value comparison, a browser or test tool, a story or snapshot, a manual checklist, or something else). Rules may be scoped by path, screen, component, or change type; match the rule to the target.
 2. Put the target in exactly one case:
    - **Defined**: one clear method applies to this target, including any tolerance or criterion it states (for example a pixel tolerance). A clear method that you cannot run yourself is still Defined; handle it under "When the method cannot be run by the role".
    - **Ambiguous**: the rule is vague, covers only part of the target, conflicts with another rule, has an unclear scope, or names a method you cannot map to a tool or command.
@@ -14,9 +14,9 @@ A target is one screen, component, or change that needs UI verification. For eac
 
 ## Act by case
 
-- **Defined**: use that method as written, with its criterion. Do not replace it or add the team's own method on top. Use the team's browser check only for a gap the method does not cover, and only after the user agrees.
+- **Defined**: use that method as written, with its criterion. Do not replace it or add the workflow's own method on top. Use the workflow's browser check only for a gap the method does not cover, and only after the user agrees.
 - **Ambiguous**: ask the user; never guess and never choose the closest-looking method. Quote the rule text and its file, and list the options. Planner and QA return `needs-input` with the question; the PM asks at G2. Until answered, that target is `unchecked`.
-- **None**: use the team default: compare with the design system or design source when there is one, and look at the running app with a browser tool the profile lists. Say in the report that no project method was found and that the team default was used. A single snapshot or screenshot per target is a look; anything multi-step (a scripted walkthrough) still needs the user's consent (`design-tools.md`).
+- **None**: use the workflow default: compare with the design system or design source when there is one, and look at the running app with a browser tool the profile lists. Say in the report that no project method was found and that the workflow default was used. A single snapshot or screenshot per target is a look; anything multi-step (a scripted walkthrough) still needs the user's consent (`design-tools.md`).
 
 Do not build a list of known methods and pick from it. Read the method from the rule text, then check what is available to run it.
 
@@ -34,7 +34,7 @@ Label every UI claim in the report with one grade.
 
 | Grade | Meaning |
 | --- | --- |
-| measured | A method was actually run (the project's method, or the team default when the project has none) and its output or record is cited; state which method |
+| measured | A method was actually run (the project's method, or the workflow default when the project has none) and its output or record is cited; state which method |
 | read-only | Judged from reading code, styles, or design values without running the method |
 | unchecked | Not verified, with the reason |
 

@@ -6,14 +6,14 @@
 
 The workflow starts only when you call it; otherwise you talk to Claude as usual.
 
-![Ordinary requests versus calling the workflow](../assets/team-on-demand.en.png)
+![Ordinary requests versus calling the workflow](../assets/subagent-on-demand.en.png)
 
-- `/team <request>`: starts the workflow for sure.
-- In words: "solve this with the subagent workflow" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/team` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
+- `/subagent <request>`: starts the workflow for sure.
+- In words: "solve this with the subagent workflow" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/subagent` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
 - For a simple question or a small edit, asking Claude directly is faster and cheaper than calling the workflow.
 
 ```text
-/team Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
+/subagent Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
 ```
 
 ```text

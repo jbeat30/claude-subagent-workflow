@@ -18,7 +18,7 @@ Requirements: Claude Code 2.1.302 or later, Node 18 or later.
 2. The skill surveys the project and asks only what it needs.
 3. It shows the change plan in 10 lines or fewer and asks for confirmation **once**.
 4. The installer copies and merges files, then checks the guard.
-5. When you need the workflow, call it with `/team <request>`.
+5. When you need the workflow, call it with `/subagent <request>`.
 
 You can also fetch the repository directly. In Claude Code, ask:
 
@@ -48,7 +48,7 @@ Plain requests work too: "set up the subagent workflow", "check the workflow ins
 | Design tool MCP (optional) | **Playwright**: open and look at the running page<br>**Chrome DevTools**: inspect the page, console, network, and performance in Chrome; useful for UI/UX checks<br>**shadcn/ui**: reuse vetted components (needs `components.json`)<br>**Figma**: when you have Figma designs; pick one connection<br>· `figma`: remote server; sign in from the browser through `/mcp` after registering<br>· `figma-desktop`: Figma desktop app server; enable the desktop MCP server in Dev Mode, needs a Dev or Full seat<br>· `figma-plugin`: official plugin; the installer does not install it and only shows the command to run (choose this one if you already use the official plugin)<br>Agents only **read** Figma (tools that change files are not allowed). Reads count against your plan limit: about 20 per month on the Starter plan and View or Collab seats, about 200 per day on Full or Dev seats | Asked only for projects with a UI; Playwright and shadcn/ui recommended |
 | Forbidden areas | Production config, generated files, specific paths | None |
 | Protection mode | **Advisory**: the guard hook blocks violations<br>**Strict**: tracks direct approval records (optional; you run the approval commands yourself) | Advisory |
-| Task records | Add `.claude-team-docs/` to `.gitignore` | Add |
+| Task records | Add `.claude-subagent-docs/` to `.gitignore` | Add |
 | Conflict handling | If files collide, per item: skip or replace with backup | Asked on conflict |
 
 The mode is not asked at install. All 9 role files are always installed and the default mode is Lite. Later you can switch to Full in `/subagent-workflow:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker agents → qa-agent (checked once).
@@ -63,10 +63,10 @@ Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwr
 ```text
 .claude/
   agents/        9 role definitions
-  skills/team/   the /team skill (PM instructions), read only when called
+  skills/subagent/   the /subagent skill (PM instructions), read only when called
   hooks/         guard hook
-  team/          forms, project profile, check runner, install manifest
+  subagent/         forms, project profile, check runner, install manifest
   settings.json  hook registration (merged with existing settings); the main session is not pinned to the PM
-.claude-team-docs/   per-task records (request source, plan, reports, check records, diff); adding it to .gitignore is optional
+.claude-subagent-docs/   per-task records (request source, plan, reports, check records, diff); adding it to .gitignore is optional
 .mcp.json            Context7 and design tool MCP registration (optional, merged with existing settings)
 ```

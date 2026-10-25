@@ -20,7 +20,7 @@ No secrets. Mark items without evidence as `unchecked`. The user may edit it.
 
 ## Project rule sources
 
-The project's own rule files take priority over this profile and over the team defaults. Re-read them from the original path before work; never rely on a copied summary.
+The project's own rule files take priority over this profile and over the workflow defaults. Re-read them from the original path before work; never rely on a copied summary.
 
 | Path | Covers |
 | --- | --- |
@@ -47,7 +47,7 @@ Authoritative for all UI work. Agents follow it without deviation.
 | Item | Content | Location |
 | --- | --- | --- |
 
-## Team settings
+## Workflow settings
 
 - Execution profile: lite | full (chosen by the user at install, all role files are always installed)
 - Execution mode: nested | relay | n/a (lite) (full only, choose nested only after a depth-2 call check, default relay)

@@ -20,7 +20,7 @@ Read this when the work creates or changes UI. It covers the design system, desi
 
 ## Verification method
 
-How UI is verified is decided per target from the project's own rules, not by the team: read `.claude/team/ui-verification.md` before planning UI verification, put the chosen method per target in the G2 confirmation, and ask the user when the project's rule is ambiguous.
+How UI is verified is decided per target from the project's own rules, not by the workflow: read `.claude/subagent/ui-verification.md` before planning UI verification, put the chosen method per target in the G2 confirmation, and ask the user when the project's rule is ambiguous.
 
 ## UI/UX walkthrough (optional, only with consent)
 

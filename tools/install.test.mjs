@@ -13,7 +13,7 @@ const script = join(here, '..', 'scripts', 'install.mjs');
 const fakeClaude = join(realpathSync(mkdtempSync(join(tmpdir(), 'fake-claude-'))), 'claude.mjs');
 writeFileSync(fakeClaude, "console.log(process.env.FAKE_CLAUDE_VERSION ?? '2.1.302 (Claude Code)');\n");
 
-const temp = (prefix = 'team-install-') => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+const temp = (prefix = 'subagent-install-') => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 const answersFor = (over = {}) => ({ profile: 'full', context7: true, gitignore: true, pdca: 'off', stack: [{ item: 'Node.js', value: 'npm', evidence: 'package.json' }], checks: [{ purpose: '테스트', command: 'npm test', cwd: '.', sideEffect: 'none (assumed)' }], conventions: [], forbidden: [{ path: 'dist/', reason: '생성 파일' }], ...over });
 
 function project(files = {}) {
@@ -28,7 +28,7 @@ function project(files = {}) {
 function install(args, env = {}) {
   const result = spawnSync(process.execPath, [script, ...args], {
     encoding: 'utf8',
-    env: { ...process.env, TEAM_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"`, ...env },
+    env: { ...process.env, SUBAGENT_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"`, ...env },
   });
   let json = null;
   try {
@@ -95,18 +95,18 @@ test('신규 설치: 파일·settings·MCP·gitignore·프로필·매니페스�
   const { dir, applied } = installFresh();
   assert.equal(applied.json.ok, true, applied.stderr);
   for (const role of ['planning-lead', 'dev-lead', 'qa-agent']) assert.ok(existsSync(join(dir, '.claude', 'agents', `${role}.md`)));
-  assert.ok(existsSync(join(dir, '.claude', 'skills', 'team', 'SKILL.md')), 'PM은 /team 스킬');
+  assert.ok(existsSync(join(dir, '.claude', 'skills', 'subagent', 'SKILL.md')), 'PM은 /subagent 스킬');
   assert.equal(existsSync(join(dir, '.claude', 'agents', 'pm-agent.md')), false, 'PM은 서브에이전트로 설치하지 않음');
-  assert.ok(existsSync(join(dir, '.claude', 'hooks', 'team-guard.mjs')));
-  assert.ok(existsSync(join(dir, '.claude', 'team', 'bin', 'team-check.mjs')));
-  assert.equal(existsSync(join(dir, '.claude', 'team', 'profile.template.md')), false);
+  assert.ok(existsSync(join(dir, '.claude', 'hooks', 'subagent-guard.mjs')));
+  assert.ok(existsSync(join(dir, '.claude', 'subagent', 'bin', 'subagent-check.mjs')));
+  assert.equal(existsSync(join(dir, '.claude', 'subagent', 'profile.template.md')), false);
   assert.equal(existsSync(join(dir, '.claude', 'settings.fragment.json')), false);
   const settings = JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8'));
   assert.equal(settings.agent, undefined, '메인 세션을 PM으로 고정하지 않음');
-  assert.ok(settings.hooks.PreToolUse[0].hooks[0].command.includes('team-guard.mjs'));
+  assert.ok(settings.hooks.PreToolUse[0].hooks[0].command.includes('subagent-guard.mjs'));
   assert.equal(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers.context7.command, 'npx');
-  assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /\.claude-team-docs\//);
-  const profile = readFileSync(join(dir, '.claude', 'team', 'profile.md'), 'utf8');
+  assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /\.claude-subagent-docs\//);
+  const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
   assert.match(profile, /Execution profile: full/);
   assert.match(profile, /Execution mode: relay/);
   assert.match(profile, /`npm test`/);
@@ -170,7 +170,7 @@ test('기존 settings: 사용자 hook·agent 설정은 건드리지 않고, 제�
 // v0.2.x 설치 상태를 재현: PM 에이전트 파일과 settings.agent 기록을 매니페스트에 남김
 function legacyInstall(agentRecord, settingsAgent) {
   const { dir, file } = installFresh();
-  const manifestPath = join(dir, '.claude', 'team', 'manifest.json');
+  const manifestPath = join(dir, '.claude', 'subagent', 'manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const body = '구 PM 에이전트\n';
   writeFileSync(join(dir, '.claude', 'agents', 'pm-agent.md'), body);
@@ -234,21 +234,21 @@ test('Claude Code 최소 버전 미만이면 진행 불가, 확인 불가는 미
 
 test('제거: 기본은 dry-run, 설치한 항목만 제거하고 사용자 수정 파일은 보존', () => {
   const { dir } = installFresh({ '.gitignore': 'node_modules/\n' });
-  writeFileSync(join(dir, '.claude', 'team', 'profile.md'), '사용자가 고친 프로필\n');
+  writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), '사용자가 고친 프로필\n');
   const dry = install(['remove', '--target', dir]);
   assert.equal(dry.json.dryRun, true);
-  assert.ok(existsSync(join(dir, '.claude', 'skills', 'team', 'SKILL.md')));
+  assert.ok(existsSync(join(dir, '.claude', 'skills', 'subagent', 'SKILL.md')));
   const real = install(['remove', '--target', dir, '--yes']);
   assert.equal(real.json.ok, true);
-  assert.deepEqual(real.json.kept.map((k) => k.path), ['.claude/team/profile.md']);
+  assert.deepEqual(real.json.kept.map((k) => k.path), ['.claude/subagent/profile.md']);
   assert.equal(existsSync(join(dir, '.claude', 'agents')), false);
   assert.equal(existsSync(join(dir, '.claude', 'skills')), false);
   assert.equal(existsSync(join(dir, '.claude', 'hooks')), false);
-  assert.equal(readFileSync(join(dir, '.claude', 'team', 'profile.md'), 'utf8'), '사용자가 고친 프로필\n');
+  assert.equal(readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8'), '사용자가 고친 프로필\n');
   assert.equal(existsSync(join(dir, '.claude', 'settings.json')), false, '우리가 만든 settings는 삭제');
   assert.equal(existsSync(join(dir, '.mcp.json')), false);
   assert.equal(readFileSync(join(dir, '.gitignore'), 'utf8').trim(), 'node_modules/');
-  assert.equal(existsSync(join(dir, '.claude', 'team', 'manifest.json')), false);
+  assert.equal(existsSync(join(dir, '.claude', 'subagent', 'manifest.json')), false);
 });
 
 test('verify는 수정·삭제를 탐지', () => {
@@ -284,14 +284,14 @@ test('v0.1.0은 미지원 PDCA 입력을 적용 전에 거부', () => {
 
 test('PDCA 생략 시 off로 계획·설치', () => {
   const { dir } = installFresh({}, { pdca: undefined });
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /PDCA mode: off/);
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /PDCA mode: off/);
 });
 
 test('엄격 모드 설치는 승인 기록을 만들지 않고 실제 점검은 미확인으로 유지', () => {
   const { dir } = installFresh({}, { guardMode: 'strict' });
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /Protection mode: strict/);
-  assert.equal(existsSync(join(dir, '.claude/team/bin/team-approval.mjs')), true);
-  assert.equal(existsSync(join(dir, '.claude-team-docs/.guard/grant.json')), false);
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Protection mode: strict/);
+  assert.equal(existsSync(join(dir, '.claude/subagent/bin/subagent-approval.mjs')), true);
+  assert.equal(existsSync(join(dir, '.claude-subagent-docs/.guard/grant.json')), false);
   const result = install(['verify', '--target', dir, '--live']);
   assert.equal(result.json.ok, true, JSON.stringify(result.json));
   const checks = Object.fromEntries(result.json.checks.map((c) => [c.name, c.status]));
@@ -315,22 +315,22 @@ test('verify --live의 Claude 호출은 설치 대상 폴더에서 실행', () =
   writeFileSync(fake, [
     "import { writeFileSync } from 'node:fs';",
     "if (process.argv.includes('--version')) console.log('2.1.302');",
-    "else { writeFileSync(process.env.CAPTURE_CWD, process.cwd()); console.log(JSON.stringify({ result: 'team-guard: refused' })); }",
+    "else { writeFileSync(process.env.CAPTURE_CWD, process.cwd()); console.log(JSON.stringify({ result: 'subagent-guard: refused' })); }",
   ].join('\n'));
-  const result = install(['verify', '--target', dir, '--live'], { TEAM_CLAUDE_BIN: '"' + process.execPath + '" "' + fake + '"', CAPTURE_CWD: marker });
+  const result = install(['verify', '--target', dir, '--live'], { SUBAGENT_CLAUDE_BIN: '"' + process.execPath + '" "' + fake + '"', CAPTURE_CWD: marker });
   assert.equal(result.json.ok, true, JSON.stringify(result.json));
   assert.equal(realpathSync.native(readFileSync(marker, 'utf8')), realpathSync.native(dir));
 });
 
 // ---------- 갱신, 보존 fixture: 실제 릴리즈 간 갱신이 아닌 이전 릴리즈를 흉내 낸 임시 상태 ----------
 
-const manifestOf = (dir) => JSON.parse(readFileSync(join(dir, '.claude', 'team', 'manifest.json'), 'utf8'));
+const manifestOf = (dir) => JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8'));
 const sha = (text) => createHash('sha256').update(text).digest('hex');
 
 // 설치된 파일을 이전 릴리즈 내용으로 바꾸고 매니페스트 해시도 맞춰 "이전 릴리즈 설치 상태"를 만듦
 function downgradeFile(dir, rel, content) {
   writeFileSync(join(dir, rel), content);
-  const path = join(dir, '.claude', 'team', 'manifest.json');
+  const path = join(dir, '.claude', 'subagent', 'manifest.json');
   const manifest = JSON.parse(readFileSync(path, 'utf8'));
   manifest.files.find((f) => f.path === rel).sha256 = sha(content);
   writeFileSync(path, JSON.stringify(manifest, null, 2));
@@ -384,19 +384,9 @@ test('기존 .mcp.json·.gitignore의 사용자 항목은 설치·갱신·제거
   assert.equal(install(['remove', '--target', dir, '--yes']).json.ok, true);
   assert.deepEqual(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')), mcp);
   assert.equal(readFileSync(join(dir, '.gitignore'), 'utf8').trim(), 'node_modules/\n.env');
-  assert.equal(existsSync(join(dir, '.claude', 'team', 'manifest.json')), false);
+  assert.equal(existsSync(join(dir, '.claude', 'subagent', 'manifest.json')), false);
 });
 
-for (const legacy of ['claude-team-base', 'agent-team-base']) test(`이름 변경 이전 설치의 .gitignore 표식(${legacy})도 중복 없이 인식하고 제거`, () => {
-  const { dir, file } = installFresh({ '.gitignore': 'node_modules/\n' });
-  const gitignore = join(dir, '.gitignore');
-  writeFileSync(gitignore, readFileSync(gitignore, 'utf8').replaceAll('subagent-workflow', legacy));
-
-  assert.equal(install(planArgs(dir, file)).json.gitignore.action, 'already');
-
-  assert.equal(install(['remove', '--target', dir, '--yes']).json.ok, true);
-  assert.equal(readFileSync(gitignore, 'utf8').trim(), 'node_modules/');
-});
 
 test('기존 context7 설정이 다르면 덮어쓰지 않고 충돌로 보고', () => {
   const custom = { mcpServers: { context7: { command: 'custom-context7' } } };
@@ -426,11 +416,11 @@ test('plugin 채널: git 없는 배포본에서 source가 플러그인 버전 �
   const file = answersFile({ profile: 'lite' });
   const run = (args) => spawnSync(process.execPath, [join(root, 'scripts', 'install.mjs'), ...args], {
     encoding: 'utf8',
-    env: { ...process.env, TEAM_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"` },
+    env: { ...process.env, SUBAGENT_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"` },
   });
   const plan = JSON.parse(run(planArgs(dir, file)).stdout);
   assert.equal(run(applyArgs(dir, file, plan.hash)).status, 0);
-  const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'team', 'manifest.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8'));
   assert.equal(manifest.source.channel, 'plugin');
   assert.equal(manifest.source.commit, null);
   assert.match(manifest.source.tag, /^v[0-9]+[.][0-9]+[.][0-9]+$/);
@@ -448,7 +438,7 @@ test('디자인 도구 MCP: 선택한 서버만 .mcp.json에 병합하고 프로
   assert.deepEqual(servers.playwright, { command: 'npx', args: ['@playwright/mcp@latest'] });
   assert.deepEqual(servers.shadcn, { command: 'npx', args: ['shadcn@latest', 'mcp'] });
   assert.deepEqual(servers.figma, { type: 'http', url: 'https://mcp.figma.com/mcp' });
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /Design tool MCP: playwright, chrome-devtools, shadcn, figma/);
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Design tool MCP: playwright, chrome-devtools, shadcn, figma/);
   const verified = install(['verify', '--target', dir]);
   const names = verified.json.checks.map((c) => c.name);
   assert.ok(['playwright', 'chrome-devtools', 'shadcn', 'figma'].every((n) => names.includes(n)));
@@ -482,12 +472,12 @@ test('디자인 도구 MCP: 다른 설정이 이미 있으면 덮어쓰지 않�
 
 test('디자인 시스템: answers에 있으면 프로필에 권위 있는 기준으로 기록, 없으면 섹션 생략', () => {
   const withDs = installFresh({}, { designSystem: [{ item: 'Component library', content: '@acme/ui, tokens in tokens.json', location: 'packages/ui' }] });
-  const profile = readFileSync(join(withDs.dir, '.claude/team/profile.md'), 'utf8');
+  const profile = readFileSync(join(withDs.dir, '.claude/subagent/profile.md'), 'utf8');
   assert.match(profile, /## Design system/);
   assert.match(profile, /Authoritative for all UI work/);
   assert.match(profile, /@acme\/ui, tokens in tokens\.json/);
   const without = installFresh();
-  assert.doesNotMatch(readFileSync(join(without.dir, '.claude/team/profile.md'), 'utf8'), /## Design system/);
+  assert.doesNotMatch(readFileSync(join(without.dir, '.claude/subagent/profile.md'), 'utf8'), /## Design system/);
 });
 
 test('answers.profile 생략 시 lite가 기본이고 실행 모드는 relay로 기록', () => {
@@ -498,7 +488,7 @@ test('answers.profile 생략 시 lite가 기본이고 실행 모드는 relay로 
   writeFileSync(file, JSON.stringify(answers));
   const plan = install(planArgs(dir, file));
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
-  const profile = readFileSync(join(dir, '.claude', 'team', 'profile.md'), 'utf8');
+  const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
   assert.match(profile, /Execution profile: lite/);
   assert.match(profile, /Execution mode: relay/, 'lite도 relay로 기록해 모드를 바꿔도 가드 보호가 유지됨');
 });
@@ -522,7 +512,7 @@ test('config: 현재 모드·보호 모드와 MCP 선택 현황을 보여 줌', 
 
 test('config: 모드 전환은 미리보기 후 --yes로 적용하고 verify가 계속 통과', () => {
   const { dir } = installFresh({}, { profile: 'lite' });
-  const profilePath = join(dir, '.claude', 'team', 'profile.md');
+  const profilePath = join(dir, '.claude', 'subagent', 'profile.md');
   const before = readFileSync(profilePath, 'utf8');
   const preview = install(['config', '--target', dir, '--set-mode', 'full']);
   assert.equal(preview.json.dryRun, true);
@@ -531,7 +521,7 @@ test('config: 모드 전환은 미리보기 후 --yes로 적용하고 verify가 
   const applied = install(['config', '--target', dir, '--set-mode', 'full', '--yes']);
   assert.equal(applied.json.ok, true, applied.stderr);
   assert.match(readFileSync(profilePath, 'utf8'), /Execution profile: full/);
-  assert.equal(JSON.parse(readFileSync(join(dir, '.claude', 'team', 'manifest.json'), 'utf8')).profile, 'full');
+  assert.equal(JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8')).profile, 'full');
   assert.ok(applied.json.backups, '바꾸기 전 프로필을 백업');
   assert.equal(install(['config', '--target', dir]).json.mode, 'full');
   const verified = install(['verify', '--target', dir]);
@@ -550,10 +540,10 @@ test('config: 선택하지 않았던 MCP를 추가하면 .mcp.json·프로필·�
   const servers = JSON.parse(readFileSync(mcpPath, 'utf8')).mcpServers;
   assert.equal(servers.context7.command, 'npx');
   assert.equal(servers.figma.type, 'http');
-  const profile = readFileSync(join(dir, '.claude', 'team', 'profile.md'), 'utf8');
+  const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
   assert.match(profile, /Context7 MCP: registered/);
   assert.match(profile, /Design tool MCP: figma/);
-  const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'team', 'manifest.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8'));
   assert.equal(manifest.mcp.figma, 'added');
   assert.equal(install(['verify', '--target', dir]).json.ok, true);
   const mcp = Object.fromEntries(install(['config', '--target', dir]).json.mcp.map((m) => [m.name, m.registered]));
@@ -583,9 +573,9 @@ test('규칙 원본: 프로필에 원본 경로와 우선순위 문구를 기록
     { ruleSources: [{ path: 'CLAUDE.md', covers: 'branch rules, selector layout' }, { path: '.eslintrc.json' }] },
   );
   assert.equal(applied.status, 0, JSON.stringify(applied.json));
-  const profile = readFileSync(join(dir, '.claude/team/profile.md'), 'utf8');
+  const profile = readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8');
   assert.match(profile, /## Project rule sources/);
-  assert.match(profile, /take priority over this profile and over the team defaults/);
+  assert.match(profile, /take priority over this profile and over the workflow defaults/);
   assert.match(profile, /\| CLAUDE\.md \| branch rules, selector layout \|/);
   assert.match(profile, /\| \.eslintrc\.json \| unchecked \|/);
   assert.doesNotMatch(profile, /develop에서만 작업/, '원본 규칙 내용은 프로필에 복사하지 않음');
@@ -593,7 +583,7 @@ test('규칙 원본: 프로필에 원본 경로와 우선순위 문구를 기록
 
 test('규칙 원본: 없으면 확인 요청 문구를 남기고, 프로젝트 밖 경로·URL은 거부', () => {
   const { dir } = installFresh({}, {});
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /None recorded\. Ask the user whether the project has rule files/);
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /None recorded\. Ask the user whether the project has rule files/);
   for (const path of ['../outside.md', '/etc/rules.md', 'C:\rules.md', 'https://example.com/rules.md', 'a/../../b.md', '']) {
     const bad = install(planArgs(project(), answersFile({ ruleSources: [{ path }] })));
     assert.equal(bad.status, 2, path);
@@ -607,7 +597,7 @@ test('문서 도구 MCP: anymd는 메이저 버전을 고정해 등록하고 프
   assert.equal(applied.status, 0, JSON.stringify(applied.json));
   const servers = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers;
   assert.deepEqual(servers.anymd, { command: 'npx', args: ['-y', '@sylphx/anymd@8'] });
-  const profile = readFileSync(join(dir, '.claude/team/profile.md'), 'utf8');
+  const profile = readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8');
   assert.match(profile, /Design tool MCP: playwright$/m);
   assert.match(profile, /Document tool MCP: anymd$/m);
   const check = install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'anymd');
@@ -625,12 +615,12 @@ test('문서 도구 MCP: 허용 목록 밖의 값은 거부, designTools에 넣�
 
 test('문서 도구 MCP: config로 추가·해제하고, 줄이 없는 이전 프로필에도 줄을 만들어 기록', () => {
   const { dir } = installFresh({}, { designTools: ['playwright'] });
-  const profilePath = join(dir, '.claude/team/profile.md');
+  const profilePath = join(dir, '.claude/subagent/profile.md');
   // 이전 버전 설치의 프로필: Document tool MCP 줄이 없음
   writeFileSync(profilePath, readFileSync(profilePath, 'utf8').replace(/^- Document tool MCP:.*\n/m, ''));
-  const manifestPath = join(dir, '.claude/team/manifest.json');
+  const manifestPath = join(dir, '.claude/subagent/manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  manifest.files.find((f) => f.path === '.claude/team/profile.md').sha256 = createHash('sha256').update(readFileSync(profilePath)).digest('hex');
+  manifest.files.find((f) => f.path === '.claude/subagent/profile.md').sha256 = createHash('sha256').update(readFileSync(profilePath)).digest('hex');
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   assert.equal(install(['config', '--target', dir]).json.mcp.find((m) => m.name === 'anymd').selected, false);
 
@@ -648,19 +638,19 @@ test('문서 도구 MCP: config로 추가·해제하고, 줄이 없는 이전 �
   assert.match(readFileSync(profilePath, 'utf8'), /Design tool MCP: playwright$/m, '디자인 도구 선택은 그대로');
 });
 
-test('verify: 설치된 팀 버전이 플러그인보다 낮으면 갱신 안내, 같으면 통과, 높으면 플러그인 갱신 안내', () => {
+test('verify: 설치된 워크플로 버전이 플러그인보다 낮으면 갱신 안내, 같으면 통과, 높으면 플러그인 갱신 안내', () => {
   const { dir } = installFresh();
-  const manifestPath = join(dir, '.claude/team/manifest.json');
+  const manifestPath = join(dir, '.claude/subagent/manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const versionCheck = () => install(['verify', '--target', dir]).json;
 
   const same = versionCheck();
-  assert.equal(same.checks.find((c) => c.name === 'team version').status, 'pass');
+  assert.equal(same.checks.find((c) => c.name === 'workflow version').status, 'pass');
 
   manifest.templateVersion = '0.0.1';
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   const older = versionCheck();
-  const olderCheck = older.checks.find((c) => c.name === 'team version');
+  const olderCheck = older.checks.find((c) => c.name === 'workflow version');
   assert.equal(olderCheck.status, 'update');
   assert.match(olderCheck.detail, /subagent-workflow:setup update/);
   assert.equal(older.ok, true, '버전 차이는 실패가 아닌 안내');
@@ -668,13 +658,13 @@ test('verify: 설치된 팀 버전이 플러그인보다 낮으면 갱신 안내
   manifest.templateVersion = '99.0.0';
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   const newer = versionCheck();
-  const newerCheck = newer.checks.find((c) => c.name === 'team version');
+  const newerCheck = newer.checks.find((c) => c.name === 'workflow version');
   assert.equal(newerCheck.status, 'unverified');
   assert.match(newerCheck.detail, /claude plugin update subagent-workflow@jbeat-plugins/);
 
   manifest.templateVersion = 'abc';
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  assert.equal(versionCheck().checks.find((c) => c.name === 'team version').status, 'unverified');
+  assert.equal(versionCheck().checks.find((c) => c.name === 'workflow version').status, 'unverified');
 });
 
 test('Figma MCP: 데스크톱 서버는 figma-desktop 이름으로 등록되고 안내가 verify에 남음', () => {
@@ -683,7 +673,7 @@ test('Figma MCP: 데스크톱 서버는 figma-desktop 이름으로 등록되고 
   const servers = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers;
   assert.deepEqual(servers['figma-desktop'], { type: 'http', url: 'http://127.0.0.1:3845/mcp' });
   assert.equal(servers.figma, undefined);
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /Design tool MCP: figma-desktop/);
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Design tool MCP: figma-desktop/);
   const check = install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'figma-desktop');
   assert.equal(check.status, 'unverified');
   assert.match(check.detail, /Dev or Full seat/);
@@ -694,8 +684,8 @@ test('Figma MCP: 플러그인 방식은 .mcp.json에 쓰지 않고 실행 명령
   assert.equal(applied.status, 0, JSON.stringify(applied.json));
   const servers = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers;
   assert.deepEqual(Object.keys(servers), ['context7']);
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /Design tool MCP: figma-plugin/);
-  assert.equal(JSON.parse(readFileSync(join(dir, '.claude/team/manifest.json'), 'utf8')).mcp['figma-plugin'], 'guided');
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Design tool MCP: figma-plugin/);
+  assert.equal(JSON.parse(readFileSync(join(dir, '.claude/subagent/manifest.json'), 'utf8')).mcp['figma-plugin'], 'guided');
   const check = install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'figma-plugin');
   assert.equal(check.status, 'unverified');
   assert.match(check.detail, /claude plugin install figma@claude-plugins-official/);
@@ -711,7 +701,7 @@ test('Figma MCP: answers에 Figma 연결을 둘 이상 넣으면 거부', () => 
 test('config: Figma 연결은 해제 후 다른 방식으로 한 번에 바꾸고, 하나가 선택돼 있으면 추가를 충돌로 보고', () => {
   const { dir } = installFresh({}, { designTools: ['figma'] });
   const mcpPath = join(dir, '.mcp.json');
-  const profilePath = join(dir, '.claude/team/profile.md');
+  const profilePath = join(dir, '.claude/subagent/profile.md');
 
   const blocked = install(['config', '--target', dir, '--add-mcp', 'figma-desktop', '--yes']);
   assert.equal(blocked.status, 1);
@@ -742,15 +732,15 @@ test('config: Figma 연결은 해제 후 다른 방식으로 한 번에 바꾸�
   assert.equal(install(['verify', '--target', dir]).json.ok, true);
 });
 
-test('config: 해제는 팀이 등록하지 않았거나 설치 뒤 바꾼 서버를 지우지 않고, context7과 잘못된 값은 거부', () => {
+test('config: 해제는 워크플로가 등록하지 않았거나 설치 뒤 바꾼 서버를 지우지 않고, context7과 잘못된 값은 거부', () => {
   const own = { mcpServers: { shadcn: { command: 'npx', args: ['shadcn@latest', 'mcp'] } } };
   const { dir } = installFresh({ '.mcp.json': own }, { designTools: ['playwright', 'shadcn'] });
   const mcpPath = join(dir, '.mcp.json');
 
   const mine = install(['config', '--target', dir, '--remove-mcp', 'shadcn', '--yes']);
   assert.equal(mine.json.ok, true, mine.stderr);
-  assert.ok(JSON.parse(readFileSync(mcpPath, 'utf8')).mcpServers.shadcn, '팀이 등록하지 않은 서버는 .mcp.json에 남김');
-  assert.match(readFileSync(join(dir, '.claude/team/profile.md'), 'utf8'), /Design tool MCP: playwright$/m);
+  assert.ok(JSON.parse(readFileSync(mcpPath, 'utf8')).mcpServers.shadcn, '워크플로가 등록하지 않은 서버는 .mcp.json에 남김');
+  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Design tool MCP: playwright$/m);
 
   const edited = JSON.parse(readFileSync(mcpPath, 'utf8'));
   edited.mcpServers.playwright = { command: 'my-own', args: [] };
@@ -772,7 +762,7 @@ test('config: 연결 전환 중 추가가 충돌하면 해제도 적용하지 �
   const edited = JSON.parse(readFileSync(mcpPath, 'utf8'));
   edited.mcpServers['figma-desktop'] = { type: 'http', url: 'http://localhost:9999/mcp' };
   writeFileSync(mcpPath, JSON.stringify(edited, null, 2));
-  const profilePath = join(dir, '.claude/team/profile.md');
+  const profilePath = join(dir, '.claude/subagent/profile.md');
   const before = [readFileSync(mcpPath, 'utf8'), readFileSync(profilePath, 'utf8')];
   const result = install(['config', '--target', dir, '--remove-mcp', 'figma', '--add-mcp', 'figma-desktop', '--yes']);
   assert.equal(result.status, 1);
@@ -789,8 +779,8 @@ test('config: 설치되지 않은 프로젝트는 안내와 함께 실패', () =
 
 test('config: 보호 모드는 엄격 전환 경고와 함께 미리보기 후 적용되고 가드 동작이 바로 바뀜', () => {
   const { dir } = installFresh({}, { profile: 'lite' });
-  const profilePath = join(dir, '.claude', 'team', 'profile.md');
-  const guard = join(dir, '.claude', 'hooks', 'team-guard.mjs');
+  const profilePath = join(dir, '.claude', 'subagent', 'profile.md');
+  const guard = join(dir, '.claude', 'hooks', 'subagent-guard.mjs');
   const mainWrite = () => spawnSync(process.execPath, [guard], {
     cwd: dir,
     env: { ...process.env, CLAUDE_PROJECT_DIR: dir },

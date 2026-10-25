@@ -1,7 +1,7 @@
 # Plan
 
 Common form, before automatic install and execution in the target project.
-Copy it to the run directory `.claude-team-docs/runs/<runId>/plan.md` and fill it in.
+Copy it to the run directory `.claude-subagent-docs/runs/<runId>/plan.md` and fill it in.
 G1 cannot pass if any of the 12 sections is empty.
 
 - runId:
@@ -61,7 +61,7 @@ Acceptance criteria and verification method per requirement ID. If automatic ver
 | --- | --- | --- | --- | --- |
 | R1 | | | | test / command / screen check |
 
-UI requirements: in Verification write the method, its source (rule file and line, or `none found`), and its case (defined, ambiguous resolved by the user, or none), per `.claude/team/ui-verification.md`.
+UI requirements: in Verification write the method, its source (rule file and line, or `none found`), and its case (defined, ambiguous resolved by the user, or none), per `.claude/subagent/ui-verification.md`.
 
 UI/UX walkthrough (only if the user opted in at confirmation): flows, viewports, and pass criteria.
 
@@ -73,7 +73,7 @@ UI/UX walkthrough (only if the user opted in at confirmation): flows, viewports,
 
 ## 9. Completion checklist
 
-Items applied from `.claude/team/checklist.md` plus project-specific items.
+Items applied from `.claude/subagent/checklist.md` plus project-specific items.
 
 ## 10. Items requiring user approval
 

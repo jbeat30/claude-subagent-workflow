@@ -1,6 +1,6 @@
 # 실제 Claude 측정 도구
 
-팀 구성(직접 처리·Lite·Full)을 같은 과제로 실제 실행해 비용·시간·토큰·행동을 비교하는 도구
+워크플로 구성(직접 처리·Lite·Full)을 같은 과제로 실제 실행해 비용·시간·토큰·행동을 비교하는 도구
 `npm test`와 달리 Claude를 호출하므로 사용 한도나 비용이 발생, CI와 `npm test`에 포함하지 않음
 선택 도구이며 PR의 필수 요건이 아님, 전체 검사 방법은 [검사 방법](../../docs/verification/TESTING.md), 결과는 [측정 기록](../../docs/verification/2026-10-19-small-fixture.md) 참고
 
@@ -8,7 +8,7 @@
 
 | 파일 | 역할 |
 | --- | --- |
-| `run-eval.mjs` | fixture 복사, 팀 설치, `claude -p` 실행, 이벤트와 결과 저장 |
+| `run-eval.mjs` | fixture 복사, 워크플로 설치, `claude -p` 실행, 이벤트와 결과 저장 |
 | `collect.mjs` | 출력 폴더에서 비용·시간·토큰·위임 호출을 JSON으로 수집 |
 | `report.mjs` | 수집한 JSON으로 비교 그래프 SVG 생성 |
 | `fixture/` | 대상 프로젝트(할 일 앱, 테스트 2건) |

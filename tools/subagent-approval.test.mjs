@@ -8,9 +8,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const base = join(dirname(fileURLToPath(import.meta.url)), '..', 'template/.claude');
-const approval = join(base, 'team/bin/team-approval.mjs');
-const guardScript = join(base, 'hooks/team-guard.mjs');
-const checkScript = join(base, 'team/bin/team-check.mjs');
+const approval = join(base, 'subagent/bin/subagent-approval.mjs');
+const guardScript = join(base, 'hooks/subagent-guard.mjs');
+const checkScript = join(base, 'subagent/bin/subagent-check.mjs');
 const command = `"${process.execPath}" -e "console.log('approved check')"`;
 
 function run(script, dir, args, input) {
@@ -23,8 +23,8 @@ const cli = (dir, ...args) => run(approval, dir, args);
 const guard = (dir, input) => run(guardScript, dir, [], { cwd: dir, permission_mode: 'default', hook_event_name: 'PreToolUse', ...input });
 const write = (dir, file, role = 'pm-agent', extra = {}) => guard(dir, { tool_name: 'Write', agent_type: role, tool_input: { file_path: file }, ...extra });
 const call = (dir) => guard(dir, { tool_name: 'Agent', agent_type: 'pm-agent', tool_use_id: 'write-1', tool_input: { subagent_type: 'backend-agent', prompt: '- runId: R1', run_in_background: false } });
-const location = (dir, name) => join(dir, '.claude-team-docs/.guard', name);
-const planPath = (dir) => join(dir, '.claude-team-docs/runs/R1/plan.md');
+const location = (dir, name) => join(dir, '.claude-subagent-docs/.guard', name);
+const planPath = (dir) => join(dir, '.claude-subagent-docs/runs/R1/plan.md');
 const getJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 
 function plan({ risk = 'L2', required = 'none', file = 'src/a.js', owner = 'backend-agent', checks = true } = {}) {
@@ -32,12 +32,12 @@ function plan({ risk = 'L2', required = 'none', file = 'src/a.js', owner = 'back
 }
 
 function fixture(options = {}, scope = {}) {
-  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'team-strict-')));
-  mkdirSync(join(dir, '.claude/team'), { recursive: true });
-  mkdirSync(join(dir, '.claude-team-docs/runs/R1'), { recursive: true });
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'subagent-strict-')));
+  mkdirSync(join(dir, '.claude/subagent'), { recursive: true });
+  mkdirSync(join(dir, '.claude-subagent-docs/runs/R1'), { recursive: true });
   mkdirSync(join(dir, 'src'), { recursive: true });
-  writeFileSync(join(dir, '.claude/team/profile.md'), '- Protection mode: strict\n');
-  writeFileSync(join(dir, '.claude-team-docs/runs/R1/request.md'), '원문 요청\n');
+  writeFileSync(join(dir, '.claude/subagent/profile.md'), '- Protection mode: strict\n');
+  writeFileSync(join(dir, '.claude-subagent-docs/runs/R1/request.md'), '원문 요청\n');
   writeFileSync(planPath(dir), plan(options));
   writeFileSync(join(dir, 'grant-draft.json'), JSON.stringify({ roots: ['src', 'test'], operations: ['modify', 'create'], forbidden: ['src/private'], checks: [{ command, cwd: '.', sideEffects: 'none' }], allowPmConfirm: true, ...scope }));
   const review = cli(dir, 'review-grant', 'grant-draft.json');
@@ -67,7 +67,7 @@ test('엄격 모드는 등록 없으면 소스 쓰기·개발 호출 거부', ()
   assert.match(blocked.stderr, /no approved plan is registered/, '등록이 없으면 파일 오류가 아닌 안내 문구');
   assert.doesNotMatch(blocked.stderr, /ENOENT/);
   assert.equal(call(dir).status, 2);
-  assert.equal(write(dir, '.claude-team-docs/runs/R1/plan.md').status, 0);
+  assert.equal(write(dir, '.claude-subagent-docs/runs/R1/plan.md').status, 0);
 });
 
 test('PM 자체 컨펌은 허용 범위 내 L2와 명시적인 승인 불필요 표식에 한정', () => {
@@ -114,7 +114,7 @@ test('계획·요청·grant 변경은 활성 등록과 과거 직접 승인을 �
     approve(dir);
     register(dir);
     if (target === 'plan') writeFileSync(planPath(dir), plan({ risk: 'L3' }) + '\n변경');
-    if (target === 'request') writeFileSync(join(dir, '.claude-team-docs/runs/R1/request.md'), '다른 요청');
+    if (target === 'request') writeFileSync(join(dir, '.claude-subagent-docs/runs/R1/request.md'), '다른 요청');
     if (target === 'grant') {
       const file = location(dir, 'grant.json');
       const grant = getJson(file);
@@ -147,7 +147,7 @@ test('엄격 모드 main·비표준 권한 모드·정책 파일 보호', () => 
   for (const permission_mode of ['acceptEdits', 'auto', 'bypassPermissions', 'dontAsk', 'plan', undefined]) {
     assert.equal(write(dir, 'src/a.js', 'pm-agent', { permission_mode }).status, 2, permission_mode);
   }
-  for (const file of ['.claude/team/profile.md', '.claude-team-docs/.guard/grant.json', '.claude-team-docs/.guard/active-registration.json']) {
+  for (const file of ['.claude/subagent/profile.md', '.claude-subagent-docs/.guard/grant.json', '.claude-subagent-docs/.guard/active-registration.json']) {
     assert.equal(write(dir, file).status, 2, file);
   }
 });
@@ -159,8 +159,8 @@ test('엄격 모드 검사 실행과 검증은 현재 등록과 기록 해시를
   const result = run(checkScript, dir, ['run', 'R1', command]);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(run(checkScript, dir, ['verify', 'R1']).status, 0);
-  const index = readdirSync(join(dir, '.claude-team-docs/runs/R1/checks'))[0];
-  const recordPath = join(dir, '.claude-team-docs/runs/R1/checks', index, 'record.json');
+  const index = readdirSync(join(dir, '.claude-subagent-docs/runs/R1/checks'))[0];
+  const recordPath = join(dir, '.claude-subagent-docs/runs/R1/checks', index, 'record.json');
   const record = getJson(recordPath);
   record.exitCode = 7;
   writeFileSync(recordPath, JSON.stringify(record));

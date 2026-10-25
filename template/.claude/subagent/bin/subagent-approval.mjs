@@ -3,7 +3,7 @@
 import { mkdirSync, readFileSync, realpathSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { hash, paths, snapshot, validateGrant, verifyRegistration } from './team-policy.mjs';
+import { hash, paths, snapshot, validateGrant, verifyRegistration } from './subagent-policy.mjs';
 
 const root = realpathSync.native(process.cwd());
 const [command, value, flag, expectedHash] = process.argv.slice(2);
@@ -48,6 +48,6 @@ try {
     console.log(JSON.stringify({ ok: true, message: 'registration released; approval scope and records kept' }));
   } else throw new Error('usage: review-grant <json> | grant <json> --hash <sha256> | review-plan <runId> | approve <runId> --hash <planSha256> | register/verify/revoke <runId>');
 } catch (error) {
-  console.error(`team-approval: ${error.message}`);
+  console.error(`subagent-approval: ${error.message}`);
   process.exit(2);
 }

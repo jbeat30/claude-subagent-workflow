@@ -24,9 +24,9 @@ const check = async (fn) => {
 };
 const count = (results) => results.filter((ok) => !ok).length;
 
-// 변경 파일: 추적 파일 변경 + 새 파일(.claude, .claude-team-docs는 팀 설치, 기록이라 제외)
+// 변경 파일: 추적 파일 변경 + 새 파일(.claude, .claude-subagent-docs는 워크플로 설치, 기록이라 제외)
 const status = git('status', '--porcelain', '-uall').split('\n').filter(Boolean).map((l) => l.slice(3).replace(/^"|"$/g, ''));
-const changed = status.filter((p) => !p.startsWith('.claude/') && !p.startsWith('.claude-team-docs/') && p !== '.gitignore' && p !== '.mcp.json');
+const changed = status.filter((p) => !p.startsWith('.claude/') && !p.startsWith('.claude-subagent-docs/') && p !== '.gitignore' && p !== '.mcp.json');
 const inScope = (p) => task.allowed.some((a) => (a.endsWith('/') ? p.startsWith(a) : p === a));
 const outOfScope = changed.filter((p) => !inScope(p));
 // 기존 테스트 파일 수정(새 테스트 파일 추가는 제외)

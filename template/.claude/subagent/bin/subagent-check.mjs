@@ -4,16 +4,16 @@
 // 종료 코드: 0 기록 생성 또는 검증 통과, 1 검증 실패, 2 거부, 오류 (검사 명령의 exit code는 record.json에 기록)
 //
 // 사용법
-//   node .claude/team/bin/team-check.mjs run <runId> "<검사 명령>" [--allow-side-effects]
-//   node .claude/team/bin/team-check.mjs verify <runId>
-//   node .claude/team/bin/team-check.mjs diff <runId> [--base <ref>]
-//   node .claude/team/bin/team-check.mjs trace <runId>
+//   node .claude/subagent/bin/subagent-check.mjs run <runId> "<검사 명령>" [--allow-side-effects]
+//   node .claude/subagent/bin/subagent-check.mjs verify <runId>
+//   node .claude/subagent/bin/subagent-check.mjs diff <runId> [--base <ref>]
+//   node .claude/subagent/bin/subagent-check.mjs trace <runId>
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, realpathSync } from 'node:fs';
 import { join, relative, resolve, isAbsolute } from 'node:path';
 
-import { strictMode, verifyRegistration, paths as approvalPaths, hash as approvalHash } from './team-policy.mjs';
+import { strictMode, verifyRegistration, paths as approvalPaths, hash as approvalHash } from './subagent-policy.mjs';
 
 const VERSION = '0.3.8';
 const MAX_BUFFER = 256 * 1024 * 1024;
@@ -21,7 +21,7 @@ const root = realpathSync.native(process.cwd());
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
 const die = (message) => {
-  console.error(`team-check: ${message}`);
+  console.error(`subagent-check: ${message}`);
   process.exit(2);
 };
 
@@ -35,7 +35,7 @@ function strictRegistration(runId) {
 
 function runDir(runId) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(runId ?? '')) die(`invalid runId format: ${runId}`);
-  const dir = join(root, '.claude-team-docs', 'runs', runId);
+  const dir = join(root, '.claude-subagent-docs', 'runs', runId);
   if (!existsSync(dir)) die(`run directory not found: ${dir}`);
   return dir;
 }
@@ -127,7 +127,7 @@ function cmdRun(args) {
     registrationSha256: registration ? approvalHash(registration) : null,
     stdoutSha256: sha256(stdout),
     stderrSha256: sha256(stderr),
-    runner: `team-check ${VERSION}`,
+    runner: `subagent-check ${VERSION}`,
     nodeVersion: process.version,
     source: 'check record source: run by the main session with the runner',
   };
@@ -192,7 +192,7 @@ function cmdDiff(args) {
   if (git(['rev-parse', '--is-inside-work-tree']).status !== 0) die('not a git repository');
   if (git(['rev-parse', '--verify', `${base}^{commit}`]).status !== 0) die(`base commit not found: ${base}`);
 
-  const exclude = ':(exclude).claude-team-docs/runs';
+  const exclude = ':(exclude).claude-subagent-docs/runs';
   const tracked = git(['diff', '--no-color', '--no-ext-diff', base, '--', '.', exclude]);
   if (tracked.status !== 0) die(`git diff failed: ${tracked.stderr}`);
   const listed = git(['ls-files', '--others', '--exclude-standard', '-z', '--', '.', exclude]);
@@ -335,7 +335,7 @@ function cmdTrace(args) {
     }
     for (const file of card.files) {
       // 계획서, 보고서 같은 실행 기록은 소스 파일이 아니므로 변경 계획(6장) 비교에서 제외(planning-lead 카드의 허용 파일이 plan.md)
-      if (file.replace(/\\/g, '/').startsWith('.claude-team-docs/runs/')) continue;
+      if (file.replace(/\\/g, '/').startsWith('.claude-subagent-docs/runs/')) continue;
       if (!planned.has(file)) problems.push(`cards/${name}: file not in plan section 6 ${file}`);
       else if (planned.get(file) !== role) problems.push(`cards/${name}: ${file} is owned by ${planned.get(file)}, but the card receiver is ${role}`);
     }

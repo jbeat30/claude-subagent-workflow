@@ -8,7 +8,7 @@ const normalize = (value) => process.platform === 'linux' ? value : value.toLowe
 const fail = (message) => { throw new Error(message); };
 const within = (path, base) => base === '.' || path === base || path.startsWith(`${base}/`);
 const read = (file) => readFileSync(file, 'utf8');
-const NO_REGISTRATION = 'strict mode is on and no approved plan is registered, so this edit is blocked; register an approval (.claude/team/strict-mode.md) or switch the protection mode back to advisory with the setting skill';
+const NO_REGISTRATION = 'strict mode is on and no approved plan is registered, so this edit is blocked; register an approval (.claude/subagent/strict-mode.md) or switch the protection mode back to advisory with the setting skill';
 
 /** @description 승인·등록 스냅샷의 변경 감지용 SHA-256 반환 */
 export const hash = (value) => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
@@ -30,15 +30,15 @@ export function safePath(root, value, allowRoot = false) {
 /** @description 실행 단위별 계획·요청과 보호 기록 경로 반환 */
 export function paths(root, runId) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(runId ?? '')) fail('invalid runId format');
-  const guard = '.claude-team-docs/.guard';
-  const run = `.claude-team-docs/runs/${runId}`;
+  const guard = '.claude-subagent-docs/.guard';
+  const run = `.claude-subagent-docs/runs/${runId}`;
   for (const path of [guard, run]) safePath(root, path);
   return { guard: join(root, guard), plan: join(root, run, 'plan.md'), request: join(root, run, 'request.md'), approval: join(root, guard, `approval-${runId}.json`), active: join(root, guard, 'active-registration.json'), grant: join(root, guard, 'grant.json') };
 }
 
 /** @description 프로필의 보호 모드 확인, 잘못된 값은 거부 */
 export function strictMode(root) {
-  const file = join(root, '.claude/team/profile.md');
+  const file = join(root, '.claude/subagent/profile.md');
   if (!existsSync(file)) return false;
   const value = read(file).match(/^- Protection mode:\s*([^\r\n]+)/m)?.[1]?.trim();
   if (value === undefined || value === 'advisory') return false;
@@ -69,7 +69,7 @@ export function validateGrant(root, grant) {
 function checkFile(root, grant, file) {
   const path = safePath(root, file);
   const key = normalize(path);
-  if (['.git', '.claude', '.claude-team-docs'].some((base) => within(key, base))) fail(`policy and record paths cannot be assigned: ${file}`);
+  if (['.git', '.claude', '.claude-subagent-docs'].some((base) => within(key, base))) fail(`policy and record paths cannot be assigned: ${file}`);
   if (!grant.roots.some((base) => within(key, normalize(base))) || grant.forbidden.some((base) => within(key, normalize(base)))) fail(`outside the approved scope or a forbidden path: ${file}`);
   return path;
 }

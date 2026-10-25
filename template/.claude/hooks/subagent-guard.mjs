@@ -5,9 +5,9 @@
 // 전제: 에이전트 호출 인계에 `runId: <id>`, 기획안 상태는 `- Status: confirmed`, 변경 계획 6장 표의 담당은 역할 이름
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { strictMode, verifyRegistration, verifyWrite } from '../team/bin/team-policy.mjs';
+import { strictMode, verifyRegistration, verifyWrite } from '../subagent/bin/subagent-policy.mjs';
 
-const DOCS = '.claude-team-docs';
+const DOCS = '.claude-subagent-docs';
 const WRITERS = ['frontend-agent', 'backend-agent', 'api-agent', 'test-agent'];
 const ANALYSTS = ['planner-agent', 'architecture-agent'];
 const ROLES = ['pm-agent', 'planning-lead', 'dev-lead', ...ANALYSTS, ...WRITERS, 'qa-agent'];
@@ -22,7 +22,7 @@ const CASE_SENSITIVE = process.platform === 'linux';
 
 const norm = (value) => (CASE_SENSITIVE ? value : value.toLowerCase());
 const deny = (message) => {
-  process.stderr.write(`team-guard: ${message}\n`);
+  process.stderr.write(`subagent-guard: ${message}\n`);
   process.exit(2);
 };
 
@@ -146,12 +146,12 @@ function isProtectedFor(role, rl) {
   if (rl === '.git' || rl.startsWith('.git/')) return true;
   if (rl === `${DOCS}/.guard` || rl.startsWith(`${DOCS}/.guard/`)) return true;
   if (new RegExp(`^${DOCS}/runs/[^/]+/checks(/|$)`).test(rl)) return true;
-  // .claude/ 전체가 아닌 팀 정책 파일만 보호: 사용자가 .claude/ 아래에 둔 자기 규칙, 명령, 에이전트는 수정 가능
-  // 팀 역할의 쓰기는 이어지는 계획 배정 검사로 다시 제한됨
+  // .claude/ 전체가 아닌 워크플로 정책 파일만 보호: 사용자가 .claude/ 아래에 둔 자기 규칙, 명령, 에이전트는 수정 가능
+  // 워크플로 역할의 쓰기는 이어지는 계획 배정 검사로 다시 제한됨
   return (
     rl.startsWith('.claude/hooks/') ||
-    rl.startsWith('.claude/team/') ||
-    rl.startsWith('.claude/skills/team/') ||
+    rl.startsWith('.claude/subagent/') ||
+    rl.startsWith('.claude/skills/subagent/') ||
     /^\.claude\/settings(\.local)?\.json$/.test(rl) ||
     ROLES.some((r) => rl === `.claude/agents/${r}.md`)
   );
@@ -179,7 +179,7 @@ function decideWrite(root, input) {
   // 권고 모드의 프로필 수정은 사용자 요청을 받은 PM에게만 허용
   const strict = strictMode(root);
   if (strict && input.permission_mode !== 'default') return deny('strict mode allows only the default permission mode; do not downgrade automatically');
-  const pmProfile = !strict && isPm && rl === '.claude/team/profile.md';
+  const pmProfile = !strict && isPm && rl === '.claude/subagent/profile.md';
   if (!pmProfile && isProtectedFor(role, rl)) return deny(`protected path cannot be modified: ${rel}`);
 
   if (isPm) {
@@ -190,7 +190,7 @@ function decideWrite(root, input) {
 
   if (!SUBAGENT_ROLES.includes(role)) {
     if (strict) return deny('strict mode rejects file edits by unregistered roles');
-    return; // 권고 모드에서는 이 팀 외의 에이전트에 간섭하지 않음
+    return; // 권고 모드에서는 이 워크플로 외의 에이전트에 간섭하지 않음
   }
 
   // runId는 대소문자를 구분하는 파일시스템에서 실제 폴더명과 일치해야 하므로 원래 경로(rel)에서 추출
@@ -210,7 +210,7 @@ function decideWrite(root, input) {
 
 // 프로필의 실행 모드가 relay이면 리더는 하위 에이전트를 직접 호출하지 않고 카드만 반환
 function relayMode(root) {
-  const text = readText(join(root, '.claude/team/profile.md'));
+  const text = readText(join(root, '.claude/subagent/profile.md'));
   return text !== null && /^- Execution mode:\s*relay\b/m.test(text);
 }
 
@@ -220,11 +220,11 @@ function decideAgent(root, input) {
   const prompt = input.tool_input?.prompt ?? '';
   if (!ROLES.includes(target)) {
     if (strictMode(root)) return deny('strict mode rejects calls to unregistered roles');
-    return; // 권고 모드에서는 이 팀 외의 호출에 간섭하지 않음
+    return; // 권고 모드에서는 이 워크플로 외의 호출에 간섭하지 않음
   }
 
   // 백그라운드 호출은 즉시 반환되어 쓰기 잠금이 풀리고 가드가 서브에이전트의 쓰기를 추적하지 못하므로 포그라운드만 허용
-  if (input.tool_input?.run_in_background !== false) return deny('call team agents in the foreground: set run_in_background to false (a background call returns at once, so the guard cannot track its writes)');
+  if (input.tool_input?.run_in_background !== false) return deny('call subagents in the foreground: set run_in_background to false (a background call returns at once, so the guard cannot track its writes)');
 
   if (SUBAGENT_ROLES.includes(caller)) {
     if (relayMode(root)) return deny(`in relay mode ${caller} must not call sub-agents; return call cards for the PM to call`);

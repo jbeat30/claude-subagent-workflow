@@ -18,7 +18,7 @@
 2. 스킬이 프로젝트를 조사하고, 꼭 필요한 것만 질문
 3. 변경 계획을 10줄 이내로 표시, 확인은 **한 번**만
 4. 설치기가 파일을 복사·병합하고 보호 장치를 점검
-5. 워크플로가 필요할 때 `/team 요청 내용`으로 호출
+5. 워크플로가 필요할 때 `/subagent 요청 내용`으로 호출
 
 저장소를 직접 가져오는 방식도 지원해요. Claude Code에 아래처럼 요청하세요.
 
@@ -48,7 +48,7 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 | 디자인 도구 MCP(선택) | **Playwright**: 실행 중인 화면을 열어 확인<br>**Chrome DevTools**: 크롬으로 화면·콘솔·네트워크·성능 확인, UI/UX 점검에 유용<br>**shadcn/ui**: 검증된 컴포넌트 재사용(`components.json` 필요)<br>**Figma**: 시안이 있을 때 하나만 선택<br>· `figma`: 원격 서버, 등록 뒤 `/mcp`에서 브라우저 로그인 필요<br>· `figma-desktop`: Figma 데스크톱 앱 서버, 앱의 Dev Mode에서 데스크톱 MCP 서버를 켜야 하고 Dev 또는 Full 좌석 필요<br>· `figma-plugin`: 공식 플러그인, 설치기는 설치하지 않고 실행할 명령만 안내(이미 공식 플러그인을 쓰고 있다면 이쪽을 선택)<br>에이전트는 Figma를 **읽기만** 수행(파일을 고치는 도구는 허용하지 않음), 읽기는 요금제 한도에 포함: Starter 플랜과 View·Collab 좌석은 월 20회 안팎, Full·Dev 좌석은 일 200회 안팎 | UI가 있는 프로젝트에서만 질문, Playwright·shadcn/ui 권장 |
 | 수정 금지 영역 | 운영 설정·생성 파일·특정 경로 지정 | 없음 |
 | 보호 모드 | **권고**: 가드 hook이 위반을 차단<br>**엄격**: 승인 기록을 직접 추적(선택, 승인 명령은 사용자가 직접 실행) | 권고 |
-| 작업 기록 | `.claude-team-docs/`를 `.gitignore`에 추가 | 추가 |
+| 작업 기록 | `.claude-subagent-docs/`를 `.gitignore`에 추가 | 추가 |
 | 충돌 처리 | 기존 파일과 겹치면 항목별로 건너뛰거나 백업 후 교체 | 충돌 시 질문 |
 
 모드는 설치할 때 묻지 않아요. 역할 파일 9종이 항상 전부 설치되고 기본 모드는 Lite예요. 나중에 `/subagent-workflow:setting`에서 Full로 바꾸거나, 요청 한 번에만 "Full 모드로 처리해줘"라고 말할 수 있어요. Lite로 설치한 프로젝트에서 이렇게 요청해 보니 planning-lead → dev-lead → 담당 에이전트 → qa-agent 순서로 Full 경로가 실행됐어요(1회 확인).
@@ -68,10 +68,10 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 ```text
 .claude/
   agents/        역할 정의 9종
-  skills/team/   /team 스킬(PM 지침), 부를 때만 읽힘
+  skills/subagent/   /subagent 스킬(PM 지침), 부를 때만 읽힘
   hooks/         가드 hook
-  team/          양식, 프로젝트 프로필, 검사 실행기, 설치 매니페스트
+  subagent/         양식, 프로젝트 프로필, 검사 실행기, 설치 매니페스트
   settings.json  hook 등록(기존 설정과 병합), 메인 세션을 PM으로 고정하지 않음
-.claude-team-docs/   작업별 기록(요청 원문·기획안·보고·검사 기록·diff), .gitignore 추가는 선택
+.claude-subagent-docs/   작업별 기록(요청 원문·기획안·보고·검사 기록·diff), .gitignore 추가는 선택
 .mcp.json            Context7·디자인 도구 MCP 등록(선택, 기존 설정과 병합)
 ```

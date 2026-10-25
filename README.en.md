@@ -24,7 +24,7 @@ It is for Claude Code users who worry about these things on larger changes:
 - Files outside the assignment get edited
 - Unchecked work is reported as done
 
-When you call the workflow, a request goes through intake, plan, confirm, build, and independent QA. Every role reads the original request and the plan file itself, no source is edited before confirmation, only assigned files are edited, and anything not verified stays marked `unchecked`. Your project's existing rules (`CLAUDE.md`, `AGENTS.md`, lint config, and so on) always win. Installing does not change normal Claude conversations; the workflow runs only when you call it with `/team`.
+When you call the workflow, a request goes through intake, plan, confirm, build, and independent QA. Every role reads the original request and the plan file itself, no source is edited before confirmation, only assigned files are edited, and anything not verified stays marked `unchecked`. Your project's existing rules (`CLAUDE.md`, `AGENTS.md`, lint config, and so on) always win. Installing does not change normal Claude conversations; the workflow runs only when you call it with `/subagent`.
 
 ## When to use it and when to ask directly
 
@@ -51,10 +51,10 @@ Requirements: Claude Code 2.1.302 or later, Node 18 or later
 The setup skill inspects the project, asks only what it must, shows the change plan, and asks for confirmation once. It does not overwrite existing files and does not touch global settings or feature code. After install, call it like this:
 
 ```text
-/team Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
+/subagent Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
 ```
 
-Saying "solve this with the subagent workflow: ..." also works, but the model decides, so it can occasionally miss; use `/team` then. Fetching the repository directly is covered in the [install guide](docs/guide/install.en.md).
+Saying "solve this with the subagent workflow: ..." also works, but the model decides, so it can occasionally miss; use `/subagent` then. Fetching the repository directly is covered in the [install guide](docs/guide/install.en.md).
 
 ## Example
 
@@ -75,7 +75,7 @@ When the same task was rerun 4 times in Lite after the instructions were changed
 - **Verification level**: the static checks and unit tests in `npm test` pass, but they do not prove permission blocking, delegation accuracy, or prompt quality. The evaluation used small synthetic fixtures, one run each, one model, non-interactive runs, and there is no guarantee that the workflow improves quality over direct handling.
 - **Rules that are not enforced**: whether the L3 procedure (plan, impact analysis, user confirmation) is followed rests on instructions alone. In the evaluation there was a run that classified a request as L3 and still edited directly without this procedure.
 - **Experimental**: Full mode, relay execution, and strict mode are not well verified in a real Claude environment.
-- **Limits of protection**: the guard hook is a safety net against mistakes, not a security boundary. It cannot stop shell commands in the main session or changes to user and hook settings. Strict mode applies to edits in ordinary conversations where `/team` was not called.
+- **Limits of protection**: the guard hook is a safety net against mistakes, not a security boundary. It cannot stop shell commands in the main session or changes to user and hook settings. Strict mode applies to edits in ordinary conversations where `/subagent` was not called.
 - **Not checked**: interactive screens such as the skill permission prompt, macOS and Linux, and updating between releases.
 
 Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
@@ -85,7 +85,7 @@ Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 | Document | Content |
 | --- | --- |
 | [Install and choices](docs/guide/install.en.md) | The three skills, what you choose at setup (Context7, document reading, design tool MCP, protection mode, conflict handling), installed files |
-| [Using it after install](docs/guide/usage.en.md) | Calling `/team`, usage examples, when to call it |
+| [Using it after install](docs/guide/usage.en.md) | Calling `/subagent`, usage examples, when to call it |
 | [How it works](docs/guide/how-it-works.en.md) | Lite and Full structure, roles, task grade flow, project rule priority, against hallucination and unrequested edits, token efficiency |
 | [Changing settings](docs/guide/settings.en.md) | Default mode, protection mode, adding and removing MCP servers |
 | [Getting a new version, update and removal](docs/guide/update-remove.en.md) | Plugin update, project file update, removal |

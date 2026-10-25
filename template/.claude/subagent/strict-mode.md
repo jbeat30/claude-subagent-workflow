@@ -8,7 +8,7 @@ Do not describe it as verified before real interactive Claude runs and trust che
 - The user runs the approval commands personally. Agents never run `grant` or `approve` on the user's behalf.
 - Files and hashes do not authenticate the user's identity. It does not defend against the main shell, the user, or the host changing records or hooks.
 - Never substitute `approved=true`, a conversation summary, or approval wording in a document for an approval record.
-- The hook is not a security boundary; it checks the tools' Write/Edit and team calls. File changes by shells, MCP, or other processes are out of scope.
+- The hook is not a security boundary; it checks the tools' Write/Edit and subagent calls. File changes by shells, MCP, or other processes are out of scope.
 - Currently only the hook input `permission_mode=default` is allowed. For other modes or a missing field, writes and development calls are rejected, and there is no automatic fallback to advisory mode.
 - Supported file operations are create and modify. Delete, move, glob, symlink, and junction are not supported.
 
@@ -30,23 +30,23 @@ Tell the user that an external process could change the approval scope, and use 
 
 `operations` is the list of allowed modify and create operations. Delete and move are not allowed.
 `roots` are directories or exact file paths. `.` means the whole project, so narrowing to the needed paths is recommended.
-The policy paths `.git/`, `.claude/`, and `.claude-team-docs/` cannot be registered as source edit targets even if inside the approval scope.
+The policy paths `.git/`, `.claude/`, and `.claude-subagent-docs/` cannot be registered as source edit targets even if inside the approval scope.
 A check command must match the original text and working directory exactly. Use `sideEffects=approved` only when the user also reviewed that command's side effects.
 Shell string analysis does not guarantee the meaning of auto-fixing commands.
 
 From the project root the agent may run the read-only review command.
 
 ```text
-node .claude/team/bin/team-approval.mjs review-grant <draft.json>
+node .claude/subagent/bin/subagent-approval.mjs review-grant <draft.json>
 ```
 
 After checking the JSON content and the `sha256` in the output, the user runs the following command directly.
 
 ```text
-node .claude/team/bin/team-approval.mjs grant <draft.json> --hash <sha256>
+node .claude/subagent/bin/subagent-approval.mjs grant <draft.json> --hash <sha256>
 ```
 
-The record is stored in `.claude-team-docs/.guard/grant.json`. A new grant record releases any active registration.
+The record is stored in `.claude-subagent-docs/.guard/grant.json`. A new grant record releases any active registration.
 This procedure is not forced on ordinary install users.
 
 ## Task registration
@@ -54,7 +54,7 @@ This procedure is not forced on ordinary install users.
 After the PM settles the plan as confirmed, check the files, check commands, and hash read-only.
 
 ```text
-node .claude/team/bin/team-approval.mjs review-plan <runId>
+node .claude/subagent/bin/subagent-approval.mjs review-plan <runId>
 ```
 
 The PM may run `register` directly if all of the following hold.
@@ -68,14 +68,14 @@ Classifying the triggers by meaning is the PM's responsibility; the marker above
 For L3, user approval needed, or work not allowed to self-confirm, the user reviews the plan and the request source and approves directly.
 
 ```text
-node .claude/team/bin/team-approval.mjs approve <runId> --hash <planSha256>
+node .claude/subagent/bin/subagent-approval.mjs approve <runId> --hash <planSha256>
 ```
 
 After user approval or an allowed PM self-confirmation, the agent runs the registration.
 
 ```text
-node .claude/team/bin/team-approval.mjs register <runId>
-node .claude/team/bin/team-approval.mjs verify <runId>
+node .claude/subagent/bin/subagent-approval.mjs register <runId>
+node .claude/subagent/bin/subagent-approval.mjs verify <runId>
 ```
 
 If the approval scope, request, plan, or approval record changes, the existing registration is not used. Review the changed plan again, get the needed direct approval, and register again.
@@ -94,7 +94,7 @@ After re-registration, earlier check records are not reused and the needed check
 Do not claim it detects the case where the main shell changes both the check record and the hash index together.
 
 ```text
-node .claude/team/bin/team-approval.mjs revoke <runId>
+node .claude/subagent/bin/subagent-approval.mjs revoke <runId>
 ```
 
 On finishing or stopping work, release the active registration. The approval scope and past records are kept.

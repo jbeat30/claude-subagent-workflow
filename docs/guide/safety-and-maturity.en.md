@@ -21,12 +21,12 @@
 | Level | Features |
 | --- | --- |
 | Core | Skill install, update, and removal, Lite, role files, advisory-mode guard, check runner |
-| Experimental or optional | Full, relay execution mode, strict mode (direct approval tracking), requirement-preservation trace check (`team-check.mjs trace`) |
+| Experimental or optional | Full, relay execution mode, strict mode (direct approval tracking), requirement-preservation trace check (`subagent-check.mjs trace`) |
 
 - Strict mode applies to every edit of the main session, so it can affect ordinary conversations where the workflow was not called. Limiting it to workflow runs is still to be done.
 - Experimental features are not verified in a real Claude environment, and there is no comparison yet showing they beat handling tasks directly.
 - **Following the L3 procedure depends on the prompt alone and is not enforced**: in the v0.2.0 evaluation the PM classified a request as L3 and still edited directly without a plan, impact analysis, or user confirmation. That may have been caused by the direct path of that version; this version removed it but did not measure again. Behavior in interactive use has not been checked.
-- Marketplace install and the `/team` call were checked in real Claude. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
+- Marketplace install and the `/subagent` call were checked in real Claude. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
 
 ![Cost, time, and tokens by mode](../verification/assets/mode-compare.en.svg)
 
@@ -35,7 +35,7 @@
 - [v0.3.6 check results](../verification/EVAL_RESULTS_v0.3.6.md) (Korean): one check each of the Figma connection types, rule priority, and the guard's `.claude/` protection scope; not a usefulness evaluation.
 - [v0.3.3 check results](../verification/EVAL_RESULTS_v0.3.3.md) (Korean): one check of switching the protection mode (advisory/strict) and of edits being blocked and released; not a usefulness evaluation
 - [v0.3.2 check results](../verification/EVAL_RESULTS_v0.3.2.md) (Korean): one check each of switching the mode after install and the `setting` skill; not a usefulness evaluation
-- [v0.3.0 check results](../verification/EVAL_RESULTS_v0.3.0.md) (Korean): a check of how `/team` is called and one run of the hard task l1; not a usefulness evaluation
+- [v0.3.0 check results](../verification/EVAL_RESULTS_v0.3.0.md) (Korean): a check of how `/subagent` is called and one run of the hard task l1; not a usefulness evaluation
 - [v0.2.0 evaluation results](../verification/EVAL_RESULTS_v0.2.0.md) (Korean; 8 tasks, one run each, one model, raw JSON included): the workflow's value can only be judged on the hard tasks (hidden callers l1, implicit requirements m1), which have few measurements and one run each, so they cannot be judged against the design criteria. Easy tasks are not requests anyone would hand to a team, so their cost figures are not used as evidence of the workflow's usefulness.
 - There is no guarantee that the workflow structure improves quality over handling tasks directly.
 
@@ -43,7 +43,7 @@
 
 | Item | Status |
 | --- | --- |
-| Skill (plugin) install and `/team` call | Implemented; marketplace install and `/team` checked once each in real Claude; interactive screens still to be checked |
+| Skill (plugin) install and `/subagent` call | Implemented; marketplace install and `/subagent` checked once each in real Claude; interactive screens still to be checked |
 | English prompts and user-language replies | Implemented; delegation evaluation planned |
 | Hard-task comparison (direct, Lite, Full, repeated runs) | One run published; repeated runs not done |
 | Context slimming (shorter PM instructions) | First pass done (PM instructions about 18% smaller, a rule-list check prevents omissions); more planned |

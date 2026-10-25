@@ -3,7 +3,7 @@ name: setup
 description: |
   Set up, update, or remove the Claude Subagent Workflow (Lite or Full) in the current project.
   Runs the bundled deterministic installer, shows a short plan, asks for one confirmation, and verifies the guard.
-  Triggers: set up subagent workflow, install subagent workflow, update subagent workflow, remove subagent workflow, set up agent team, claude subagent workflow setup, 서브에이전트 워크플로 세팅, 에이전트 팀 세팅, 설치, 갱신, 제거
+  Triggers: set up subagent workflow, install subagent workflow, update subagent workflow, remove subagent workflow, claude subagent workflow setup, 서브에이전트 워크플로 세팅, 서브에이전트 워크플로 세팅, 설치, 갱신, 제거
 argument-hint: "[install | update | remove]"
 user-invocable: true
 allowed-tools:

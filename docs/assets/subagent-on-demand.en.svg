@@ -17,7 +17,7 @@
 <rect x="470" y="400" width="430" height="160" rx="14" fill="white" stroke="#D5DBE6" stroke-width="1.5"/>
 <rect x="470" y="412" width="7" height="136" rx="3" fill="#3B6FD8"/>
 <text x="498" y="430" dominant-baseline="text-before-edge" font-family="Inter, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#1A2744">Call the workflow</text>
-<text x="498" y="482" dominant-baseline="text-before-edge" font-family="Inter, Noto Sans KR, sans-serif" font-size="21" font-weight="400" fill="#1A2744">/team &lt;request&gt; or ask in words</text>
+<text x="498" y="482" dominant-baseline="text-before-edge" font-family="Inter, Noto Sans KR, sans-serif" font-size="21" font-weight="400" fill="#1A2744">/subagent &lt;request&gt; or ask in words</text>
 <rect x="1000" y="400" width="420" height="160" rx="14" fill="white" stroke="#D5DBE6" stroke-width="1.5"/>
 <rect x="1000" y="412" width="7" height="136" rx="3" fill="#3B6FD8"/>
 <text x="1028" y="430" dominant-baseline="text-before-edge" font-family="Inter, Noto Sans KR, sans-serif" font-size="29" font-weight="700" fill="#1A2744">PM classifies</text>

@@ -1,7 +1,7 @@
-// 어려운 과제 1회 실행기: 격리된 환경에서 직접 처리·Lite·Full을 같은 조건으로 실행하고 코드로 채점
+// 어려운 과제 1회 실행기: 격리된 환경에서 직접 처리, Lite, Full을 같은 조건으로 실행하고 코드로 채점
 // 사용법: REPO=<저장소 경로> BUDGET=2 node run.mjs <direct|lite|full> <taskId> <rep> <출력 폴더>
 // 환경 변수: BUDGET(호출당 달러 상한), MODEL(기본 sonnet), CLAUDE_BIN(claude 실행 파일), PERM(기본 acceptEdits)
-// 격리: 사용자 플러그인·MCP·슬래시 명령·전역 설정을 끄고 프로젝트 설정만 사용(없으면 호출당 약 14만 토큰이 더해짐)
+// 격리: 사용자 플러그인, MCP, 슬래시 명령, 전역 설정을 끄고 프로젝트 설정만 사용(없으면 호출당 약 14만 토큰이 더해짐)
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

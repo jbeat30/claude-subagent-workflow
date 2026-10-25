@@ -1,6 +1,6 @@
 name: Release
 
-# main 반영 시 plugin.json 버전으로 태그·릴리즈 생성
+# main 반영 시 plugin.json 버전으로 태그, 릴리즈 생성
 # 릴리즈 생성 후 마켓플레이스(jbeat30/jbeat-plugins)의 ref 갱신 PR 생성
 
 on:

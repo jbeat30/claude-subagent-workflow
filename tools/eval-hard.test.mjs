@@ -1,4 +1,4 @@
-// 어려운 과제 채점기 검증: 실제 Claude 없이 원본·정답·부분 해법으로 채점 결과가 맞는지 확인
+// 어려운 과제 채점기 검증: 실제 Claude 없이 원본, 정답, 부분 해법으로 채점 결과가 맞는지 확인
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -76,7 +76,7 @@ test('m1: 원본은 7건 모두 누락, 정답은 0, 암묵 요구 누락은 따
   void partial;
   const base = "export function percentOff(total, pct) {\n  return Math.round(total * (100 - pct)) / 100;\n}\n";
   const codes = "const CODES = { SAVE10: { type: 'pct', value: 10 }, FIVE: { type: 'fixed', value: 5 }, WINTER: { type: 'pct', value: 20, until: new Date('2024-12-31T23:59:59Z') } };\n";
-  // 명시 요구만 구현(음수 방지·알 수 없는 코드 처리 없음)
+  // 명시 요구만 구현(음수 방지, 알 수 없는 코드 처리 없음)
   put(dir, { 'src/discount.js': `${base}${codes}export function applyCode(total, code, now) {\n  const c = CODES[code];\n  if (c.until && now > c.until) return { ok: false, total, reason: 'expired' };\n  const next = c.type === 'pct' ? percentOff(total, c.value) : total - c.value;\n  return { ok: true, total: next, reason: null };\n}\n` });
   const explicitOnly = score('m1', dir);
   assert.equal(explicitOnly.explicitMissed, 0);

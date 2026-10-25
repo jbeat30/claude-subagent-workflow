@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// 검사 실행기: 승인된 기획안의 검사 명령만 실행하고 원본 출력·exit code·시각·해시를 가공 없이 기록
+// 검사 실행기: 승인된 기획안의 검사 명령만 실행하고 원본 출력, exit code, 시각, 해시를 가공 없이 기록
 // 프로젝트 루트에서 실행, 기록을 생성하는 주체는 이 스크립트이며 메인이 기록을 위조하는 경우까지는 방어하지 않음
-// 종료 코드: 0 기록 생성 또는 검증 통과, 1 검증 실패, 2 거부·오류 (검사 명령의 exit code는 record.json에 기록)
+// 종료 코드: 0 기록 생성 또는 검증 통과, 1 검증 실패, 2 거부, 오류 (검사 명령의 exit code는 record.json에 기록)
 //
 // 사용법
 //   node .claude/team/bin/team-check.mjs run <runId> "<검사 명령>" [--allow-side-effects]
@@ -230,7 +230,7 @@ function splitRow(line) {
     .map((c) => c.trim().replace(/\\\|/g, '|'));
 }
 
-// 기획안 N장의 표 본문 행(헤더·구분선 제외)을 셀 배열로 추출
+// 기획안 N장의 표 본문 행(헤더, 구분선 제외)을 셀 배열로 추출
 function planTable(planText, chapter) {
   const start = planText.search(new RegExp(`^## ${chapter}\\.`, 'm'));
   if (start < 0) return null;
@@ -273,7 +273,7 @@ function parseCard(text) {
   };
 }
 
-// 요청 원문 → 기획안 → 호출 카드 → 보고 → diff로 이어지는 요구·인수 기준·파일 범위 보존 대조
+// 요청 원문 → 기획안 → 호출 카드 → 보고 → diff로 이어지는 요구, 인수 기준, 파일 범위 보존 대조
 // 기록 파일의 작성자를 인증하지 않는 일관성 검사이며 구현 정확성이나 요구 충족의 증명이 아님
 function cmdTrace(args) {
   const [runId] = args;
@@ -334,7 +334,7 @@ function cmdTrace(args) {
       else covered.add(id);
     }
     for (const file of card.files) {
-      // 계획서·보고서 같은 실행 기록은 소스 파일이 아니므로 변경 계획(6장) 비교에서 제외(planning-lead 카드의 허용 파일이 plan.md)
+      // 계획서, 보고서 같은 실행 기록은 소스 파일이 아니므로 변경 계획(6장) 비교에서 제외(planning-lead 카드의 허용 파일이 plan.md)
       if (file.replace(/\\/g, '/').startsWith('.claude-team-docs/runs/')) continue;
       if (!planned.has(file)) problems.push(`cards/${name}: file not in plan section 6 ${file}`);
       else if (planned.get(file) !== role) problems.push(`cards/${name}: ${file} is owned by ${planned.get(file)}, but the card receiver is ${role}`);

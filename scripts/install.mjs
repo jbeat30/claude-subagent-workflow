@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// 설치 스크립트: detect(조사) · plan(계획) · apply(적용) · verify(검증) · remove(제거)
-// LLM이 파일 복사·병합·해시를 직접 수행하지 않도록 결정적으로 동작하며 모든 결과를 JSON 한 객체로 출력
-// 프로젝트(--target) 안의 파일만 변경하고 홈·전역 설정은 건드리지 않음
-// 종료 코드: 0 성공, 1 검증 실패·진행 불가(결과 JSON 참고), 2 사용법·입력 오류
+// 설치 스크립트: detect(조사), plan(계획), apply(적용), verify(검증), remove(제거)
+// LLM이 파일 복사, 병합, 해시를 직접 수행하지 않도록 결정적으로 동작하며 모든 결과를 JSON 한 객체로 출력
+// 프로젝트(--target) 안의 파일만 변경하고 홈, 전역 설정은 건드리지 않음
+// 종료 코드: 0 성공, 1 검증 실패, 진행 불가(결과 JSON 참고), 2 사용법, 입력 오류
 //
 //   node install.mjs detect --target <dir>
 //   node install.mjs plan   --target <dir> --answers <file> [--on-conflict skip|replace-with-backup]
@@ -247,7 +247,7 @@ function detect(dir) {
   };
 }
 
-// ---------- answers · profile ----------
+// ---------- answers, profile ----------
 
 // 규칙 원본은 프로젝트 안의 상대 경로만 허용: 프로필이 프로젝트 밖 파일이나 URL을 규칙으로 가리키지 않도록 함
 function validRulePath(p) {
@@ -434,7 +434,7 @@ function buildPlan(dir, answers, options) {
     settingsPlan = { action: merged.conflicts.length ? 'blocked' : changed ? (existingSettings.value ? 'merge' : 'create') : 'unchanged', agent: merged.agent, addedHooks: merged.added, content: merged.conflicts.length ? null : `${JSON.stringify(merged.settings, null, 2)}\n` };
   }
 
-  // MCP 등록: Context7과 선택한 디자인 도구를 한 번에 병합, 서버별로 추가·동일·충돌 판정
+  // MCP 등록: Context7과 선택한 디자인 도구를 한 번에 병합, 서버별로 추가, 동일, 충돌 판정
   let mcpPlan = { action: 'none', servers: {} };
   const wanted = [...(answers.context7 ? ['context7'] : []), ...answers.designTools, ...answers.documentTools].filter((n) => MCP_SERVERS[n]);
   const guided = answers.designTools.filter((n) => GUIDED[n]);
@@ -789,7 +789,7 @@ function remove(dir, options) {
 // ---------- config ----------
 
 const PROFILE_PATH = '.claude/team/profile.md';
-// 설정 스킬이 보여 주는 MCP 목록: 선택 여부와 용도·주의 사항
+// 설정 스킬이 보여 주는 MCP 목록: 선택 여부와 용도, 주의 사항
 const MCP_INFO = {
   context7: { kind: 'docs', used_by: 'PM and analysts', summary: 'Look up library documentation for the installed versions', note: 'Runs an external package through npx' },
   playwright: { kind: 'design', used_by: 'frontend-agent, qa-agent', summary: 'Open the running app in a browser and check it', note: 'Can see the content of the browser it opens; runs an external package through npx; a browser install may be needed' },

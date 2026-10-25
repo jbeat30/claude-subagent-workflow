@@ -1,5 +1,5 @@
-// template 정적 검사: 역할 정의 frontmatter·도구 제한·참조·문체
-// 문구 포함 여부만 확인하며 권한 차단·위임 정확도의 검증이 아님
+// template 정적 검사: 역할 정의 frontmatter, 도구 제한, 참조, 문체
+// 문구 포함 여부만 확인하며 권한 차단, 위임 정확도의 검증이 아님
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { PM_RULES } from './pm-rules.mjs';
@@ -177,7 +177,7 @@ function walk(dir) {
 for (const path of walk(root).filter((p) => p.endsWith('.md'))) {
   const text = readFileSync(path, 'utf8');
   const rel = path.slice(root.length + 1);
-  // 프롬프트(역할·양식)는 영어 기본, 한글이 섞이면 토큰 효율과 검사 라벨 일관성이 깨지므로 거부
+  // 프롬프트(역할, 양식)는 영어 기본, 한글이 섞이면 토큰 효율과 검사 라벨 일관성이 깨지므로 거부
   if (/[가-힣]/.test(text)) fail(rel, '프롬프트는 영어로 작성(한글 포함)');
   for (const phrase of bannedPhrases) {
     if (text.includes(phrase)) fail(rel, `지양 문구 "${phrase}" 포함`);

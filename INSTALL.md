@@ -25,7 +25,7 @@ When run through the plugin skill, skip section 1 (fetching) and use `<installer
 
 ## 2. Pre-checks
 
-- `node --version` must be 18 or higher and `claude --version` must be 2.1.302 or higher. If lower, or Node is missing, stop and tell the user (no automatic upgrade).
+- `node --version` must be 20 or higher and `claude --version` must be 2.1.302 or higher. If lower, or Node is missing, stop and tell the user (no automatic upgrade).
 - If the target project is a git repository, recommend committing or stashing before install.
 
 ## 3. Survey

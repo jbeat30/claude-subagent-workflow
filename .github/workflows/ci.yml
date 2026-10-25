@@ -1,17 +1,24 @@
 name: CI
 
+# 통합 브랜치 push는 PR 검사와 중복이라 main, develop만 유지
 on:
   pull_request:
   push:
-    branches: [main, develop, 'release/v*', 'feature/v*']
+    branches: [main, develop]
 
 permissions:
   contents: read
+
+# 같은 브랜치의 이전 실행은 새 push가 오면 취소
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: test (${{ matrix.os }}, node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:

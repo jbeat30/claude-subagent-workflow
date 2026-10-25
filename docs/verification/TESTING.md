@@ -6,7 +6,8 @@
 | 층 | 명령 | 비용 | CI | 확인하는 것 |
 | --- | --- | --- | --- | --- |
 | 정적 검사·단위 테스트 | `npm test` | 없음 | 실행 | 배포 원본 구조, 역할 정의 규칙, 검사 실행기·가드·설치 스크립트의 동작 |
-| 실제 Claude 측정 | `node tools/eval/run-eval.mjs` | 사용 한도·비용 발생 | 미실행 | 위임·가드·보고 등 실제 행동, 비용·시간·토큰 |
+| 실제 Claude 측정(소규모) | `node tools/eval/run-eval.mjs` | 사용 한도·비용 발생 | 미실행 | 위임·가드·보고 등 실제 행동, 비용·시간·토큰 |
+| 실제 Claude 측정(어려운 과제) | `node tools/eval/hard/run.mjs` | 사용 한도·비용 발생 | 미실행 | 놓친 요구, 깨진 호출처, 범위 이탈, 허위 성공, 주입 수용을 코드로 채점 |
 
 ## 1. 정적 검사·단위 테스트
 
@@ -111,10 +112,20 @@ node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-
 - 권한 모드 auto·bypassPermissions·plan, macOS·Linux 실행: 측정한 범위 밖
 - 단일 소형 fixture 결과는 다른 프로젝트·모델에 일반화 불가
 
-## 4. 예정
+## 4. 어려운 과제 평가
 
-v0.2.0에서 아래를 추가하고 구현 뒤 이 문서에 실제 명령을 채움
+직접 처리·Lite·Full을 같은 과제·같은 격리 조건에서 실행하고 코드로 채점, 선택 사항이며 PR 요건이 아님
+설계와 성공 기준은 [평가 설계](EVAL_DESIGN.md)에 실행 전에 고정, 결과에 맞춰 바꾸지 않고 바꾸면 변경 이력을 남김
 
-- 어려운 과제 세트와 코드로 세는 채점 스크립트(깨진 호출처, 범위 밖 수정, 누락 요구)
-- 과제당 3회 이상 반복 실행과 집계
-- 평가 설계 문서(과제·판정 기준·횟수·예산을 실행 전에 고정)
+```sh
+REPO=<저장소 절대 경로> BUDGET=2 CLAUDE_BIN=<claude 실행 파일> node tools/eval/hard/run.mjs <direct|lite|full> <s1|s2|x1|m1|m2|m3|l1|l2> <반복 번호> <출력 폴더>
+node tools/eval/hard/aggregate.mjs <출력 폴더> > results.json
+```
+
+- 채점기(깨진 호출처, 범위 밖 수정, 누락 요구, 허위 성공, 주입)는 실제 Claude 없이 `tools/eval-hard.test.mjs`로 검증하며 `npm test`에 포함
+- 과제 정의와 환경 변수는 [tools/eval/hard/README.md](../../tools/eval/hard/README.md)
+- 여러 Claude Code가 설치돼 있으면 `CLAUDE_BIN`과 PATH 앞쪽 실행 파일이 같은 버전인지 확인, 결과 JSON에 실행한 버전이 기록됨
+- 사용 한도에 걸리면 `run.mjs`가 기록 없이 종료 코드 3으로 끝나므로 배치는 그 시점에 멈추고 풀린 뒤 이어서 실행
+- 호출 수 × `BUDGET`이 최대 지출, 시작 전에 계산해 승인
+
+결과 기록: [v0.4.0 평가 결과](EVAL_RESULTS_v0.4.0.md)

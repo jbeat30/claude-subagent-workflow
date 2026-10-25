@@ -322,7 +322,7 @@ test('verify --live의 Claude 호출은 설치 대상 폴더에서 실행', () =
   assert.equal(realpathSync.native(readFileSync(marker, 'utf8')), realpathSync.native(dir));
 });
 
-// ---------- 갱신·보존 fixture: 실제 릴리즈 간 갱신이 아닌 이전 릴리즈를 흉내 낸 임시 상태 ----------
+// ---------- 갱신, 보존 fixture: 실제 릴리즈 간 갱신이 아닌 이전 릴리즈를 흉내 낸 임시 상태 ----------
 
 const manifestOf = (dir) => JSON.parse(readFileSync(join(dir, '.claude', 'team', 'manifest.json'), 'utf8'));
 const sha = (text) => createHash('sha256').update(text).digest('hex');

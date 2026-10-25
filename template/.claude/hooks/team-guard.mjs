@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// 권고·엄격 모드 가드: PreToolUse·PostToolUse hook, 역할별 쓰기 경로와 에이전트 호출 대상·순서 검사
-// 차단은 exit 2와 stderr 메시지, 오류·파싱 실패도 차단(fail closed)
-// 보안 경계가 아닌 실수 방지 장치: 메인 세션의 Bash·사용자·hook 설정 변경은 방어하지 않음
+// 권고, 엄격 모드 가드: PreToolUse, PostToolUse hook, 역할별 쓰기 경로와 에이전트 호출 대상, 순서 검사
+// 차단은 exit 2와 stderr 메시지, 오류, 파싱 실패도 차단(fail closed)
+// 보안 경계가 아닌 실수 방지 장치: 메인 세션의 Bash, 사용자, hook 설정 변경은 방어하지 않음
 // 전제: 에이전트 호출 인계에 `runId: <id>`, 기획안 상태는 `- Status: confirmed`, 변경 계획 6장 표의 담당은 역할 이름
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
@@ -40,7 +40,7 @@ function projectRoot(input) {
   return realpathSync.native(base);
 }
 
-// 프로젝트 내부의 일반 경로만 허용: 밖으로 나가는 경로·UNC·다른 드라이브·symlink·junction 거부
+// 프로젝트 내부의 일반 경로만 허용: 밖으로 나가는 경로, UNC, 다른 드라이브, symlink, junction 거부
 function toRelative(root, filePath) {
   if (typeof filePath !== 'string' || !filePath) return deny('file path missing');
   if (filePath.startsWith('\\\\') || filePath.startsWith('//')) return deny(`UNC paths are not supported: ${filePath}`);
@@ -146,7 +146,7 @@ function isProtectedFor(role, rl) {
   if (rl === '.git' || rl.startsWith('.git/')) return true;
   if (rl === `${DOCS}/.guard` || rl.startsWith(`${DOCS}/.guard/`)) return true;
   if (new RegExp(`^${DOCS}/runs/[^/]+/checks(/|$)`).test(rl)) return true;
-  // .claude/ 전체가 아닌 팀 정책 파일만 보호: 사용자가 .claude/ 아래에 둔 자기 규칙·명령·에이전트는 수정 가능
+  // .claude/ 전체가 아닌 팀 정책 파일만 보호: 사용자가 .claude/ 아래에 둔 자기 규칙, 명령, 에이전트는 수정 가능
   // 팀 역할의 쓰기는 이어지는 계획 배정 검사로 다시 제한됨
   return (
     rl.startsWith('.claude/hooks/') ||
@@ -233,8 +233,8 @@ function decideAgent(root, input) {
     if (target === 'qa-agent' && /Mode:\s*final/.test(prompt)) return deny('the PM must call final verification directly');
   }
 
-  // `runId: <id>`가 표준 형식이며 `runId <id>`·`runId=<id>`도 허용
-  // 문장 끝의 마침표·하이픈은 runId에서 제외
+  // `runId: <id>`가 표준 형식이며 `runId <id>`, `runId=<id>`도 허용
+  // 문장 끝의 마침표, 하이픈은 runId에서 제외
   const runId = prompt.match(/runId[\s:=]+([A-Za-z0-9][A-Za-z0-9._-]*)/)?.[1]?.replace(/[._-]+$/, '');
   if (!runId) return deny('the call handoff needs a `- runId: <id>` line');
   if (!existsSync(runPaths(root, runId).request)) return deny(`run unit (request.md) not found: ${runId}`);

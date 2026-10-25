@@ -1,4 +1,4 @@
-// 엄격 모드의 승인 범위·계획 스냅샷·등록 일치 검사, 사용자 실행 인증이나 보안 경계가 아닌 변경 감지
+// 엄격 모드의 승인 범위, 계획 스냅샷, 등록 일치 검사, 사용자 실행 인증이나 보안 경계가 아닌 변경 감지
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';

@@ -1,4 +1,4 @@
-// 엄격 모드의 승인 추적·범위 제한 회귀 검사, 실제 Claude·사용자 실행 인증과 구분
+// 엄격 모드의 승인 추적, 범위 제한 회귀 검사, 실제 Claude, 사용자 실행 인증과 구분
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

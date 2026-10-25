@@ -4,7 +4,7 @@
 
 ## Safeguards and limits
 
-- **Guard hook (advisory mode)**: checks per-role write paths, source writes only after the plan is confirmed, edits only to assigned files, leaders' call targets, and sequential writing agents, and blocks on error.
+- **Guard hook (advisory mode)**: checks per-role write paths, source writes only after the plan is confirmed, edits only to assigned files, leaders' call targets, and sequential writing subagents, and blocks on error.
 - **A mistake-prevention aid, not a security boundary**: it does not stop main-session shell commands or changes to user and hook settings.
 - Check records are results the main session ran through the runner and are not fully tamper-proof; the QA report states the source.
 - Right after install the guard is checked with a real Claude call; if that is not confirmed, treat it as `no protection`.
@@ -12,7 +12,7 @@
 
 ### What are the protection mode and the guard hook?
 
-- **Guard hook**: a small script Claude Code runs right before it writes a file or calls another agent in this project. It blocks actions that break the rules, such as editing a file that is not in the confirmed plan or calling an agent that should not be called.
+- **Guard hook**: a small script Claude Code runs right before it writes a file or calls another subagent in this project. It blocks actions that break the rules, such as editing a file that is not in the confirmed plan or calling an subagent that should not be called.
 - **Advisory mode (default)**: the guard blocks rule violations. It is a safety net against mistakes, not a security boundary.
 - **Strict mode (optional)**: adds approval records on top of advisory mode. You approve the allowed paths and commands directly. It is experimental and applies to every edit of the main session.
 

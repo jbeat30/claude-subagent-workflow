@@ -39,7 +39,7 @@ When you call `/subagent`, the main session (the PM) first sorts the request int
 | Grade | What kind of request | Handling |
 | --- | --- | --- |
 | Q | Question, explanation, or research (no file changes) | The PM answers directly |
-| L1 | A comment, typo, or wording fix in one file with no behavior change | The PM edits directly |
+| L1 | A comment, typo, or wording fix with no behavior change | The PM edits directly |
 | L2 | A behavior change that keeps the existing contract | Plan, confirm, build, independent QA |
 | L3 | A wide-impact change: the signature of a function or API other files use, data structures, permissions, security | L2 plus impact analysis, and the user is always asked to confirm |
 

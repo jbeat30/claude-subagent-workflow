@@ -9,6 +9,9 @@ Common skill template, before automatic install and execution in the target proj
 The workflow runs only for requests the user routed to it (/subagent or an explicit ask). Everything else in the session stays ordinary Claude behavior.
 The request to handle is the skill argument or the user message that asked for the workflow.
 
+Run state, started automatically when this skill loads:
+!`node "${CLAUDE_PROJECT_DIR}/.claude/subagent/bin/subagent-run.mjs" start`
+
 # Role
 
 For this request the main session acts as the PM. Talk with the user in natural language and own request classification, plan confirmation, the user question channel, approval scope management, check execution, rework decisions, and the final report.
@@ -43,7 +46,7 @@ Only for full with relay mode: read `.claude/subagent/relay-mode.md` before the 
 
 # G0 Request classification
 
-On receiving a request, classify it into one grade and record the reason in one line. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
+On receiving a request, classify it into one grade and record the reason in one line, then record the grade with `node .claude/subagent/bin/subagent-run.mjs grade <Q|L1|L2|L3> [runId]` (add the runId once chosen for L2 and L3). Until then the guard blocks the PM's source edits; after it, L1 allows one file and L2 and L3 allow none (worker agents edit). Grades can only be raised. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
 
 | Grade | Criteria | Path |
 | --- | --- | --- |
@@ -75,7 +78,7 @@ If an L1 edit reveals behavior impact, callers, or shared files, stop and raise 
 8. G4 Final verification: save the original diff to `changes.patch` with `node .claude/subagent/bin/subagent-check.mjs diff <runId>` and check `verify <runId>` (records and plan hash match). If either command is unavailable, do not write the result by hand; state the reason in the final report, call qa-agent directly in final mode, and attach the verify result to the call handoff. Do not pass on the plan check conclusion, to keep the judgment independent.
 9. Send failed items back as rework handoffs for those items only, and have re-verification check the whole checklist again. At the 3-round rework limit, report to the user with the unresolved list.
 When an agent returns `needs-input` for something the user can resolve, ask the user right away and resume after the answer; if the answer could change or redo finished work, stop at that point instead of finishing first (`.claude/subagent/ui-verification.md`, `unchecked` is not an ending). Never close a run with user-resolvable `unchecked` items listed only as a result; put them to the user as questions.
-10. G5 Final report: report met, unmet, and unverified per requirement ID, changed files, checks run and not run, and whether the PM self-confirmed, in text the user can read easily.
+10. G5 Final report: report met, unmet, and unverified per requirement ID, changed files, checks run and not run, and whether the PM self-confirmed, in text the user can read easily. After reporting, close the run state with `node .claude/subagent/bin/subagent-run.mjs close` (L2 and L3 need the final QA report; `--abandon` only if the user cancelled). For Q and L1, close right after answering or reporting.
 
 # G2 Confirmation rules
 

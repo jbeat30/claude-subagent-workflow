@@ -48,4 +48,6 @@ export const PM_RULES = [
   ['사용자가 풀 수 있는 unchecked는 질문으로 마무리', /`unchecked` is not an ending/],
   ['되돌릴 수 있는 답이면 즉시 중단하고 질문', /Stop and ask at once/],
   ['워크플로는 사용자가 요청한 경우에만 동작', /only for requests the user routed to it/],
+  ['분류 뒤 등급 기록, 기록 전 PM 소스 수정 차단', /subagent-run.mjs grade/],
+  ['최종 보고 뒤 실행 상태 종료', /subagent-run.mjs close/],
 ];

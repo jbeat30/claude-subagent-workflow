@@ -34,7 +34,16 @@ When you call the workflow, a request goes through intake, plan, confirm, build,
 | Adding a feature where unstated requirements are easy to miss | Typos, comments, wording fixes |
 | Changes to data structures, permissions, or security where impact must be traced first | Small edits to a single file |
 
-For small tasks, asking directly is faster and cheaper. See [Extra cost and verification level](#extra-cost-and-verification-level) below first.
+When you call `/subagent`, the main session (the PM) first sorts the request into four grades. Subagents are called only for L2 and L3.
+
+| Grade | What kind of request | Handling |
+| --- | --- | --- |
+| Q | Question, explanation, or research (no file changes) | The PM answers directly |
+| L1 | A comment, typo, or wording fix in one file with no behavior change | The PM edits directly |
+| L2 | A behavior change that keeps the existing contract | Plan, confirm, build, independent QA |
+| L3 | A wide-impact change: the signature of a function or API other files use, data structures, permissions, security | L2 plus impact analysis, and the user is always asked to confirm |
+
+If you call `/subagent` for a simple request, the PM handles it directly and no subagent cost is incurred. Classifying still has a cost (about 2x in one pilot run), so for small tasks asking directly is faster and cheaper. See [Extra cost and verification level](#extra-cost-and-verification-level) below first.
 
 ## Quick start
 
@@ -71,7 +80,7 @@ When the same task was rerun 4 times in Lite after the instructions were changed
 
 ## Extra cost and verification level
 
-- **Cost**: in the case above the cost was about 10 times higher ($0.058 to $0.61). In a 14-run check on small fixtures, Lite cost about 12 times more and took over 30 times longer than direct handling on L2 and L3. After install, the guard check makes one Claude call, and registering MCP servers adds their tool definitions to every call, which raises tokens. Q and L1 requests call no roles.
+- **Cost**: in the case above the cost was about 10 times higher ($0.058 to $0.61). In a 14-run check on small fixtures, Lite cost about 12 times more and took over 30 times longer than direct handling on L2 and L3. After install, the guard check makes one Claude call, and registering MCP servers adds their tool definitions to every call, which raises tokens. Questions (Q) and trivial edits (L1) call no subagents.
 - **Verification level**: the static checks and unit tests in `npm test` pass, but they do not prove permission blocking, delegation accuracy, or prompt quality. The evaluation used small synthetic fixtures, one run each, one model, non-interactive runs, and there is no guarantee that the workflow improves quality over direct handling.
 - **Rules that are not enforced**: whether the L3 procedure (plan, impact analysis, user confirmation) is followed rests on instructions alone. In the evaluation there was a run that classified a request as L3 and still edited directly without this procedure.
 - **Experimental**: Full mode, relay execution, and strict mode are not well verified in a real Claude environment.

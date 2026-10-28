@@ -170,9 +170,42 @@ function ownReportRunId(role, rel) {
   return null;
 }
 
-// /subagent 실행 중 PM의 소스 수정 제한: 등급 미정·Q는 차단, L1은 파일 1개, L2·L3는 서브에이전트만 수정
+// 한 줄 주석 판정에 쓰는 확장자별 주석 표기, 문서 확장자는 파일 전체가 문서
+const LINE_COMMENTS = {
+  '//': ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.java', '.kt', '.c', '.h', '.cpp', '.hpp', '.cs', '.go', '.rs', '.swift', '.scala', '.dart', '.scss', '.less'],
+  '#': ['.py', '.rb', '.sh', '.bash', '.zsh', '.yml', '.yaml', '.toml', '.conf'],
+  '--': ['.sql', '.lua'],
+};
+const BLOCK_COMMENT_EXTS = LINE_COMMENTS['//'];
+const DOC_EXTS = ['.md', '.markdown', '.txt', '.rst'];
+
+function isCommentLine(line, ext) {
+  const t = line.trim();
+  if (t === '') return true;
+  for (const [mark, exts] of Object.entries(LINE_COMMENTS)) if (exts.includes(ext) && t.startsWith(mark)) return true;
+  return BLOCK_COMMENT_EXTS.includes(ext) && (t.startsWith('/*') || t.startsWith('*/') || /^\*(\s|$)/.test(t));
+}
+
+// Edit 한 건이 주석 또는 문서 줄만 바꾸는지 판정, 판단할 수 없으면 false(더 엄격한 쪽)
+function isCommentOnlyEdit(root, rel, toolInput) {
+  const ext = rel.includes('.') ? rel.slice(rel.lastIndexOf('.')).toLowerCase() : '';
+  if (DOC_EXTS.includes(ext)) return true;
+  const { old_string: before, new_string: after, replace_all: all } = toolInput ?? {};
+  if (typeof before !== 'string' || typeof after !== 'string' || before === '' || all === true) return false;
+  const text = readText(join(root, rel));
+  if (text === null) return false;
+  const at = text.indexOf(before);
+  if (at < 0 || text.indexOf(before, at + 1) >= 0) return false;
+  const start = text.lastIndexOf('\n', at - 1) + 1;
+  const stop = text.indexOf('\n', at + before.length);
+  const head = text.slice(start, at);
+  const tail = text.slice(at + before.length, stop < 0 ? text.length : stop);
+  return [...(head + before + tail).split('\n'), ...(head + after + tail).split('\n')].every((line) => isCommentLine(line, ext));
+}
+
+// /subagent 실행 중 PM의 소스 수정 제한: 등급 미정·Q는 차단, L1은 주석·문서 수정은 파일 수와 무관하게 허용하고 그 밖의 수정은 파일 1개, L2·L3는 서브에이전트만 수정
 // 실행 상태는 스킬 로드 때 생성되고 종료 기록이나 갱신 중단 시 해제되어 평소 대화에는 적용되지 않음
-function pmRunGate(root, rel) {
+function pmRunGate(root, rel, toolInput) {
   const state = readState(root);
   if (!isActive(state)) return;
   const run = 'node .claude/subagent/bin/subagent-run.mjs';
@@ -181,8 +214,9 @@ function pmRunGate(root, rel) {
   if (state.grade !== 'L1') return deny(`${state.grade} edits are made by worker agents on the confirmed plan, not by the PM directly; follow G1 to G4 of the skill`);
   const files = state.l1Files ?? [];
   const key = norm(rel);
-  if (!files.includes(key)) {
-    if (files.length >= 1) return deny(`L1 allows one file (already edited ${files[0]}); editing a second file means callers or shared files may be affected, so raise the grade with \`${run} grade L2|L3 <runId>\` and follow the L2 and L3 procedure`);
+  // 주석·문서만 바꾸는 수정은 동작에 영향이 없으므로 파일 수를 세지 않음
+  if (!files.includes(key) && !isCommentOnlyEdit(root, rel, toolInput)) {
+    if (files.length >= 1) return deny(`L1 allows only one file with edits beyond comments and documents (already edited ${files[0]}); a second such file means behavior, callers, or shared files may be affected, so raise the grade with \`${run} grade L2|L3 <runId>\` and follow the L2 and L3 procedure`);
     files.push(key);
   }
   try {
@@ -207,7 +241,7 @@ function decideWrite(root, input) {
 
   if (isPm) {
     if (new RegExp(`^${DOCS}/runs/[^/]+/reports/`).test(rl)) return deny('only the owning agent may write a report file (the PM must not rewrite or re-save it)');
-    if (!pmProfile && !rl.startsWith(`${DOCS}/runs/`)) pmRunGate(root, rel);
+    if (!pmProfile && !rl.startsWith(`${DOCS}/runs/`)) pmRunGate(root, rel, input.tool_input);
     if (strict && !rl.startsWith(`${DOCS}/runs/`)) verifyWrite(root, rel, 'pm-agent');
     return;
   }

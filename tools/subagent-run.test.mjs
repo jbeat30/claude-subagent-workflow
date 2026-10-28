@@ -148,3 +148,85 @@ test('가드: 서브에이전트 쓰기는 상태와 무관하게 기존 규칙�
   assert.equal(writeAs(dir, 'frontend-agent', 'src/a.js').allowed, false);
   assert.match(writeAs(dir, 'frontend-agent', 'src/a.js').stderr, /activated by a call/);
 });
+
+const editAs = (dir, filePath, oldString, newString, extra = {}) => {
+  const r = spawnSync(process.execPath, [guardScript], {
+    cwd: dir,
+    env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+    input: JSON.stringify({ cwd: dir, hook_event_name: 'PreToolUse', tool_name: 'Edit', agent_type: 'main', tool_input: { file_path: filePath, old_string: oldString, new_string: newString, ...extra } }),
+    encoding: 'utf8',
+  });
+  return { allowed: r.status === 0, stderr: r.stderr };
+};
+const seed = (dir, name, content) => {
+  mkdirSync(join(dir, 'src'), { recursive: true });
+  writeFileSync(join(dir, 'src', name), content);
+};
+const l1 = () => {
+  const dir = project();
+  run(dir, 'start');
+  run(dir, 'grade', 'L1');
+  return dir;
+};
+
+test('가드 L1: 주석 한 줄씩 여러 파일을 고치는 것은 파일 수와 무관하게 허용', () => {
+  const dir = l1();
+  seed(dir, 'a.js', '// retrun a\nexport const a = 1;\n');
+  seed(dir, 'b.js', '// calulate b\nexport const b = 2;\n');
+  seed(dir, 'c.py', '# teh c\nc = 3\n');
+  assert.equal(editAs(dir, 'src/a.js', 'retrun', 'return').allowed, true);
+  assert.equal(editAs(dir, 'src/b.js', 'calulate', 'calculate').allowed, true);
+  assert.equal(editAs(dir, 'src/c.py', 'teh', 'the').allowed, true);
+});
+
+test('가드 L1: 문서 파일은 여러 개 고쳐도 허용', () => {
+  const dir = l1();
+  seed(dir, 'a.md', 'recieve a\n');
+  seed(dir, 'b.md', 'recieve b\n');
+  assert.equal(editAs(dir, 'src/a.md', 'recieve', 'receive').allowed, true);
+  assert.equal(editAs(dir, 'src/b.md', 'recieve', 'receive').allowed, true);
+});
+
+test('가드 L1: 주석 밖의 수정은 파일 1개까지만, 그 외에 주석 수정은 계속 허용', () => {
+  const dir = l1();
+  seed(dir, 'a.js', 'export const a = "helo";\n');
+  seed(dir, 'b.js', 'export const b = "wrold";\n');
+  seed(dir, 'c.js', '// typpo\nexport const c = 1;\n');
+  assert.equal(editAs(dir, 'src/a.js', 'helo', 'hello').allowed, true);
+  const second = editAs(dir, 'src/b.js', 'wrold', 'world');
+  assert.equal(second.allowed, false);
+  assert.match(second.stderr, /beyond comments and documents/);
+  assert.equal(editAs(dir, 'src/c.js', 'typpo', 'typo').allowed, true);
+});
+
+test('가드 L1: 코드 줄 끝에 붙은 주석, 주석을 코드로 바꾸는 수정, 전체 치환은 주석 수정으로 보지 않음', () => {
+  const dir = l1();
+  seed(dir, 'a.js', 'export const a = 1;\n');
+  seed(dir, 'b.js', 'export const b = 2; // retrun\n');
+  seed(dir, 'c.js', '// call()\n');
+  seed(dir, 'd.js', '// word word\n');
+  assert.equal(editAs(dir, 'src/a.js', '1', '2').allowed, true);
+  assert.equal(editAs(dir, 'src/b.js', 'retrun', 'return').allowed, false);
+  assert.equal(editAs(dir, 'src/c.js', '// call()', 'call()').allowed, false);
+  assert.equal(editAs(dir, 'src/d.js', 'word', 'text', { replace_all: true }).allowed, false);
+});
+
+test('가드 L1: 대상 줄을 찾을 수 없거나 여러 곳에 있으면 주석 수정으로 보지 않음', () => {
+  const dir = l1();
+  seed(dir, 'a.js', 'export const a = 1;\n');
+  seed(dir, 'b.js', '// dup\n// dup\n');
+  seed(dir, 'c.js', '// ok\n');
+  assert.equal(editAs(dir, 'src/a.js', '1', '2').allowed, true);
+  assert.equal(editAs(dir, 'src/b.js', 'dup', 'dup2').allowed, false);
+  assert.equal(editAs(dir, 'src/c.js', 'missing', 'x').allowed, false);
+});
+
+test('가드 L1: 블록 주석 줄은 주석으로 보고 L2 이상은 주석 수정도 PM이 직접 못 함', () => {
+  const dir = l1();
+  seed(dir, 'a.js', '/**\n * retrun a\n */\nexport const a = 1;\n');
+  seed(dir, 'b.js', 'export const b = 1;\n');
+  assert.equal(editAs(dir, 'src/b.js', '1', '2').allowed, true);
+  assert.equal(editAs(dir, 'src/a.js', 'retrun', 'return').allowed, true);
+  run(dir, 'grade', 'L2', 'R1');
+  assert.equal(editAs(dir, 'src/a.js', ' * retrun a', ' * return a').allowed, false);
+});

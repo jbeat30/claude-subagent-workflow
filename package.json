@@ -9,6 +9,6 @@
   },
   "scripts": {
     "validate": "node tools/validate-template.mjs",
-    "test": "node tools/validate-template.mjs && node --test tools/subagent-check.test.mjs tools/subagent-guard.test.mjs tools/install.test.mjs tools/subagent-approval.test.mjs tools/eval-hard.test.mjs"
+    "test": "node tools/validate-template.mjs && node --test tools/subagent-check.test.mjs tools/subagent-guard.test.mjs tools/install.test.mjs tools/subagent-approval.test.mjs tools/subagent-run.test.mjs tools/eval-hard.test.mjs"
   }
 }

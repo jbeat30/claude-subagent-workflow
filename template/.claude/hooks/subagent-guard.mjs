@@ -6,6 +6,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { strictMode, verifyRegistration, verifyWrite } from '../subagent/bin/subagent-policy.mjs';
+import { isActive, readState, writeState } from '../subagent/bin/subagent-state.mjs';
 
 const DOCS = '.claude-subagent-docs';
 const WRITERS = ['frontend-agent', 'backend-agent', 'api-agent', 'test-agent'];
@@ -169,6 +170,28 @@ function ownReportRunId(role, rel) {
   return null;
 }
 
+// /subagent 실행 중 PM의 소스 수정 제한: 등급 미정·Q는 차단, L1은 파일 1개, L2·L3는 서브에이전트만 수정
+// 실행 상태는 스킬 로드 때 생성되고 종료 기록이나 갱신 중단 시 해제되어 평소 대화에는 적용되지 않음
+function pmRunGate(root, rel) {
+  const state = readState(root);
+  if (!isActive(state)) return;
+  const run = 'node .claude/subagent/bin/subagent-run.mjs';
+  if (state.grade === 'pending') return deny(`a /subagent run is active and the request is not classified yet, so the PM cannot edit ${rel}; classify first with \`${run} grade <Q|L1|L2|L3> [runId]\`. If the /subagent work is already finished, run \`${run} close\``);
+  if (state.grade === 'Q') return deny(`the request is classified Q (no file changes); raise the grade with \`${run} grade L1|L2|L3\` if edits are needed`);
+  if (state.grade !== 'L1') return deny(`${state.grade} edits are made by worker agents on the confirmed plan, not by the PM directly; follow G1 to G4 of the skill`);
+  const files = state.l1Files ?? [];
+  const key = norm(rel);
+  if (!files.includes(key)) {
+    if (files.length >= 1) return deny(`L1 allows one file (already edited ${files[0]}); editing a second file means callers or shared files may be affected, so raise the grade with \`${run} grade L2|L3 <runId>\` and follow the L2 and L3 procedure`);
+    files.push(key);
+  }
+  try {
+    writeState(root, { ...state, l1Files: files, updatedAt: Date.now() });
+  } catch {
+    // 상태 갱신 실패로 사용자 작업을 막지 않음
+  }
+}
+
 function decideWrite(root, input) {
   const role = input.agent_type || 'main';
   const filePath = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
@@ -184,6 +207,7 @@ function decideWrite(root, input) {
 
   if (isPm) {
     if (new RegExp(`^${DOCS}/runs/[^/]+/reports/`).test(rl)) return deny('only the owning agent may write a report file (the PM must not rewrite or re-save it)');
+    if (!pmProfile && !rl.startsWith(`${DOCS}/runs/`)) pmRunGate(root, rel);
     if (strict && !rl.startsWith(`${DOCS}/runs/`)) verifyWrite(root, rel, 'pm-agent');
     return;
   }

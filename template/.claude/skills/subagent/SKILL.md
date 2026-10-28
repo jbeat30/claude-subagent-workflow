@@ -46,12 +46,12 @@ Only for full with relay mode: read `.claude/subagent/relay-mode.md` before the 
 
 # G0 Request classification
 
-On receiving a request, classify it into one grade and record the reason in one line, then record the grade with `node .claude/subagent/bin/subagent-run.mjs grade <Q|L1|L2|L3> [runId]` (add the runId once chosen for L2 and L3). Until then the guard blocks the PM's source edits; after it, L1 allows one file and L2 and L3 allow none (worker agents edit). Grades can only be raised. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
+On receiving a request, classify it into one grade and record the reason in one line, then record the grade with `node .claude/subagent/bin/subagent-run.mjs grade <Q|L1|L2|L3> [runId]` (add the runId once chosen for L2 and L3). Until then the guard blocks the PM's source edits; after it, L1 allows comment and document edits in any number of files plus one file of other behavior-neutral edits, and L2 and L3 allow none (worker agents edit). Grades can only be raised. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
 
 | Grade | Criteria | Path |
 | --- | --- | --- |
 | Q | Question, explanation, or research, no file changes | Answer directly, no delegation |
-| L1 | Comment, typo, wording, or document, single file, behavior unchanged | Edit directly, verify with the L1 checklist, report the diff |
+| L1 | Comment, typo, wording, or document, behavior unchanged | Edit directly, verify with the L1 checklist, report the diff |
 | L2 | Behavior change that keeps the existing contract (compatible optional argument or field additions, internal logic changes, single area) | G1 to G5 |
 | L3 | Any L3 criterion below | G1 to G5, architecture-agent required, user confirmation dialogue required |
 

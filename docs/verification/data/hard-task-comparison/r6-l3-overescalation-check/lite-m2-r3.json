@@ -1,0 +1,44 @@
+{
+  "condition": "lite",
+  "taskId": "m2",
+  "rep": 3,
+  "size": "M",
+  "expectedGrade": "L2",
+  "model": "sonnet",
+  "claudeVersion": "2.1.312 (Claude Code)",
+  "repoCommit": "10947e3582339eed88e1b7b23858522388699c66",
+  "exit": 0,
+  "subtype": "success",
+  "isError": false,
+  "budgetStopped": false,
+  "costUsd": 0.2734058,
+  "turns": 14,
+  "wallMs": 82951,
+  "tokens": {
+    "input": 18,
+    "cacheCreation": 25837,
+    "cacheRead": 293422,
+    "output": 4746
+  },
+  "resultEvents": 1,
+  "delegations": [
+    "backend-agent",
+    "qa-agent"
+  ],
+  "delegationCount": 2,
+  "usedPlanFiles": true,
+  "score": {
+    "task": "m2",
+    "size": "M",
+    "changed": [
+      "src/discount.js"
+    ],
+    "outOfScope": [],
+    "existingTestsModified": [],
+    "missed": 0,
+    "requirements": 4,
+    "npmTestPass": true
+  },
+  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\evalhard-lite-m2-r3-gxYBkr",
+  "stderr": ""
+}

@@ -52,13 +52,14 @@ On receiving a request, classify it into one grade and record the reason in one 
 | --- | --- | --- |
 | Q | Question, explanation, or research, no file changes | Answer directly, no delegation |
 | L1 | Comment, typo, wording, or document, behavior unchanged | Edit directly, verify with the L1 checklist, report the diff |
-| L2 | Behavior change that keeps the existing contract (compatible optional argument or field additions, internal logic changes, single area) | G1 to G5 |
+| L2 | Behavior change that keeps the existing contract (internal logic changes, or a compatible optional argument or field addition that stays inside one area) | G1 to G5 |
 | L3 | Any L3 criterion below | G1 to G5, architecture-agent required, user confirmation dialogue required |
 
 L3 criteria. If any one applies, classify as L3 and do not lower it even if the request looks small.
 
 - A change to the signature, return type, or field meaning of a function, class, API, or type used by other files, requiring edits to existing callers.
 - A change whose caller edits span two or more files.
+- A new or changed field or behavior that must show up in the output of two or more areas (for example the model plus the API, screen, or export), even when the field is optional and nothing existing breaks. Search every area that reads or prints the model before deciding it is one area.
 - A change to data schema, storage format, or migration; authentication, permission, or security policy; or a module shared by several areas.
 - Do not lower the grade because it is demo or internal code. Look up the callers to decide whether compatibility breaks.
 

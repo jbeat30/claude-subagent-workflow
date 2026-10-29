@@ -46,7 +46,7 @@ Only for full with relay mode: read `.claude/subagent/relay-mode.md` before the 
 
 # G0 Request classification
 
-On receiving a request, classify it into one grade and record the reason in one line, then record the grade with `node .claude/subagent/bin/subagent-run.mjs grade <Q|L1|L2|L3> [runId]` (add the runId once chosen for L2 and L3). Until then the guard blocks the PM's source edits; after it, L1 allows comment and document edits in any number of files plus one file of other behavior-neutral edits, and L2 and L3 allow none (worker agents edit). Grades can only be raised. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
+On receiving a request, classify it into one grade and record the reason in one line (for your own record: never write grade names in a message to the user), then record the grade with `node .claude/subagent/bin/subagent-run.mjs grade <Q|L1|L2|L3> [runId]` (add the runId once chosen for L2 and L3). Until then the guard blocks the PM's source edits; after it, L1 allows comment and document edits in any number of files plus one file of other behavior-neutral edits, and L2 and L3 allow none (worker agents edit). Grades can only be raised. If in doubt, raise the grade. If the user specifies a path, follow it, but warn and confirm when the choice weakens controls.
 
 | Grade | Criteria | Path |
 | --- | --- | --- |

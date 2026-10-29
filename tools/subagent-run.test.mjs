@@ -230,3 +230,23 @@ test('가드 L1: 블록 주석 줄은 주석으로 보고 L2 이상은 주석 �
   run(dir, 'grade', 'L2', 'R1');
   assert.equal(editAs(dir, 'src/a.js', ' * retrun a', ' * return a').allowed, false);
 });
+
+test('grade: L2와 L3는 질문 정책을 출력하고 Q와 L1은 출력하지 않음', () => {
+  const dir = project();
+  mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'subagent', 'questions.md'), '# Question policy, Look before asking');
+  run(dir, 'start');
+  assert.doesNotMatch(run(dir, 'grade', 'L1').stdout, /Look before asking/);
+  const l2 = run(dir, 'grade', 'L2', 'R1');
+  assert.match(l2.stdout, /Look before asking/);
+  assert.match(l2.stdout, /grade L2, runId R1/);
+  assert.match(run(dir, 'grade', 'L3', 'R1').stdout, /Look before asking/);
+});
+
+test('grade: 질문 정책 파일이 없어도 등급 기록은 성공하고 대체 안내를 출력', () => {
+  const dir = project();
+  run(dir, 'start');
+  const r = run(dir, 'grade', 'L2', 'R1');
+  assert.equal(r.ok, true);
+  assert.match(r.stdout, /questions.md is missing/);
+});

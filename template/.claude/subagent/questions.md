@@ -27,7 +27,7 @@ Show the user two separate lists in the message: the decisions only the user can
 
 ## Make each question answerable
 
-- Use plain words. Do not use internal terms such as grade names, gate names, or role names unless the user needs them to answer.
+- Use plain words. Never write grade names (Q, L1, L2, L3), gate names (G0 to G5), role names (`planner-agent`, `qa-agent`, and so on), `needs-input`, or `runId` in a message to the user. They are for your own records. Say what they mean instead: for L3 write "this change touches several areas and needs your confirmation first", for L2 write nothing about the grade.
 - Say what is unknown in one line and quote the source text it comes from.
 - Give two or three options and say what each one changes: what gets built, extra work, risk.
 - Mark a recommended option when you have a reason, and give the reason in one line.

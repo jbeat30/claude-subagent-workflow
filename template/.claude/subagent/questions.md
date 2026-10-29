@@ -21,6 +21,10 @@ Do not ask what the request source, the repository, the profile, the rule files,
 
 Put every open question of the same moment in one message, not one at a time. At G2 fold these into the confirmation message: the planner's user question list, agents' `needs-input` questions, UI verification ambiguities, and approval items. Merge duplicates: the same question from two agents is one question. Mid-run, ask at once only when the answer could change finished work; otherwise hold the question for the next gate or the final report.
 
+## Split decisions from defaults
+
+Show the user two separate lists in the message: the decisions only the user can make, and the defaults you will use unless told otherwise. A decision is something where the options lead to clearly different results and no existing code or rule picks one. A detail with a safe default belongs in the defaults list, not in the questions: input limits and error handling, naming, internal structure, file placement, and anything the existing code already does one way. Ask at most three decisions per message; if more remain, ask the ones that block the most work and put the rest in the defaults list with your recommendation. Say once that "go with your recommendations" is a valid answer.
+
 ## Make each question answerable
 
 - Use plain words. Do not use internal terms such as grade names, gate names, or role names unless the user needs them to answer.
@@ -28,6 +32,7 @@ Put every open question of the same moment in one message, not one at a time. At
 - Give two or three options and say what each one changes: what gets built, extra work, risk.
 - Mark a recommended option when you have a reason, and give the reason in one line.
 - Put the question that blocks the most work first.
+- Put notices that are not questions (for example a document that contained instructions you ignored) after the questions, in one line.
 
 ## Do not ask twice
 

@@ -155,7 +155,7 @@ else {
 }
 
 // PM 지침의 필수 규칙: 분리된 참조 파일까지 합친 본문에서 확인
-const pmText = ['skills/subagent/SKILL.md', 'subagent/relay-mode.md', 'subagent/design-tools.md', 'subagent/strict-mode.md', 'subagent/rule-priority.md', 'subagent/ui-verification.md']
+const pmText = ['skills/subagent/SKILL.md', 'subagent/relay-mode.md', 'subagent/design-tools.md', 'subagent/strict-mode.md', 'subagent/rule-priority.md', 'subagent/ui-verification.md', 'subagent/questions.md']
   .map((p) => (existsSync(join(root, '.claude', p)) ? readFileSync(join(root, '.claude', p), 'utf8') : ''))
   .join('\n');
 for (const [label, re] of PM_RULES) {

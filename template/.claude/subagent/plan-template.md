@@ -31,6 +31,8 @@ For UI work also record the design direction here: its source (Figma link, user 
 
 ## 4. Assumptions
 
+Also record the user's answers here as `User decision: <question>, answer: <answer>` so the same question is never asked twice (`.claude/subagent/questions.md`).
+
 | Assumption | Evidence or `unchecked` |
 | --- | --- |
 | | |

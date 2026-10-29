@@ -1,5 +1,11 @@
 // PM 지침의 필수 규칙 목록: 슬림화, 분리 뒤에도 규칙이 남아 있는지 검사(문구 존재 확인이며 동작 검증 아님)
 export const PM_RULES = [
+  ['질문 전에 먼저 찾아봄', /Look before asking/],
+  ['같은 순간의 질문은 한 메시지로', /One message per moment/],
+  ['사용자 메시지에 등급 이름 등 내부 용어 금지', /Never write grade names/],
+  ['결정과 기본값을 나눠 보여 줌', /Split decisions from defaults/],
+  ['답은 기획안에 기록해 다시 묻지 않음', /Do not ask twice/],
+  ['승인 항목은 침묵이나 알아서 해달라는 말로 대신하지 않음', /Never treat silence or "decide for me" as approval/],
   ['요청 원문·기획안 파일이 단일 기준', /single source of truth/],
   ['의심되면 등급 상향', /raise the grade/],
   ['L3는 작아 보여도 낮추지 않음', /do not lower it|Do not lower the grade/],

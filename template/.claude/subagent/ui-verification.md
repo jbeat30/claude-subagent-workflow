@@ -53,6 +53,6 @@ An `unchecked` target that the user can resolve (an ambiguous rule, a missing li
 
 - **Stop and ask at once** when the answer could change what is built or what is already built, that is, when it could force changing or redoing finished work instead of only adding to it. Stop the affected work where the unknown appears, even in the middle of a run. The role returns `needs-input` with the question and what it has done so far; the PM asks the user right away and resumes after the answer. When unsure which kind it is, treat it as this kind and ask first, because redoing work costs the user's tokens.
 - **Continue and ask at the end** only when every possible answer would just add work (one more check, one more result to attach) and none could change finished work. Say so in the question: the answer adds a check and nothing done changes.
-- Put the open items to the user in one message: only the unresolved items, the quoted rule or request, the options, and for each option whether it adds work or changes finished work. Do not ask what the rule files or the profile already answer.
+- Follow the question policy `.claude/subagent/questions.md`. Put the open items to the user in one message: only the unresolved items, the quoted rule or request, the options, and for each option whether it adds work or changes finished work. Do not ask what the rule files or the profile already answer.
 - After the answer, keep the finished work and redo only the parts it affects.
 - The final report lists items still open as questions awaiting the user's answer, not as a result.

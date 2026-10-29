@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // /subagent 실행 상태 관리: start(스킬 로드 때 자동 실행), grade(PM이 분류 기록), close(최종 보고 뒤 종료)
 // start는 스킬 호출을 막지 않도록 실패해도 종료 코드 0, 나머지는 거부 사유와 함께 종료 코드 1
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { DOCS, GRADES, gradeRank, isActive, newState, readState, writeState } from './subagent-state.mjs';
 
@@ -34,6 +34,14 @@ if (command === 'start') {
   if (gradeRank(grade) < gradeRank(state.grade)) fail(`cannot lower the grade from ${state.grade} to ${grade}; raise it only`);
   writeState(root, { ...state, grade, runId: runId ?? state.runId, updatedAt: Date.now() });
   console.log(`Run state: grade ${grade}${runId ? `, runId ${runId}` : ''}`);
+  // L2·L3는 질문 정책을 출력해 PM이 사용자에게 묻기 전에 반드시 보게 함(문서를 따로 열지 않고 건너뛰는 경우 방지)
+  if (['L2', 'L3'].includes(grade)) {
+    const policy = join(root, '.claude', 'subagent', 'questions.md');
+    console.log('');
+    console.log(existsSync(policy)
+      ? `Question policy, apply it to every message you write to the user in this run:\n\n${readFileSync(policy, 'utf8')}`
+      : 'Question policy file .claude/subagent/questions.md is missing; ask only what you cannot find, in one message, in plain words.');
+  }
 } else if (command === 'close') {
   const state = readState(root);
   if (!isActive(state)) {

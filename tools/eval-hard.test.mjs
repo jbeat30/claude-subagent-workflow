@@ -152,3 +152,30 @@ test('fixture: 변경 전 npm test는 통과(알려진 실패 테스트는 m3 �
   assert.equal(score('s1', dir).npmTestPass, true);
   assert.equal(score('m3', workdir('m3')).npmTestPass, false);
 });
+
+// 질문 정책 반복 확인 도구의 판정 코드: 내부 용어 탐지와 문구 표지
+import { findInternalTerms, questionMarkers } from './eval/hard/question-check.mjs';
+
+test('내부 용어 탐지: 등급, 게이트, 역할 이름, 내부 상태 값을 찾음', () => {
+  assert.deepEqual(findInternalTerms('L2로 분류했고 backend-agent가 G3에서 needs-input을 반환'), ['L2', 'backend-agent', 'G3', 'needs-input']);
+  assert.deepEqual(findInternalTerms('할인율은 어디서 가져올까요? 추천은 선택 인자입니다.'), []);
+  assert.deepEqual(findInternalTerms('LEVEL2와 GRADE는 내부 용어가 아님'), []);
+});
+
+test('문구 표지: 기본값 목록과 추천대로 안내를 찾음', () => {
+  const m = questionMarkers('**기본값** (바꾸라고 하지 않으면 이대로 진행합니다)\n"추천대로 해줘"라고만 답하셔도 됩니다.');
+  assert.equal(m.defaultsList, true);
+  assert.equal(m.followRecommendation, true);
+  const n = questionMarkers('할인 방식을 정해 주세요.');
+  assert.equal(n.defaultsList, false);
+  assert.equal(n.followRecommendation, false);
+});
+
+import { weakenedTestLines } from './eval/hard/question-check.mjs';
+
+test('기존 테스트 약화 탐지: import 줄 변경과 덧붙임은 허용하고 단언 삭제는 잡음', () => {
+  const appended = "--- a/test/x.test.js\n+++ b/test/x.test.js\n-import { a } from '../src/x.js';\n+import { a, b } from '../src/x.js';\n+test('new', () => {});\n";
+  assert.deepEqual(weakenedTestLines(appended), []);
+  const removed = "--- a/test/x.test.js\n+++ b/test/x.test.js\n-  assert.equal(a(), 9);\n+  assert.equal(a(), 8);\n";
+  assert.deepEqual(weakenedTestLines(removed), ['-  assert.equal(a(), 9);']);
+});

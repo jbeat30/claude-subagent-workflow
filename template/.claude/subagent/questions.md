@@ -31,6 +31,7 @@ Show the user two separate lists in the message: the decisions only the user can
 - Say what is unknown in one line and quote the source text it comes from.
 - Give two or three options and say what each one changes: what gets built, extra work, risk.
 - Mark a recommended option when you have a reason, and give the reason in one line.
+- When you ask the user to confirm a risky change, always write a short "who else is affected" part, even when there are no decisions to make: who or what outside this repository reads the changed output (other tools, exports, API consumers), whether personal data becomes visible in a new place, and what you could not check. Being brief is fine, leaving this part out is not.
 - Put the question that blocks the most work first.
 - Put notices that are not questions (for example a document that contained instructions you ignored) after the questions, in one line.
 

@@ -12,6 +12,7 @@
 | 정적 검사와 단위 테스트 | 배포 원본 구조, 역할 정의 규칙, 검사 실행기와 가드와 설치기의 동작 | `npm test`, CI(ubuntu, windows, Node 20) | 117건 통과 | [검사 방법](TESTING.md) |
 | 어려운 과제 비교 | 직접 처리와 워크플로가 숨은 호출처, 말하지 않은 요구, 여러 영역 변경에서 얼마나 다른가 | 실제 Claude, 코드 채점, 조건당 1~3회 | 어려운 과제에서 직접 처리는 호출처와 암묵 요구를 놓쳤고 Lite는 놓치지 않음, 비용은 5~8배, 중간 과제에서는 직접 처리도 충분, 위험한 변경의 L3 판정은 기준 수정 뒤 3/3, 쉬운 과제를 L3로 올리지 않음 6/6 | [어려운 과제 비교](results/hard-task-comparison.md) |
 | PM 직접 수정 차단 | `/subagent` 중 PM이 등급 기록 없이 또는 위험한 변경을 직접 고치는 것을 막는가 | 단위 테스트, 실제 Claude 요청 종류별 1회 | 정상 흐름은 막지 않음 확인, 막히는 장면은 실제로는 미관찰 | [PM 직접 수정 차단](results/pm-bypass-block.md) |
+| Node 없이 동작 가능성 점검 | Node가 없는 환경에서 훅이 Claude Code에서 실제로 동작하는가, 어떤 방식이 현실적인가 | 실제 Claude(PATH에서 Node 제거), 방식당 1회 | bash+perl 훅과 PowerShell 5.1 훅 모두 Node 없이 실제 차단 확인, 지연은 Node 120ms 대비 158ms와 477ms | [Node 없이 동작 가능성 점검](results/node-free-feasibility.md) |
 | 소규모 fixture 비교 | 쉬운 과제부터 L3까지 직접 처리, Lite, Full의 비용과 시간 | 실제 Claude, 과제별 1회 | L2, L3에서 Lite는 비용 약 12배, 시간 30배 이상 | [소규모 fixture 비교](results/small-fixture-comparison.md) |
 | 설치 후 설정 전환 점검 | 모드 전환, `setting` 스킬, 보호 모드(권고, 엄격) 전환과 차단 | 실제 Claude, 점검별 1회 | 전환과 차단, 해제는 기대대로 동작, 엄격 모드의 승인 흐름은 미확인 | [설치 후 설정 전환 점검](results/install-and-mode-switch.md) |
 | MCP 연결, 규칙 우선순위, UI 검증 방식 점검 | Figma와 문서 읽기 MCP, 프로젝트 규칙 우선, 모호한 규칙에서 질문 | 실제 Claude, 점검별 1회 | 등록 인식, 규칙 우선, 모호하면 질문은 기대대로, Figma 인증과 도구 호출은 미확인 | [MCP 연결, 규칙 우선순위, UI 검증 방식 점검](results/mcp-rules-and-ui-verification.md) |
@@ -24,7 +25,8 @@
 4. L2와 L3 사이에 걸치는 경계 요청에서 판정이 안정적인지
 5. 여러 모델, 여러 프로젝트에서의 재현(지금은 한 모델과 작은 합성 fixture)
 6. 엄격 모드의 대화형 승인 흐름
-7. 과제당 3회 이상의 반복(대부분 1~3회라 통계적 유의성을 주장하지 않음)
+7. Node 없는 환경에서 실제 가드 전체와 설치기를 옮겼을 때의 동작, macOS와 Linux, 단일 실행 파일 방식
+8. 과제당 3회 이상의 반복(대부분 1~3회라 통계적 유의성을 주장하지 않음)
 
 ## 파일 구성
 

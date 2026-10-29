@@ -1,6 +1,6 @@
-# 소규모 fixture 실행 기록
+# 소규모 fixture 비교: 직접 처리, Lite, Full
 
-기준일: 2026-10-19, 저장소 feature/v0.1.0 기준 (L2 분석 호출 조건부 전환 이전 상태)
+측정일 2026-10-19, L2 분석 호출을 조건부로 바꾸기 전의 저장소 상태 기준
 실제 Claude를 호출해 직접 처리와 워크플로 구성을 같은 과제로 확인한 기록
 통계적 비교가 아닌 동작 확인, 과제별 1회·비대화형(`claude -p`) 실행
 
@@ -41,11 +41,11 @@
 
 ## 모드별 비교 그래프
 
-![모드별 비용·시간·토큰 비교](assets/mode-compare.svg)
+![모드별 비용·시간·토큰 비교](../assets/mode-compare.svg)
 
-- 원본 수치: `data/results-initial.json`(직접·Lite 변경 전·Full), `data/results-final.json`(Lite 변경 후)
+- 원본 수치: `data/small-fixture/results-initial.json`(직접·Lite 변경 전·Full), `data/small-fixture/results-final.json`(Lite 변경 후)
 - 토큰은 입력·캐시 생성·캐시 읽기·출력의 합이며 캐시 읽기가 대부분이고 입력 단가보다 낮게 과금됨
-- 그래프는 `node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-compare.svg`로 재생성
+- 그래프는 `node tools/eval/report.mjs docs/verification/data/small-fixture docs/verification/assets/mode-compare.svg`로 재생성
 
 | 과제 | 직접 처리 토큰 | Lite 변경 전 | Lite 변경 후 |
 | --- | --- | --- | --- |

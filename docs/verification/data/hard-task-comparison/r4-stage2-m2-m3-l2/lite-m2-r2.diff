@@ -1,0 +1,10 @@
+diff --git a/src/discount.js b/src/discount.js
+index dd059ca..5d205da 100644
+--- a/src/discount.js
++++ b/src/discount.js
+@@ -1,4 +1,4 @@
+ // Discount helpers
+ export function percentOff(total, pct) {
+-  return Math.floor((total * (100 - pct)) / 100);
++  return Math.round((total * (100 - pct)) / 100 * 100) / 100;
+ }

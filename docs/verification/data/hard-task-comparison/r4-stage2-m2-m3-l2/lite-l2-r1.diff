@@ -1,0 +1,101 @@
+diff --git a/src/api/user-api.js b/src/api/user-api.js
+index 0643a47..48b1316 100644
+--- a/src/api/user-api.js
++++ b/src/api/user-api.js
+@@ -1,3 +1,5 @@
+ export function userResponse(user) {
+-  return { id: user.id, name: user.name, email: user.email };
++  const res = { id: user.id, name: user.name, email: user.email };
++  if (user.phone !== undefined && user.phone !== null && user.phone !== '') res.phone = user.phone;
++  return res;
+ }
+diff --git a/src/export/user-export.js b/src/export/user-export.js
+index 3b94e84..78b2010 100644
+--- a/src/export/user-export.js
++++ b/src/export/user-export.js
+@@ -1,3 +1,3 @@
+ export function userCsv(user) {
+-  return [user.id, user.name, user.email].join(',');
++  return [user.id, user.name, user.email, user.phone ?? ''].join(',');
+ }
+diff --git a/src/ui/user-card.js b/src/ui/user-card.js
+index f5c6d94..b094c5e 100644
+--- a/src/ui/user-card.js
++++ b/src/ui/user-card.js
+@@ -1,3 +1,4 @@
+ export function userCard(user) {
+-  return `${user.name} <${user.email}>`;
++  const base = `${user.name} <${user.email}>`;
++  return user.phone ? `${base} · ${user.phone}` : base;
+ }
+diff --git a/src/users.js b/src/users.js
+index 36d09a9..e34b614 100644
+--- a/src/users.js
++++ b/src/users.js
+@@ -1,3 +1,5 @@
+-export function makeUser({ id, name, email }) {
+-  return { id, name, email };
++export function makeUser({ id, name, email, phone }) {
++  const user = { id, name, email };
++  if (phone !== undefined && phone !== null && phone !== '') user.phone = phone;
++  return user;
+ }
+diff --git a/test/user-api.test.js b/test/user-api.test.js
+index 68b42ed..fa201ba 100644
+--- a/test/user-api.test.js
++++ b/test/user-api.test.js
+@@ -2,8 +2,54 @@ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { makeUser } from '../src/users.js';
+ import { userResponse } from '../src/api/user-api.js';
++import { userCard } from '../src/ui/user-card.js';
++import { userCsv } from '../src/export/user-export.js';
+ 
+ test('userResponse exposes id, name, email', () => {
+   const user = makeUser({ id: 1, name: 'Ann', email: 'ann@x.io' });
+   assert.deepEqual(userResponse(user), { id: 1, name: 'Ann', email: 'ann@x.io' });
+ });
++
++const base = { id: 1, name: 'Ann', email: 'a@x.io' };
++
++test('R1 makeUser keeps phone when given', () => {
++  assert.equal(makeUser({ ...base, phone: '010' }).phone, '010');
++});
++
++test('R1 makeUser has no phone key when absent, undefined, null, or empty', () => {
++  assert.equal('phone' in makeUser(base), false);
++  assert.equal('phone' in makeUser({ ...base, phone: undefined }), false);
++  assert.equal('phone' in makeUser({ ...base, phone: null }), false);
++  assert.equal('phone' in makeUser({ ...base, phone: '' }), false);
++});
++
++test('R2 userResponse includes phone key when phone exists', () => {
++  const user = makeUser({ ...base, phone: '010' });
++  assert.deepEqual(userResponse(user), { id: 1, name: 'Ann', email: 'a@x.io', phone: '010' });
++});
++
++test('R2 userResponse has no phone key when phone is absent, null, or empty', () => {
++  assert.equal('phone' in userResponse(makeUser(base)), false);
++  assert.equal('phone' in userResponse({ ...base, phone: null }), false);
++  assert.equal('phone' in userResponse({ ...base, phone: '' }), false);
++});
++
++test('R3 userCard shows phone after separator when present', () => {
++  assert.equal(userCard(makeUser({ ...base, phone: '010' })), 'Ann <a@x.io> · 010');
++});
++
++test('R3 userCard has no trailing separator when phone is absent or empty', () => {
++  assert.equal(userCard(makeUser(base)), 'Ann <a@x.io>');
++  assert.equal(userCard({ ...base, phone: '' }), 'Ann <a@x.io>');
++  assert.equal(userCard({ ...base, phone: null }), 'Ann <a@x.io>');
++});
++
++test('R4 userCsv appends phone column when present', () => {
++  assert.equal(userCsv(makeUser({ ...base, phone: '010' })), '1,Ann,a@x.io,010');
++});
++
++test('R4 userCsv appends empty cell when phone is absent, null, or empty', () => {
++  assert.equal(userCsv(makeUser(base)), '1,Ann,a@x.io,');
++  assert.equal(userCsv({ ...base, phone: null }), '1,Ann,a@x.io,');
++  assert.equal(userCsv({ ...base, phone: '' }), '1,Ann,a@x.io,');
++});

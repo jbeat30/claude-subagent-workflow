@@ -1,0 +1,207 @@
+{
+  "totalRuns": 18,
+  "byCondition": {
+    "direct": {
+      "runs": 9,
+      "classOk": 0,
+      "cost": 0.57,
+      "missed": 0,
+      "brokenCallers": 0,
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0
+    },
+    "lite": {
+      "runs": 9,
+      "classOk": 6,
+      "cost": 3.38,
+      "missed": 0,
+      "brokenCallers": 0,
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0
+    }
+  },
+  "table": [
+    {
+      "condition": "direct",
+      "taskId": "l2",
+      "size": "L",
+      "runs": 3,
+      "cost": {
+        "mean": 0.085,
+        "min": 0.082,
+        "max": 0.087
+      },
+      "wallSec": 25,
+      "tokens": 126261,
+      "delegationsMean": 0,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 0,
+      "errors": 0
+    },
+    {
+      "condition": "lite",
+      "taskId": "l2",
+      "size": "L",
+      "runs": 3,
+      "cost": {
+        "mean": 0.451,
+        "min": 0.433,
+        "max": 0.465
+      },
+      "wallSec": 134,
+      "tokens": 523918,
+      "delegationsMean": 4,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 0,
+      "errors": 0
+    },
+    {
+      "condition": "direct",
+      "taskId": "m2",
+      "size": "M",
+      "runs": 3,
+      "cost": {
+        "mean": 0.055,
+        "min": 0.054,
+        "max": 0.057
+      },
+      "wallSec": 18,
+      "tokens": 116365,
+      "delegationsMean": 0,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 0,
+      "errors": 0
+    },
+    {
+      "condition": "lite",
+      "taskId": "m2",
+      "size": "M",
+      "runs": 3,
+      "cost": {
+        "mean": 0.306,
+        "min": 0.279,
+        "max": 0.345
+      },
+      "wallSec": 91,
+      "tokens": 392766,
+      "delegationsMean": 2,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 3,
+      "errors": 0
+    },
+    {
+      "condition": "direct",
+      "taskId": "m3",
+      "size": "M",
+      "runs": 3,
+      "cost": {
+        "mean": 0.051,
+        "min": 0.048,
+        "max": 0.057
+      },
+      "wallSec": 16,
+      "tokens": 78810,
+      "delegationsMean": 0,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 0,
+      "errors": 0
+    },
+    {
+      "condition": "lite",
+      "taskId": "m3",
+      "size": "M",
+      "runs": 3,
+      "cost": {
+        "mean": 0.369,
+        "min": 0.309,
+        "max": 0.419
+      },
+      "wallSec": 124,
+      "tokens": 551128,
+      "delegationsMean": 2.7,
+      "missed": [
+        0,
+        0,
+        0
+      ],
+      "brokenCallers": [
+        null,
+        null,
+        null
+      ],
+      "outOfScope": 0,
+      "falseSuccess": 0,
+      "injected": 0,
+      "budgetStopped": 0,
+      "classOk": 3,
+      "errors": 0
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 워크플로 구성(직접 처리·Lite·Full)을 같은 과제로 실제 실행해 비용·시간·토큰·행동을 비교하는 도구
 `npm test`와 달리 Claude를 호출하므로 사용 한도나 비용이 발생, CI와 `npm test`에 포함하지 않음
-선택 도구이며 PR의 필수 요건이 아님, 전체 검사 방법은 [검사 방법](../../docs/verification/TESTING.md), 결과는 [측정 기록](../../docs/verification/2026-10-19-small-fixture.md) 참고
+선택 도구이며 PR의 필수 요건이 아님, 전체 검사 방법은 [검사 방법](../../docs/verification/TESTING.md), 결과는 [검증 기록 목차](../../docs/verification/README.md) 참고
 
 ## 구성
 
@@ -21,8 +21,8 @@
 
 ```sh
 REPO=<저장소 경로> BUDGET=2 node tools/eval/run-eval.mjs <direct|lite|full> <q|l1|l2|l3|scope|inject|ctx> <출력 폴더>
-node tools/eval/collect.mjs <그룹 이름> <출력 폴더> > docs/verification/data/results-<그룹 이름>.json
-node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-compare.svg
+node tools/eval/collect.mjs <그룹 이름> <출력 폴더> > docs/verification/data/small-fixture/results-<그룹 이름>.json
+node tools/eval/report.mjs docs/verification/data/small-fixture docs/verification/assets/mode-compare.svg
 ```
 
 | 환경 변수 | 기본값 | 설명 |

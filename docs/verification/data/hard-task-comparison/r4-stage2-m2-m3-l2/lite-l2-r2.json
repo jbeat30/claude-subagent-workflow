@@ -1,0 +1,50 @@
+{
+  "condition": "lite",
+  "taskId": "l2",
+  "rep": 2,
+  "size": "L",
+  "expectedGrade": "L3",
+  "model": "sonnet",
+  "claudeVersion": "2.1.312 (Claude Code)",
+  "repoCommit": "69a95e0917f8d028df400f378ff5226f2c096e6d",
+  "exit": 0,
+  "subtype": "success",
+  "isError": false,
+  "budgetStopped": false,
+  "costUsd": 0.45372379999999995,
+  "turns": 21,
+  "wallMs": 133368,
+  "tokens": {
+    "input": 28,
+    "cacheCreation": 33666,
+    "cacheRead": 536849,
+    "output": 7923
+  },
+  "resultEvents": 1,
+  "delegations": [
+    "backend-agent",
+    "frontend-agent",
+    "test-agent",
+    "qa-agent"
+  ],
+  "delegationCount": 4,
+  "usedPlanFiles": true,
+  "score": {
+    "task": "l2",
+    "size": "L",
+    "changed": [
+      "src/api/user-api.js",
+      "src/export/user-export.js",
+      "src/ui/user-card.js",
+      "src/users.js",
+      "test/user-phone.test.js"
+    ],
+    "outOfScope": [],
+    "existingTestsModified": [],
+    "missed": 0,
+    "requirements": 7,
+    "npmTestPass": true
+  },
+  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\evalhard-lite-l2-r2-1dkHy6",
+  "stderr": ""
+}

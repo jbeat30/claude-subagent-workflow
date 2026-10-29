@@ -83,12 +83,12 @@ REPO=<저장소 절대 경로> BUDGET=2 node tools/eval/run-eval.mjs <direct|lit
 ### 결과 집계와 그래프
 
 ```sh
-node tools/eval/collect.mjs <그룹 이름> <출력 폴더> > docs/verification/data/results-<그룹 이름>.json
-node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-compare.svg
+node tools/eval/collect.mjs <그룹 이름> <출력 폴더> > docs/verification/data/small-fixture/results-<그룹 이름>.json
+node tools/eval/report.mjs docs/verification/data/small-fixture docs/verification/assets/mode-compare.svg
 ```
 
 - `collect.mjs`가 비용·시간·토큰·위임 호출을 JSON으로 수집
-- `report.mjs`가 `docs/verification/data`의 JSON으로 비교 그래프 SVG 생성
+- `report.mjs`가 `docs/verification/data/small-fixture`의 JSON으로 비교 그래프 SVG 생성
 
 ### 비용 예산
 
@@ -100,11 +100,12 @@ node tools/eval/report.mjs docs/verification/data docs/verification/assets/mode-
 
 결과를 공개할 때 아래를 함께 기재
 
-- 조건, 과제, 반복 횟수, 모델, 호출당 상한, 실행 일자
-- 실패·중단 사례와 원본 JSON 위치
-- 한계: 과제당 1회는 변동 범위를 알 수 없고 통계적 비교가 아님
+- 무엇을 재는지, 조건, 과제, 반복 횟수, 모델, 호출당 상한, 측정일, 대상 커밋, Claude Code 버전
+- 실패·중단 사례(결과에서 제외한 실행 포함)와 원본 JSON 위치
+- 확인하지 못한 것: 과제당 1회는 변동 범위를 알 수 없고 통계적 비교가 아님
 
-기록 예: [소규모 fixture 실행 기록](2026-10-19-small-fixture.md)
+기록은 릴리즈 버전이 아니라 시험 종류별로 `results/`에 모으고, 같은 시험을 다시 하면 새 회차를 같은 문서에 추가, 목록은 [검증 기록 목차](README.md)
+기록 예: [소규모 fixture 비교](results/small-fixture-comparison.md)
 
 ## 3. 확인할 수 없는 것
 
@@ -124,8 +125,9 @@ node tools/eval/hard/aggregate.mjs <출력 폴더> > results.json
 
 - 채점기(깨진 호출처, 범위 밖 수정, 누락 요구, 허위 성공, 주입)는 실제 Claude 없이 `tools/eval-hard.test.mjs`로 검증하며 `npm test`에 포함
 - 과제 정의와 환경 변수는 [tools/eval/hard/README.md](../../tools/eval/hard/README.md)
+- Windows에서 npm으로 설치한 Claude Code는 `claude`가 셸 스크립트라 `run.mjs`가 직접 실행하지 못하고 모델이 호출되지 않은 채 끝남, `CLAUDE_BIN`에 `claude.exe`의 실제 경로(npm 전역 폴더 아래 `node_modules/@anthropic-ai/claude-code/bin/claude.exe`)를 지정
 - 여러 Claude Code가 설치돼 있으면 `CLAUDE_BIN`과 PATH 앞쪽 실행 파일이 같은 버전인지 확인, 결과 JSON에 실행한 버전이 기록됨
 - 사용 한도에 걸리면 `run.mjs`가 기록 없이 종료 코드 3으로 끝나므로 배치는 그 시점에 멈추고 풀린 뒤 이어서 실행
 - 호출 수 × `BUDGET`이 최대 지출, 시작 전에 계산해 승인
 
-결과 기록: [v0.4.0 평가 결과](EVAL_RESULTS_v0.4.0.md)
+결과 기록: [어려운 과제 비교](results/hard-task-comparison.md)

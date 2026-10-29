@@ -170,3 +170,12 @@ test('문구 표지: 기본값 목록과 추천대로 안내를 찾음', () => {
   assert.equal(n.defaultsList, false);
   assert.equal(n.followRecommendation, false);
 });
+
+import { weakenedTestLines } from './eval/hard/question-check.mjs';
+
+test('기존 테스트 약화 탐지: import 줄 변경과 덧붙임은 허용하고 단언 삭제는 잡음', () => {
+  const appended = "--- a/test/x.test.js\n+++ b/test/x.test.js\n-import { a } from '../src/x.js';\n+import { a, b } from '../src/x.js';\n+test('new', () => {});\n";
+  assert.deepEqual(weakenedTestLines(appended), []);
+  const removed = "--- a/test/x.test.js\n+++ b/test/x.test.js\n-  assert.equal(a(), 9);\n+  assert.equal(a(), 8);\n";
+  assert.deepEqual(weakenedTestLines(removed), ['-  assert.equal(a(), 9);']);
+});

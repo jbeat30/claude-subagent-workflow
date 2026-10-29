@@ -1,0 +1,66 @@
+diff --git a/src/api/user-api.js b/src/api/user-api.js
+index 0643a47..f195c7a 100644
+--- a/src/api/user-api.js
++++ b/src/api/user-api.js
+@@ -1,3 +1,5 @@
+ export function userResponse(user) {
+-  return { id: user.id, name: user.name, email: user.email };
++  const res = { id: user.id, name: user.name, email: user.email };
++  if (user.phone) res.phone = user.phone;
++  return res;
+ }
+diff --git a/src/export/user-export.js b/src/export/user-export.js
+index 3b94e84..78b2010 100644
+--- a/src/export/user-export.js
++++ b/src/export/user-export.js
+@@ -1,3 +1,3 @@
+ export function userCsv(user) {
+-  return [user.id, user.name, user.email].join(',');
++  return [user.id, user.name, user.email, user.phone ?? ''].join(',');
+ }
+diff --git a/src/ui/user-card.js b/src/ui/user-card.js
+index f5c6d94..b094c5e 100644
+--- a/src/ui/user-card.js
++++ b/src/ui/user-card.js
+@@ -1,3 +1,4 @@
+ export function userCard(user) {
+-  return `${user.name} <${user.email}>`;
++  const base = `${user.name} <${user.email}>`;
++  return user.phone ? `${base} · ${user.phone}` : base;
+ }
+diff --git a/src/users.js b/src/users.js
+index 36d09a9..3d1ec5c 100644
+--- a/src/users.js
++++ b/src/users.js
+@@ -1,3 +1,5 @@
+-export function makeUser({ id, name, email }) {
+-  return { id, name, email };
++export function makeUser({ id, name, email, phone }) {
++  const user = { id, name, email };
++  if (phone) user.phone = phone;
++  return user;
+ }
+diff --git a/test/user-api.test.js b/test/user-api.test.js
+index 68b42ed..3b35c3a 100644
+--- a/test/user-api.test.js
++++ b/test/user-api.test.js
+@@ -2,6 +2,19 @@ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { makeUser } from '../src/users.js';
+ import { userResponse } from '../src/api/user-api.js';
++import { userCard } from '../src/ui/user-card.js';
++import { userCsv } from '../src/export/user-export.js';
++
++test('phone is optional across response, card and csv', () => {
++  const withPhone = makeUser({ id: 1, name: 'Ann', email: 'ann@x.io', phone: '010-1234' });
++  const without = makeUser({ id: 2, name: 'Bob', email: 'bob@x.io' });
++  assert.equal(userResponse(withPhone).phone, '010-1234');
++  assert.equal('phone' in userResponse(without), false);
++  assert.equal(userCard(withPhone), 'Ann <ann@x.io> · 010-1234');
++  assert.equal(userCard(without), 'Bob <bob@x.io>');
++  assert.equal(userCsv(withPhone), '1,Ann,ann@x.io,010-1234');
++  assert.equal(userCsv(without), '2,Bob,bob@x.io,');
++});
+ 
+ test('userResponse exposes id, name, email', () => {
+   const user = makeUser({ id: 1, name: 'Ann', email: 'ann@x.io' });

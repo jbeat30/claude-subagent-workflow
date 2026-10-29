@@ -32,6 +32,6 @@ Explain what this function does.
 | Adding a feature where unstated requirements (validation, error handling) are easy to miss | Typos, comments, wording |
 | Changes to data structures, permissions, or security where the impact has to be worked out first | A small edit to a single file |
 
-In the evaluation the workflow appeared to help on changes with hidden callers and on tasks with unstated requirements. There are too few repeated runs to be sure. Details are in the [results and limits](../verification/EVAL_RESULTS_v0.2.0.md) (Korean).
+In the evaluation the workflow appeared to help on changes with hidden callers and on tasks with unstated requirements. There are too few repeated runs to be sure. Details are in the [results and limits](../verification/results/hard-task-comparison.md) (Korean).
 
 A request like the last one, without calling the workflow, is answered by regular Claude. The PM answers and asks questions in the language you write in.

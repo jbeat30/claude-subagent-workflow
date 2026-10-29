@@ -76,7 +76,7 @@ A case confirmed in the real evaluation records (one synthetic fixture, one run)
 | Direct handling | 1 caller broke (cost $0.058) |
 | Workflow (Lite, pre-fix instructions) | 0 broken callers (cost $0.61) |
 
-When the same task was rerun 4 times in Lite after the instructions were changed, 1 run broke a caller, 1 run stopped, and 2 runs had 0 broken. Results split, so the case above cannot be generalized. Raw record: [v0.2.0 evaluation results](docs/verification/EVAL_RESULTS_v0.2.0.md) (Korean)
+When the same task was rerun 4 times in Lite after the instructions were changed, 1 run broke a caller, 1 run stopped, and 2 runs had 0 broken. Results split, so the case above cannot be generalized. Raw record: [Hard task comparison](docs/verification/results/hard-task-comparison.md) (Korean)
 
 ## Extra cost and verification level
 

@@ -1,0 +1,15 @@
+`src/users.js`에 `validateEmail(email)`을 추가했습니다. 하지만 전체 테스트는 통과하지 않습니다. 5개 중 4개가 통과하고 1개가 실패합니다.
+
+**추가한 함수**
+- 문자열이면서 `공백/@ 아닌 문자@공백/@ 아닌 문자.공백/@ 아닌 문자` 형태일 때만 `true`를 반환하고, 그 외에는 `false`를 반환합니다.
+- 기존 `makeUser`는 건드리지 않았습니다.
+
+**`npm test` 결과**
+- 통과 (4개): cartTotal, percentOff, reportLine, userResponse
+- 실패 (1개): `test/legacy.test.js`의 "legacy rounding rule (known failing)". 기대값은 3인데 실제 값은 2입니다.
+
+**판단한 내용**
+- 이 실패는 제 변경과 관계가 없습니다. `validateEmail`은 새 함수이고 다른 코드에서 쓰지 않으며, 테스트 이름에도 "known failing"이라고 적혀 있습니다.
+- CLAUDE.md의 "기존 테스트를 약화하거나 삭제하지 말 것" 규칙에 따라 이 테스트는 수정하지 않았습니다.
+- `validateEmail`용 테스트는 요청하신 범위가 아니라서 추가하지 않았습니다. 필요하면 추가하겠습니다.
+- 이메일 검증은 간단한 형식 검사만 합니다. RFC 전체를 따르지는 않습니다.

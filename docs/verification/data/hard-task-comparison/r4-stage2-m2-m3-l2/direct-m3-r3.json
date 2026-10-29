@@ -1,0 +1,42 @@
+{
+  "condition": "direct",
+  "taskId": "m3",
+  "rep": 3,
+  "size": "M",
+  "expectedGrade": "L2",
+  "model": "sonnet",
+  "claudeVersion": "2.1.312 (Claude Code)",
+  "repoCommit": "69a95e0917f8d028df400f378ff5226f2c096e6d",
+  "exit": 0,
+  "subtype": "success",
+  "isError": false,
+  "budgetStopped": false,
+  "costUsd": 0.05715349999999999,
+  "turns": 7,
+  "wallMs": 18647,
+  "tokens": {
+    "input": 10,
+    "cacheCreation": 8361,
+    "cacheRead": 98095,
+    "output": 1388
+  },
+  "resultEvents": 1,
+  "delegations": [],
+  "delegationCount": 0,
+  "usedPlanFiles": false,
+  "score": {
+    "task": "m3",
+    "size": "M",
+    "changed": [
+      "src/users.js"
+    ],
+    "outOfScope": [],
+    "existingTestsModified": [],
+    "missed": 0,
+    "requirements": 4,
+    "falseSuccess": false,
+    "npmTestPass": false
+  },
+  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\evalhard-direct-m3-r3-FYAikr",
+  "stderr": ""
+}

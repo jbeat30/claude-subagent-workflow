@@ -88,7 +88,7 @@ function main() {
     '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--setting-sources', 'project',
     '--allowedTools', 'Bash(npm test)', 'Bash(node .claude/subagent/bin/*)', 'Bash(git diff:*)', 'Bash(git status:*)', 'Bash(cat .claude/subagent/*)'];
   const call = (args) => {
-    const r = sh(CLAUDE, ['-p', ...args, ...common], { input: '', timeout: 20 * 60 * 1000, maxBuffer: 64 * 1024 * 1024 });
+    const r = sh(CLAUDE, ['-p', ...args, ...common], { input: '', env: { ...process.env, CLAUDE_PROJECT_DIR: work }, timeout: 20 * 60 * 1000, maxBuffer: 64 * 1024 * 1024 });
     try { return JSON.parse(r.stdout); } catch { return { result: `${r.stdout}${r.stderr}`, parseError: true }; }
   };
   // 소스 변경 여부: 실행 기록과 설치 파일은 제외

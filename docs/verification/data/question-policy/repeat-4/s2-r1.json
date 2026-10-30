@@ -1,0 +1,57 @@
+{
+  "scenario": "s2",
+  "rep": 1,
+  "repoCommit": "e80371a7b5a4d65ad28e04706ee79b9d99eb07da",
+  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\qc-s2-r1-DJ2nbS",
+  "turn1": {
+    "text": "완료됐습니다.\n\n**변경 파일**\n- `src/discount.js` — `applyCode(total, code, now)` 추가 (기존 `percentOff` 그대로 유지)\n- `test/discount.test.js` — 6개 테스트 추가 (기존 테스트 보존)\n\n**구현 내용**\n- `SAVE10`: `percentOff(total, 10)` → 10% 할인\n- `FIVE`: `Math.max(0, total - 5)` → $5 정액 할인 (total < $5이면 0으로 처리)\n- `WINTER`: 로컬 날짜 기준 2024-12-31 이하면 `percentOff(total, 20)` (20% 할인), 만료됐으면 `{ ok: false, total, reason: 'WINTER code expired' }`\n- 알 수 없는 코드: `{ ok: false, total, reason: 'Unknown code' }`\n\n**테스트 결과**: `npm test` 10/10 통과 (기존 1개 + 신규 6개)",
+    "cost": 1.4191967,
+    "session": "0beba1fe-e84a-4415-b67b-0b56a5efe97a",
+    "sourceChangesAfter": [
+      "M src/discount.js",
+      " M test/discount.test.js"
+    ],
+    "internalTerms": [],
+    "markers": {
+      "defaultsList": false,
+      "followRecommendation": false,
+      "questionMarks": 0
+    }
+  },
+  "turn2": null,
+  "turn2Sent": false,
+  "finalSourceChanges": [
+    "M src/discount.js",
+    " M test/discount.test.js"
+  ],
+  "changedFiles": [
+    "src/discount.js",
+    "test/discount.test.js"
+  ],
+  "questionsDoc": {
+    "found": true,
+    "opened": 0,
+    "shown": 1,
+    "inContext": true
+  },
+  "weakenedTests": [],
+  "score": {
+    "task": "m1",
+    "size": "M",
+    "changed": [
+      "src/discount.js",
+      "test/discount.test.js"
+    ],
+    "outOfScope": [],
+    "existingTestsModified": [
+      "test/discount.test.js"
+    ],
+    "missed": 1,
+    "requirements": 7,
+    "explicitMissed": 0,
+    "implicitMissed": 1,
+    "npmTestPass": true
+  },
+  "npmTestPassed": true,
+  "totalCost": 1.4191967
+}

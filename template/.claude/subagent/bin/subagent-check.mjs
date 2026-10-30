@@ -153,6 +153,17 @@ function cmdVerify(args) {
     process.exit(1);
   }
   const problems = [];
+  const superseded = [];
+  // 계획이 바뀌기 전에 만든 기록은 같은 명령을 현재 계획으로 다시 돌린 뒤 기록이 있으면 대체된 것으로 보고 실패로 세지 않음
+  const loaded = new Map();
+  for (const index of indices) {
+    const recordPath = join(checksDir, index, 'record.json');
+    if (existsSync(recordPath)) loaded.set(index, JSON.parse(readFileSync(recordPath, 'utf8')));
+  }
+  const isSuperseded = (index) => {
+    const record = loaded.get(index);
+    return indices.some((later) => Number(later) > Number(index) && loaded.get(later)?.command === record.command && loaded.get(later)?.planSha256 === planHash);
+  };
   for (const index of indices) {
     const base = join(checksDir, index);
     const recordPath = join(base, 'record.json');
@@ -172,9 +183,12 @@ function cmdVerify(args) {
       if (indexData[`checks/${index}`] !== approvalHash(readFileSync(recordPath))) problems.push(`${index}: check record hash mismatch`);
       if (record.registrationSha256 !== approvalHash(registration)) problems.push(`${index}: approval registration changed`);
     }
-    if (record.planSha256 !== planHash) problems.push(`${index}: the plan changed after the record`);
+    if (record.planSha256 !== planHash) {
+      if (isSuperseded(index)) superseded.push(index);
+      else problems.push(`${index}: the plan changed after the record`);
+    }
   }
-  console.log(JSON.stringify({ ok: problems.length === 0, records: indices.length, problems }));
+  console.log(JSON.stringify({ ok: problems.length === 0, records: indices.length, superseded, problems }));
   process.exit(problems.length ? 1 : 0);
 }
 

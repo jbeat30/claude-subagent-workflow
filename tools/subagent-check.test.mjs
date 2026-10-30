@@ -83,6 +83,41 @@ test('출력 변조와 기획안 변경을 verify가 탐지', () => {
   assert.match(changed.stdout, /the plan changed/);
 });
 
+test('verify: 계획이 바뀐 뒤 같은 명령을 다시 돌리면 이전 기록은 대체된 것으로 보고 통과', () => {
+  const cmd = 'node -e "console.log(1)"';
+  const other = 'node -e "console.log(2)"';
+  const dir = project([[cmd, '.', 'none'], [other, '.', 'none']]);
+  run(dir, 'run', RUN_ID, cmd);
+  run(dir, 'run', RUN_ID, other);
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md');
+  writeFileSync(planPath, `${readFileSync(planPath, 'utf8')}\n수정\n`);
+  const stale = run(dir, 'verify', RUN_ID);
+  assert.equal(stale.status, 1);
+  // 한 명령만 다시 돌리면 다른 명령의 오래된 기록이 남아 계속 실패
+  run(dir, 'run', RUN_ID, cmd);
+  const partial = run(dir, 'verify', RUN_ID);
+  assert.equal(partial.status, 1);
+  assert.match(partial.stdout, /02: the plan changed after the record/);
+  run(dir, 'run', RUN_ID, other);
+  const fixed = run(dir, 'verify', RUN_ID);
+  assert.equal(fixed.status, 0, fixed.stdout);
+  assert.deepEqual(JSON.parse(fixed.stdout).superseded, ['01', '02']);
+});
+
+test('verify: 대체된 기록이라도 출력 변조는 계속 탐지', () => {
+  const cmd = 'node -e "console.log(1)"';
+  const dir = project([[cmd, '.', 'none']]);
+  run(dir, 'run', RUN_ID, cmd);
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md');
+  writeFileSync(planPath, `${readFileSync(planPath, 'utf8')}\n수정\n`);
+  run(dir, 'run', RUN_ID, cmd);
+  assert.equal(run(dir, 'verify', RUN_ID).status, 0);
+  writeFileSync(join(checksDir(dir), '01', 'stdout.txt'), 'tampered\n');
+  const tampered = run(dir, 'verify', RUN_ID);
+  assert.equal(tampered.status, 1);
+  assert.match(tampered.stdout, /01: stdout.txt hash mismatch/);
+});
+
 test('검사 기록이 없으면 verify 실패', () => {
   const dir = project([['node -e "0"', '.', 'none']]);
   assert.equal(run(dir, 'verify', RUN_ID).status, 1);

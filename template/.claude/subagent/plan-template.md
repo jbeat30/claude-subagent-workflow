@@ -15,6 +15,8 @@ G1 cannot pass if any of the 12 sections is empty.
 
 ## 2. Requirements
 
+Include one requirement for the purpose behind the request and the end-to-end outcome in the real flow the user will use, with the callers or entry points that must use the change. A function or field that nothing calls does not meet it.
+
 | ID | Requirement | Source quote |
 | --- | --- | --- |
 | R1 | | |
@@ -100,4 +102,4 @@ Reference paths and hashes of the original report files. Do not copy them in ful
 
 - confirmedBy: user | pm-agent
 - PM independent check: source comparison / verifiability of completion criteria / allowed file scope / approval trigger re-judgment / no unresolved findings
-- Plan hash:
+- Plan hash: not written in this file, because the hash covers this file. It is in each card's `Plan path and hash` field and in each check record. After the plan is confirmed, edit it only to fix a real mismatch, and rerun every check in section 8 after any edit.

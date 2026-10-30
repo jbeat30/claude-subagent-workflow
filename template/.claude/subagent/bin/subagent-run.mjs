@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { DOCS, GRADES, gradeRank, isActive, newState, readState, writeState } from './subagent-state.mjs';
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+// 한국어 안내 문구는 모델이 유니코드 이스케이프를 풀다 틀리는 경우가 있어(7회차 3건 중 2건) 실행기가 완성된 문장을 직접 출력
+const KO_ANSWER_HINT = '추천대로 진행해줘라고만 답하셔도 됩니다';
 const [command, ...args] = process.argv.slice(2);
 const validRunId = (value) => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value ?? '');
 const fail = (message) => {
@@ -39,7 +41,9 @@ if (command === 'start') {
     const policy = join(root, '.claude', 'subagent', 'questions.md');
     console.log('');
     console.log(existsSync(policy)
-      ? `Question policy, apply it to every message you write to the user in this run:\n\n${readFileSync(policy, 'utf8')}`
+      ? `Question policy, apply it to every message you write to the user in this run:\n\n${readFileSync(policy, 'utf8')}
+
+Korean answer hint, when you write in Korean copy this sentence exactly, character by character: ${KO_ANSWER_HINT}`
       : 'Question policy file .claude/subagent/questions.md is missing; ask only what you cannot find, in one message, in plain words.');
   }
 } else if (command === 'close') {

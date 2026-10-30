@@ -243,6 +243,14 @@ test('grade: L2와 L3는 질문 정책을 출력하고 Q와 L1은 출력하지 �
   assert.match(run(dir, 'grade', 'L3', 'R1').stdout, /Look before asking/);
 });
 
+test('grade: 질문 정책과 함께 한국어 안내 문구 전체를 정확히 출력', () => {
+  const dir = project();
+  mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'subagent', 'questions.md'), '# Question policy, Look before asking');
+  run(dir, 'start');
+  assert.match(run(dir, 'grade', 'L2', 'R1').stdout, /Korean answer hint[^\n]*: 추천대로 진행해줘라고만 답하셔도 됩니다/);
+});
+
 test('grade: 질문 정책 파일이 없어도 등급 기록은 성공하고 대체 안내를 출력', () => {
   const dir = project();
   run(dir, 'start');

@@ -180,7 +180,13 @@ test('문구 표지: 고정 문구 전체와 로마자 노출을 가름', () => 
   assert.equal(questionMarkers('추천대로 진행해줘라고만 답하셔도 됩니다').romanLeak, false);
 });
 
-import { weakenedTestLines } from './eval/hard/question-check.mjs';
+import { weakenedTestLines, SCENARIOS } from './eval/hard/question-check.mjs';
+
+test('시나리오 S4: 처음 요청에 위임 문구와 할인율이 모두 있음', () => {
+  assert.match(SCENARIOS.s4.prompt, /정률 10퍼센트/);
+  assert.match(SCENARIOS.s4.prompt, /알아서 해줘/);
+  assert.equal(SCENARIOS.s4.task, null);
+});
 
 test('기존 테스트 약화 탐지: import 줄 변경과 덧붙임은 허용하고 단언 삭제는 잡음', () => {
   const appended = "--- a/test/x.test.js\n+++ b/test/x.test.js\n-import { a } from '../src/x.js';\n+import { a, b } from '../src/x.js';\n+test('new', () => {});\n";

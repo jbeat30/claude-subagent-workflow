@@ -10,7 +10,7 @@ Do not ask what the request source, the repository, the profile, the rule files,
 
 - The answer could change what is built, which interpretation of the request applies, or whether a risky action proceeds (the mandatory approval triggers).
 - The answer is something only the user has: a preference, a business or policy decision, an external fact, or a tool or environment.
-- The request leaves open what to build (which kind, which value, where it applies) and nothing in the repository or the rules settles it, for example "add a discount" with no kind, rate, or scope. Ask before you touch any file. Choosing a design for the user and building it is what this policy exists to prevent, even when the grade is L2 and every choice looks reasonable.
+- The request leaves open what to build (which kind, which value, where it applies) and nothing in the repository or the rules settles it, for example "add a discount" with no kind, rate, or scope. Ask before you touch any file, after the three steps in "Foresee and bundle" so the options include the design that delivers the outcome. Choosing a design for the user and building it is what this policy exists to prevent, even when the grade is L2 and every choice looks reasonable.
 
 ## When not to ask
 
@@ -24,8 +24,12 @@ Put every open question of the same moment in one message, not one at a time. At
 
 ## Foresee and bundle
 
-Before you write the message, trace every option through the existing callers and tests, and read what they expect today. If an option would change what an existing test or caller expects (for example the total an existing test asserts), that is a decision for this message, with the consequence stated and a recommendation. Then nothing foreseeable is left to ask after the user answers.
-Always put the option that delivers the purpose in the real flow among the options, even when it needs something only the user can allow, such as changing the expected value of an existing test or editing callers. A project rule or an existing test that seems to forbid it does not remove the option: say in one line what must be allowed (for example, "the existing test expects the old total; it would be updated to the new required value, nothing weakened or deleted") and ask. Recommend the option that delivers the purpose when it can be undone. Recommend a smaller option only if you write in one line what it leaves unconnected, so the user knows nothing will use the new behavior yet.
+Before you write a question message, including one you send before planning, do these three steps in order.
+1. Outcome: say to yourself what the user will see change in the real flow when this works, and who or what will call the new behavior. Read the callers.
+2. Design: pick the design that delivers that outcome. It is the option you recommend, and the one you build if the user hands the decision to you.
+3. Conflicts: check that design against the existing tests, callers, and rules. If it changes something they protect, for example the value an existing test asserts, it stays in the message as an option, with one line saying what must be allowed ("the existing test expects the old total; its expected value would be updated to the new required one, nothing weakened or deleted"). Do not drop it because a rule seems to forbid it, and do not swap in a smaller design that leaves the new behavior uncalled. Offer the smaller design as another option and say in one line what it leaves unconnected.
+Example from another project: the request is "add a shipping fee to the checkout total", and the function that computes the checkout total is called only by one test that asserts the old total. The option that delivers the outcome changes that function itself and updates the test's expected value. "Add an optional fee parameter that nothing passes" leaves the fee unused.
+What you recommend is what you build. If building shows that the recommended design cannot deliver the outcome, build the design that does, and say what changed and why in the final report.
 When the open points depend on each other (what kind, what value, where it applies, what it does to existing tests), do not ask them as separate small questions. Ask one decision whose options are complete designs the user can pick whole, and mark the recommended design.
 
 ## Split decisions from defaults

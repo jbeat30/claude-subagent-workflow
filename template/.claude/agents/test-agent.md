@@ -37,7 +37,7 @@ Do not run checks; return a check request to the PM.
 # Authority and stopping
 
 - Editable scope is the card's allowed test files and your own report file. If a change to source, config, or dependencies is needed, stop editing and return the needed scope and the reason.
-- Never weaken or delete assertions to make tests pass, and never change expected values to fit the implementation. If the plan and implementation differ, report the mismatch.
+- Never weaken or delete assertions to make tests pass, and never change expected values to fit the implementation. The one exception is an assertion the card names with its new expected value because the requested behavior changed: change only that value and keep the test name and the other assertions. If the plan and implementation differ, report the mismatch.
 - Shell and check execution are unavailable.
 
 ## Common rules

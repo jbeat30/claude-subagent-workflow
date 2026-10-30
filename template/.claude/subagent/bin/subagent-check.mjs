@@ -280,9 +280,10 @@ function parseCard(text) {
   const quote = text.split(/^## Request source\s*$/m)[1];
   return {
     runId: field('runId'),
+    mode: field('Mode').match(/\b(plan|final)\b/)?.[1] ?? null,
     planHash: field('Plan path and hash').match(/\b[0-9a-f]{64}\b/)?.[0] ?? null,
     ids: field('Assigned requirements').match(/\bR\d+\b/g) ?? [],
-    files: field('Allowed files').split(',').map((f) => stripCell(f).replace(/^\.\//, '')).filter((f) => f && f !== 'none'),
+    files: /^none\b/i.test(field('Allowed files')) ? [] : field('Allowed files').split(',').map((f) => stripCell(f).replace(/^\.\//, '')).filter((f) => f && f !== 'none'),
     quote: quote === undefined ? null : quote.split(/\r?\n/).filter((l) => l.startsWith('>')).map((l) => l.replace(/^>\s?/, '')).join('\n'),
   };
 }
@@ -342,7 +343,12 @@ function cmdTrace(args) {
     const card = parseCard(readFileSync(join(cardsDir, name), 'utf8'));
     if (card.runId !== runId) problems.push(`cards/${name}: runId mismatch`);
     if (card.quote === null || squash(card.quote) !== flat) problems.push(`cards/${name}: the card's request source differs from request.md`);
-    if (card.planHash && card.planHash !== plan.hash) problems.push(`cards/${name}: the card's plan hash differs from the current plan`);
+    // 계획 단계(읽기 전용) 카드는 확정 전에 보내므로 확정 뒤 계획서 해시와 다른 것이 정상, 쓰기와 최종 검증 카드만 현재 해시와 비교
+    const planStage = card.mode === 'plan' || ['planner-agent', 'architecture-agent'].includes(role);
+    if (card.planHash && card.planHash !== plan.hash) {
+      if (planStage) notes.push(`cards/${name}: plan-stage card keeps the hash it was sent with`);
+      else problems.push(`cards/${name}: the card's plan hash differs from the current plan`);
+    }
     for (const id of card.ids) {
       if (!ids.includes(id)) problems.push(`cards/${name}: requirement not in the plan ${id}`);
       else covered.add(id);

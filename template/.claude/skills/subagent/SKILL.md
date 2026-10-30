@@ -26,7 +26,7 @@ Act as the owner of the user's one-person business, not as a typist. The user mu
 
 - Purpose first. Before planning, work out why the user wants this, what behavior they expect, and what "working" looks like in the real flow they will use. Write that outcome into plan section 2 as a requirement of its own.
 - Finished means connected. A new function, field, or option that nothing calls is not finished. If connecting it to the existing flow is the natural way to deliver the purpose, plan it and do it. A project rule or an existing test that seems to block the connection is not a reason to drop it: it is the question to ask. Connect only what the purpose needs and the request implies: no extra features, new entry points, or unrelated cleanup. If it is unclear whether a connection is wanted, or the connection is a mandatory approval trigger (it changes behavior or an existing test expectation that others rely on, data, permissions, or has external effects), ask first, in the one confirmation message, with a recommended option.
-- Foresee before asking. Before you send questions, trace each option through the existing callers and tests. A conflict you can already see (an option that would change what an existing test or caller expects) goes into the same message as a decision with a recommendation. After the user answers, nothing foreseeable should be left to ask.
+- Foresee before asking. Before you send questions, including a question you send before planning, follow the three steps in `.claude/subagent/questions.md` (outcome, design, conflicts). The design that delivers the outcome is among the options even when an existing test or rule seems to forbid it, and what you recommend is what you build. After the user answers, nothing foreseeable should be left to ask.
 - Decide when the user delegates. When an answer is partial, says "go with your recommendations" or "decide for me", or answers conflict with each other or with the project rules, you decide: choose what best serves the purpose, is safe and reversible, and fits the existing code, record it in plan section 4 as `PM decision: <what>, reason: <why>`, and go on without asking again. If two answers cannot both hold and lead to different results, ask one short question that names both. How delegation interacts with approval triggers is in the approval section below.
 
 # Execution profile
@@ -52,6 +52,7 @@ Only for full with relay mode: read `.claude/subagent/relay-mode.md` before the 
 - After saving cards and before G4, create the `diff` and run `node .claude/subagent/bin/subagent-check.mjs trace <runId>`. It checks that the request source is in plan section 1, quotes in section 2 exist in the source, IDs in sections 2 and 7 match, each card's request source, plan hash, requirement IDs, and allowed files match the plan, reports mention the IDs, and the diff file is in section 6.
 - If `ok: false`, do not give the final report before resolving the problems. If it could not run, mark requirement preservation as unchecked.
 - This is a consistency comparison between documents, not proof that the implementation meets the requirements.
+- Never edit a saved card, report, or check record to make `trace` or `verify` pass. A plan-mode card was sent before confirmation and keeps the hash it was sent with; the checks ignore that difference.
 
 # G0 Request classification
 
@@ -126,6 +127,7 @@ Delegation and approval: a delegation is any wording where the user hands the de
 - Every call handoff includes the `- runId: <id>` line of `.claude/subagent/card-template.md` as is; the guard rejects calls without it.
 - Bundle all files and requirement IDs a role handles in one plan into a single call. Call again only for rework, a check request, or to fix a card-versus-plan mismatch. If an order dependency requires another role's call in between, split the calls.
 - One owner per file. For API contract changes assign in sequence: backend-agent server, then api-agent shared contract and client, then frontend-agent screens. Do not start implementing breaking changes before user approval.
+- When the plan updates an existing test because the requested behavior changed, the card names the assertion and its new expected value. The worker changes only that expected value, keeps the test name and its other assertions, and adds new tests beside it.
 - When test-agent returns `needs-check` with a check request (in full, dev-lead escalates it), run it as in step 7 and pass the record path in the new call handoff.
 - If an agent reports a change outside the allowed scope is needed, stop work and fix the plan and reconfirm, or ask the user.
 - Never turn an agent report's `unverified` into success; pass it to the final report as is.

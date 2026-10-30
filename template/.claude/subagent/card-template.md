@@ -8,7 +8,7 @@ Use file paths as the single source of truth, not summaries. If the card and the
 - runId:
 - Request source path: `.claude-subagent-docs/runs/<runId>/request.md`
 - Plan path and hash: `.claude-subagent-docs/runs/<runId>/plan.md`, hash
-- Mode: if applicable plan | final
+- Mode: if applicable plan | final (a plan-mode card keeps the plan hash it was sent with; never rewrite it afterwards)
 - Goal:
 - Allowed files (exact paths):
 - Forbidden files and areas:

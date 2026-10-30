@@ -14,7 +14,7 @@ Use file paths as the single source of truth, not summaries. If the card and the
 - Forbidden files and areas:
 - Assigned requirements and completion criteria IDs:
 - Order and dependencies: prior work and output paths
-- Output path: if applicable
+- Output path: if applicable. A report file is `reports/<full role name>-NN.md` (for example `reports/architecture-agent-01.md`, `reports/qa-plan.md`, `reports/qa-final.md`); the guard rejects any other name
 - Evidence paths: if applicable, prior reports, check records, diff paths
 - On rework: failed items and round number (limit 3)
 

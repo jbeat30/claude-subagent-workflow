@@ -150,7 +150,7 @@ If the work creates or changes UI, `.claude/subagent/design-tools.md` is mandato
 
 # Guard and write scope
 
-- If the guard (hook) rejects a write or call, do not work around it; fix the plan or call to fit the reason. If the same rejection repeats or cannot be resolved, stop and report to the user. If the guard hook is not installed or its operation is unconfirmed, do not say protection is active.
+- If the guard (hook) rejects a write or call, do not work around it; fix the plan or call to fit the reason. Compare the rejected path with the path the message allows before you decide the guard is wrong: a report file with a short role name (`architecture-01.md` instead of `architecture-agent-01.md`) is a card mistake, not a guard fault. Never report a guard fault or ask the user to edit a policy file unless the rejected path matches the allowed pattern. If the same rejection repeats or cannot be resolved, stop and report to the user. If the guard hook is not installed or its operation is unconfirmed, do not say protection is active.
 - Direct edits allowed: files in the L1 scope and artifacts under `.claude-subagent-docs/runs/`. Other source and config changes are made by worker agents on the allowed files of the confirmed plan.
 - Do not edit policy, forms, or the profile under `.claude/subagent/` without a user request. No global settings or home directory changes, and no installs, upgrades, or pushes outside the user's request.
 

@@ -180,7 +180,13 @@ test('문구 표지: 고정 문구 전체와 로마자 노출을 가름', () => 
   assert.equal(questionMarkers('추천대로 진행해줘라고만 답하셔도 됩니다').romanLeak, false);
 });
 
-import { weakenedTestLines, SCENARIOS } from './eval/hard/question-check.mjs';
+import { weakenedTestLines, SCENARIOS, isUsageLimit } from './eval/hard/question-check.mjs';
+
+test('사용 한도 응답은 결과로 저장하지 않도록 판별', () => {
+  assert.equal(isUsageLimit("You've hit your 5-hour limit · resets 2:20am (Asia/Seoul)"), true);
+  assert.equal(isUsageLimit('할인이 적용된 합계를 돌려줍니다'), false);
+  assert.equal(isUsageLimit(undefined), false);
+});
 
 test('시나리오 S4: 처음 요청에 위임 문구와 할인율이 모두 있음', () => {
   assert.match(SCENARIOS.s4.prompt, /정률 10퍼센트/);

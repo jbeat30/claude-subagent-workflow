@@ -257,7 +257,10 @@ function decideWrite(root, input) {
     if (!validRunId(reportRun) || !existsSync(runPaths(root, reportRun).request)) return deny(`run unit (request.md) not found: ${reportRun}`);
     return;
   }
-  if (!WRITERS.includes(role)) return deny(`${role} may write only its own report file: ${rel}`);
+  if (!WRITERS.includes(role)) {
+    const expected = role === 'qa-agent' ? 'reports/qa-plan.md or reports/qa-final.md' : role === 'dev-lead' ? 'reports/dev-lead.md' : `reports/${role}-NN.md (full role name, two-digit number, for example reports/${role}-01.md)`;
+    return deny(`${role} may write only its own report file, ${expected}; this path was rejected: ${rel}`);
+  }
 
   const lock = readLock(root);
   if (!lock || lock.subagentType !== role) return deny(`${role} may write only when activated by a call from the PM or dev-lead`);

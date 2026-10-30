@@ -15,6 +15,11 @@ export function findInternalTerms(text) {
   return [...new Set((text.match(INTERNAL_TERMS) ?? []))];
 }
 
+// 사용 한도에 걸려 모델이 응답하지 않은 경우(결과로 저장하지 않고 배치를 멈추기 위해 판별)
+export function isUsageLimit(text) {
+  return /hit your .*limit/i.test(text ?? '');
+}
+
 // 기본값 목록과 "추천대로" 안내 존재 여부(문구 확인이며 내용의 적절성은 사람이 판정)
 export function questionMarkers(text) {
   return {
@@ -101,11 +106,18 @@ function main() {
   // 소스 변경 여부: 실행 기록과 설치 파일은 제외
   const sourceChanges = () => sh('git', ['status', '--porcelain', '--', '.', ':!.claude-subagent-docs', ':!.claude']).stdout.trim().split('\n').filter(Boolean);
 
+  const stopOnLimit = (turn, label) => {
+    if (!isUsageLimit(turn?.result)) return;
+    console.error(`usage limit reached at ${label}; result not saved, rerun this one after the limit resets`);
+    process.exit(3);
+  };
   const t1 = call([scenario.prompt]);
+  stopOnLimit(t1, 'turn 1');
   const afterTurn1 = sourceChanges();
   let t2 = null;
   const needsAnswer = afterTurn1.length === 0;
   if (needsAnswer) t2 = call([scenario.answer, '--resume', t1.session_id]);
+  stopOnLimit(t2, 'turn 2');
   const finalChanges = sourceChanges();
 
   const finalText = (t2 ?? t1).result ?? '';

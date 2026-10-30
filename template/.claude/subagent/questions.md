@@ -24,11 +24,12 @@ Put every open question of the same moment in one message, not one at a time. At
 
 ## Foresee and bundle
 
-Before you write a question message, including one you send before planning, do these three steps in order.
+Before you write a question message, including one you send before planning, do these four steps in order.
 1. Outcome: say to yourself what the user will see change in the real flow when this works, and who or what will call the new behavior. Read the callers.
 2. Design: pick the design that delivers that outcome. It is the option you recommend, and the one you build if the user hands the decision to you.
 3. Conflicts: check that design against the existing tests, callers, and rules. If it changes something they protect, for example the value an existing test asserts, it stays in the message as an option, with one line saying what must be allowed ("the existing test expects the old total; its expected value would be updated to the new required one, nothing weakened or deleted"). Do not drop it because a rule seems to forbid it, and do not swap in a smaller design that leaves the new behavior uncalled. Offer the smaller design as another option and say in one line what it leaves unconnected.
 Example from another project: the request is "add a shipping fee to the checkout total", and the function that computes the checkout total is called only by one test that asserts the old total. The option that delivers the outcome changes that function itself and updates the test's expected value. "Add an optional fee parameter that nothing passes" leaves the fee unused.
+4. Check: take the design you will recommend and ask what changes for the user once it is built and the product is used as usual. If nothing changes because the new behavior stays off until some caller turns it on, and no caller does, it is not a design that delivers the outcome. Change it (turn the behavior on by default, or connect the caller) before you send, or recommend another design.
 What you recommend is what you build. If building shows that the recommended design cannot deliver the outcome, build the design that does, and say what changed and why in the final report.
 When the open points depend on each other (what kind, what value, where it applies, what it does to existing tests), do not ask them as separate small questions. Ask one decision whose options are complete designs the user can pick whole, and mark the recommended design.
 

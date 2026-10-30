@@ -103,6 +103,16 @@ test('분석·QA·리더는 자신의 보고·산출물에만 쓰기', () => {
   assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/NOPE/reports/planner-agent-01.md').allowed, false);
 });
 
+test('보고서 이름이 틀리면 거부하고 메시지가 기대하는 이름을 알려 줌', () => {
+  const dir = project();
+  const wrong = write(dir, 'architecture-agent', reports('architecture-01.md'));
+  assert.equal(wrong.allowed, false);
+  assert.match(wrong.stderr, /reports\/architecture-agent-NN\.md/);
+  assert.match(wrong.stderr, /architecture-01\.md/);
+  assert.equal(write(dir, 'architecture-agent', reports('architecture-agent-01.md')).allowed, true);
+  assert.match(write(dir, 'qa-agent', reports('qa-extra.md')).stderr, /qa-plan\.md or reports\/qa-final\.md/);
+});
+
 test('실무 에이전트: 잠금·confirmed·배정 파일이 모두 맞을 때만 소스 쓰기', () => {
   const dir = project();
   assert.equal(write(dir, 'backend-agent', 'src/a.js').allowed, false, '잠금 없음');

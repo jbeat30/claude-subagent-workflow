@@ -10,6 +10,8 @@ export const PM_RULES = [
   ['침묵은 승인으로 치지 않음', /Never treat silence as approval/],
   ['목적을 이루는 선택지는 규칙이 막아 보여도 빼지 않고 허락을 물음', /Do not drop it because a rule seems to forbid it/],
   ['추천한 것을 그대로 짓는다', /What you recommend is what you build/],
+  ['추천안이 켜지지 않는 설계면 추천하지 않음', /stays off until some caller turns it on/],
+  ['가드 거부는 허용 경로와 비교한 뒤에만 가드 결함으로 봄', /Compare the rejected path with the path the message allows/],
   ['질문을 쓰기 전에 결과, 설계, 충돌 3단계', /three steps in .\.claude\/subagent\/questions\.md./],
   ['기록을 고쳐서 검사를 통과시키지 않음', /Never edit a saved card, report, or check record to make/],
   ['기존 테스트 갱신은 승인된 단언의 기대값만', /changes only that expected value/],

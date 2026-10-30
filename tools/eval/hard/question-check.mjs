@@ -20,6 +20,9 @@ export function questionMarkers(text) {
   return {
     defaultsList: /기본값|이대로 진행|바꾸라고 하지 않으면|그대로 진행/.test(text),
     followRecommendation: /추천대로/.test(text),
+    // 6회차 기준: 정해진 문구 전체가 있는지, 로마자 표기가 사용자에게 노출되지 않았는지
+    fixedPhrase: /추천대로 진행해줘["”']?라고만 답하셔도 됩니다/.test(text),
+    romanLeak: /chucheon|jinhaeng|dapha-?syeo/i.test(text),
     questionMarks: (text.match(/\?|까요|세요\?|주세요/g) ?? []).length,
   };
 }

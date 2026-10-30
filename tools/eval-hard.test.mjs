@@ -171,6 +171,15 @@ test('문구 표지: 기본값 목록과 추천대로 안내를 찾음', () => {
   assert.equal(n.followRecommendation, false);
 });
 
+test('문구 표지: 고정 문구 전체와 로마자 노출을 가름', () => {
+  assert.equal(questionMarkers('추천대로 진행해줘라고만 답하셔도 됩니다').fixedPhrase, true);
+  assert.equal(questionMarkers('"추천대로 진행해줘"라고만 답하셔도 됩니다').fixedPhrase, true);
+  assert.equal(questionMarkers('진행해라고만 답하셔도 됩니다').fixedPhrase, false);
+  assert.equal(questionMarkers('추천대로 해줘라고만 답하셔도 됩니다').fixedPhrase, false);
+  assert.equal(questionMarkers('chucheon-daero jinhaenghaejwo-ra-go man dapha-syeodo doemnida').romanLeak, true);
+  assert.equal(questionMarkers('추천대로 진행해줘라고만 답하셔도 됩니다').romanLeak, false);
+});
+
 import { weakenedTestLines } from './eval/hard/question-check.mjs';
 
 test('기존 테스트 약화 탐지: import 줄 변경과 덧붙임은 허용하고 단언 삭제는 잡음', () => {

@@ -114,6 +114,19 @@ function main() {
   }
   const npmTest = sh('npm', ['test'], { shell: process.platform === 'win32' });
   const testDiff = sh('git', ['diff', 'HEAD', '--', 'test']).stdout;
+  // 실행 기록 점검: 실행 폴더마다 verify와 trace를 다시 돌려 계획 해시 처리와 문서 대조가 실제 흐름에서 통과하는지 남김
+  const runsDir = join(work, '.claude-subagent-docs', 'runs');
+  const runChecks = (existsSync(runsDir) ? readdirSync(runsDir) : []).map((id) => {
+    const again = (cmd) => {
+      const r = sh(process.execPath, ['.claude/subagent/bin/subagent-check.mjs', cmd, id]);
+      try { return JSON.parse(r.stdout.trim().split('\n').pop()); } catch { return { ok: false, raw: `${r.stdout}${r.stderr}`.slice(0, 300) }; }
+    };
+    return { runId: id, verify: again('verify'), trace: again('trace') };
+  });
+  // S1 연결 확인: 주문 합계 함수가 샘플 장바구니(할인 전 9)에 10퍼센트 할인을 반영한 값을 돌려주는지
+  const cartProbe = scenarioId === 's1'
+    ? sh(process.execPath, ['--input-type=module', '-e', "import('./src/cart.js').then((m) => console.log(m.cartTotal([{ price: 2, qty: 3 }, { price: 1.5, qty: 2 }])))"]).stdout.trim()
+    : null;
   const baseDiff = sh('git', ['diff', '--name-only', 'HEAD']).stdout.trim().split('\n').filter(Boolean);
 
   const turn1Text = t1.result ?? '';
@@ -126,7 +139,7 @@ function main() {
     turn2Sent: Boolean(t2),
     finalSourceChanges: finalChanges, changedFiles: baseDiff,
     questionsDoc: readQuestionsDoc(work),
-    weakenedTests: weakenedTestLines(testDiff),
+    weakenedTests: weakenedTestLines(testDiff), runChecks, cartProbe,
     score, npmTestPassed: npmTest.status === 0,
     totalCost: (t1.total_cost_usd ?? 0) + (t2?.total_cost_usd ?? 0),
   };

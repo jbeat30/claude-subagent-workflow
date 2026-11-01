@@ -77,4 +77,7 @@ This workflow is a base layer, so it always ranks below the rules a project alre
 - Agent prompts (roles, forms, guard messages) are written in English, about 26% fewer always-injected tokens than the Korean version (measured on all 10 roles plus forms, one model).
 - Simple requests (Q and L1) never call the workflow.
 - Files and requirements of the same owner are bundled into one call.
+- Agents write the full report only to a file and return a status and a short summary; the PM opens the file only when it needs the evidence.
+- Callers and library answers found by an earlier role are passed to the next role's card as paths, so the same search is not repeated. QA uses them as a starting list and checks them itself.
+- The question policy printed once by the grade command is used as is; the file is not opened again.
 - The relay procedure and design-work guidance live in files read only when that work happens (PM instruction input about 18% smaller, measured on one model), and a checker confirms the required rules by list.

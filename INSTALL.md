@@ -96,7 +96,7 @@ Save it as JSON at a temporary path outside the project. No secrets.
 Write it in the user's language.
 
 - Installed version (tag and commit), profile, summary of changed files, and skipped or backed-up items.
-- Settings can be changed later with `/subagent-workflow:setting` (default mode, MCP servers).
+- Settings can be changed later with `/subagent-workflow:setting` (default mode, MCP servers), and project roles can be added with `/subagent-workflow:add-role`.
 - Protection state: the chosen advisory or strict mode; if the `guard live` result is not `pass`, say `no protection`.
 - Unchecked items (`unverified` from verify). Context7 needs MCP approval after restarting Claude Code.
 - The workflow does not start by itself. The user calls it with `/subagent <request>` or in words such as "solve this with the subagent workflow" or "work on this as pm-agent"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly without the workflow.

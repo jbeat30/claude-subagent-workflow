@@ -34,7 +34,9 @@ Read INSTALL.md at https://github.com/jbeat30/claude-subagent-workflow and set t
 | `/subagent-workflow:check` | Check the installation (file hashes, hook registration, role files, version) | None; it does not call Claude without `--live` |
 | `/subagent-workflow:setting` | **View and change settings**: the default mode (Lite/Full), the protection mode, which MCP servers the workflow can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
 
-Plain requests work too: "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
+| `/subagent-workflow:add-role` | **Add or remove a project role**: recommends roles from your domain and stack, then creates the chosen role file with the shared rules and verifies it | A few conversation turns; the installer commands do not call Claude |
+
+Plain requests work too: "recommend and add a subagent for our C game engine", "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
 
 ## What you choose at setup
 

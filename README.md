@@ -89,6 +89,7 @@
 | [설정 바꾸기](docs/guide/settings.md) | 기본 모드, 보호 모드, MCP |
 | [갱신과 제거](docs/guide/update-remove.md) | 새 버전 받기, 이전 버전에서 옮기기, 제거 |
 | [프롬프트 설계 원칙](docs/PROMPT_DESIGN.md) | 프롬프트로 지키는 규칙과 hook, 스크립트로 강제하는 규칙 |
+| [개발 도구 가이드](docs/DEV_TOOLS.md) | 이 저장소를 개발하는 소유자용 도구 설정(컨벤션, Ponytail, Graphify, Headroom) |
 
 ## 기여
 
@@ -96,4 +97,4 @@
 
 ## 라이선스
 
-[MIT](LICENSE) · Copyright (c) 2026 jbeat
+[MIT](LICENSE), Copyright (c) 2026 jbeat

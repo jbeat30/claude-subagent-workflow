@@ -88,6 +88,7 @@ Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 | [How it works](docs/guide/how-it-works.en.md) | Roles, task flow, rule priority, token efficiency |
 | [Settings](docs/guide/settings.en.md) | Default mode, protection mode, MCP |
 | [Update and remove](docs/guide/update-remove.en.md) | New versions, moving from older versions, removal |
+| [Development tools guide](docs/DEV_TOOLS.en.md) | Owner-only tooling setup for developing this repository |
 | [Prompt design principles](docs/PROMPT_DESIGN.en.md) | Rules kept by prompts versus enforced by hooks and scripts |
 
 ## Contributing
@@ -96,4 +97,4 @@ Issues and fork PRs are welcome. Run `npm test` (Node 20 or later) for static ch
 
 ## License
 
-[MIT](LICENSE) · Copyright (c) 2026 jbeat
+[MIT](LICENSE), Copyright (c) 2026 jbeat

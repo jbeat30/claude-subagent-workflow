@@ -20,4 +20,4 @@ Use file paths as the single source of truth, not summaries. If the card and the
 
 ## Request source
 
-> Attach the request source from request.md verbatim
+> Paste the exact content of request.md here (copy it, do not retype or reformat it; `trace` compares the two)

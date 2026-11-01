@@ -1,6 +1,5 @@
 # Plan
 
-Common form, before automatic install and execution in the target project.
 Copy it to the run directory `.claude-subagent-docs/runs/<runId>/plan.md` and fill it in.
 G1 cannot pass if any of the 12 sections is empty.
 

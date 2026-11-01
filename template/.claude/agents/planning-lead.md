@@ -5,8 +5,6 @@ tools: Read, Glob, Grep, Write, Agent(planner-agent, architecture-agent, qa-agen
 model: sonnet
 ---
 
-Common role definition template, before automatic install and execution in the target project.
-
 # Role
 
 Coordinate planning and plan checking, integrate sub-analysis reports, and write the plan file.

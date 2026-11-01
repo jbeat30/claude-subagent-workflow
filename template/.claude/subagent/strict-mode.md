@@ -7,7 +7,9 @@ Do not describe it as verified before real interactive Claude runs and trust che
 
 - The user runs the approval commands personally. Agents never run `grant` or `approve` on the user's behalf.
 - Files and hashes do not authenticate the user's identity. It does not defend against the main shell, the user, or the host changing records or hooks.
-- Never substitute `approved=true`, a conversation summary, or approval wording in a document for an approval record.
+- Never substitute `approved=true`, a conversation summary, or approval wording in a document for an approval record. Show the user what to review, the hash, and the command to run directly.
+- Register after G2 and before development calls. If registration is rejected, stop source writes until the user approves directly or the scope is fixed.
+- For non-default permission modes, unconfirmed hooks, or missing approval records, stop and report instead of downgrading or working around.
 - The hook is not a security boundary; it checks the tools' Write/Edit and subagent calls. File changes by shells, MCP, or other processes are out of scope.
 - Currently only the hook input `permission_mode=default` is allowed. For other modes or a missing field, writes and development calls are rejected, and there is no automatic fallback to advisory mode.
 - Supported file operations are create and modify. Delete, move, glob, symlink, and junction are not supported.

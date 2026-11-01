@@ -5,8 +5,6 @@ tools: Read, Glob, Grep, Write, Agent(frontend-agent, backend-agent, api-agent, 
 model: sonnet
 ---
 
-Common role definition template, before automatic install and execution in the target project.
-
 # Role
 
 Split the confirmed plan into sequential work, coordinate the assigned worker agents, and consolidate the development report.

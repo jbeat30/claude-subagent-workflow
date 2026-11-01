@@ -3,6 +3,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { PM_RULES } from './pm-rules.mjs';
+import { BUILTIN_ANALYSTS, BUILTIN_ROLES, BUILTIN_WRITERS } from '../template/.claude/subagent/bin/subagent-roles.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'template');
@@ -124,7 +125,17 @@ for (const file of agentFiles) {
   for (const field of reportFields) {
     if (!new RegExp(`^${field}:`, 'm').test(body)) fail(file, `보고 필드 ${field} 없음`);
   }
+  // 토큰 절약 규칙: 쓰기, 분석 역할은 보고서를 파일에만 전부 쓰고 짧게 반환하며 앞선 조사를 재사용, QA는 재사용하되 직접 확인
+  if ([...BUILTIN_WRITERS, ...BUILTIN_ANALYSTS].includes(name)) {
+    if (!body.includes('Then return a short message, not the whole report')) fail(file, '보고서 전문을 응답으로 반복하지 않는 규칙 없음');
+    if (!body.includes('- Reuse prior findings.')) fail(file, '앞선 조사 재사용 규칙 없음');
+  }
+  if (name === 'qa-agent' && !body.includes('Prior reports are a starting list, not proof')) fail(file, 'QA의 앞선 보고 확인 규칙 없음');
 }
+
+// 가드와 설치기가 쓰는 기본 역할 목록이 역할 정의, 리더 호출 대상과 같은지
+if (JSON.stringify([...BUILTIN_ROLES].sort()) !== JSON.stringify([...expectedRoles].sort())) fail('subagent/bin/subagent-roles.mjs', '기본 역할 목록이 역할 정의 파일과 다름');
+if (JSON.stringify(leaderTargets['dev-lead']) !== JSON.stringify(BUILTIN_WRITERS)) fail('subagent/bin/subagent-roles.mjs', 'dev-lead 호출 대상과 기본 쓰기 역할이 다름');
 
 // PM 스킬: 사용자가 부를 때만 켜지는 /subagent, 호출 대상 제한과 필수 절 확인
 const skillPath = join(root, '.claude', 'skills', 'subagent', 'SKILL.md');

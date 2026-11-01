@@ -1,7 +1,7 @@
 # 프롬프트 설계 원칙
 
 이 워크플로의 역할 프롬프트가 **임의 추측, 근거 없는 답변(환각), 지시하지 않은 수정**을 줄이려고 쓰는 규칙과, 각 규칙이 무엇으로 지켜지는지 정리
-영어 원문은 `template/.claude/agents/`와 `template/.claude/subagent/`
+영어 원문은 `agents/`, `references/`, `skills/run/`
 
 [English](PROMPT_DESIGN.en.md)
 

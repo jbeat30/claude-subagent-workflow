@@ -14,27 +14,25 @@ Requirements: Claude Code 2.1.302 or later, Node 20 or later.
 
 ![Install flow](../assets/install-flow.en.png)
 
-1. Install the plugin and run `/subagent-workflow:setup` in your project.
-2. The skill surveys the project and asks only what it needs.
-3. It shows the change plan in 10 lines or fewer and asks for confirmation **once**.
-4. The installer copies and merges files, then checks the guard.
-5. When you need the workflow, call it with `/subagent <request>`.
+1. Install the plugin and run `/subagent-workflow:setup` in your project
+2. The skill surveys the project and asks only what it needs
+3. It shows the change plan in 10 lines or fewer and asks for confirmation **once**
+4. It writes the project profile and checks the guard with a script
+5. Call the workflow with `/subagent-workflow:run <request>` when you need it
 
-You can also fetch the repository directly. In Claude Code, ask:
-
-```text
-Read INSTALL.md at https://github.com/jbeat30/claude-subagent-workflow and set this project up
-```
+The roles, the PM instructions, and the guard live in the plugin. Nothing is copied into your project, so updating the plugin updates every project at once.
 
 ## Skills
 
 | Skill | Purpose | Cost |
 | --- | --- | --- |
-| `/subagent-workflow:setup` | **Install, update, or remove** the workflow; pass `install`, `update`, or `remove` as an argument | One Claude call for the guard check after install |
-| `/subagent-workflow:check` | Check the installation (file hashes, hook registration, role files, version) | None; it does not call Claude without `--live` |
+| `/subagent-workflow:run` | Hand over a task (the PM plans, confirms, calls roles, verifies, reports) | Depends on the task |
+| `/subagent-workflow:setup` | **Set up, update, or remove** the project setup; pass `install`, `update`, or `remove` | A few turns; the installer commands do not call Claude |
+| `/subagent-workflow:check` | Check the setup (profile, leftovers from older versions, guard script, version) | None; it does not call Claude |
 | `/subagent-workflow:setting` | **View and change settings**: the default mode (Lite/Full), the protection mode, which MCP servers the workflow can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
+| `/subagent-workflow:add-role` | **Add or remove a project role**: recommends roles from your domain and stack, then creates the chosen role file with the shared rules and verifies it | A few conversation turns; the installer commands do not call Claude |
 
-Plain requests work too: "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
+Plain requests work too: "recommend and add a subagent for our C game engine", "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
 
 ## What you choose at setup
 
@@ -50,22 +48,21 @@ Plain requests work too: "set up the subagent workflow", "check the workflow ins
 | Task records | Add `.claude-subagent-docs/` to `.gitignore` | Add |
 | Conflict handling | If files collide, per item: skip or replace with backup | Asked on conflict |
 
-The mode and the protection mode are not asked at install. The protection mode installs as **advisory** (the guard hook blocks violations); **strict** (an experimental feature that tracks direct approval records, where you run the approval commands yourself) can be chosen later in `/subagent-workflow:setting`. All 9 role files are always installed and the default mode is Lite. Later you can switch to Full in `/subagent-workflow:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker subagents → qa-agent (checked once).
+The mode and the protection mode are not asked at install. The protection mode installs as **advisory** (the guard hook blocks violations); **strict** (an experimental feature that tracks direct approval records, where you run the approval commands yourself) can be chosen later in `/subagent-workflow:setting`. The plugin provides the 9 roles and the default mode is Lite. Later you can switch to Full in `/subagent-workflow:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker subagents → qa-agent (checked once).
 
 Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwright, Chrome DevTools) can see the content of the browser they open, so avoid personal tabs and sensitive data. A registered server's tool definitions are added to every call of those two roles, which costs tokens, and `npx` runs external packages, so choose them only when you need them. The subagents never invent spacing, colors, or copy that the design does not state, and mark visual checks they could not make as `unchecked`.
 
 - **No design provided**: during confirmation the PM proposes a concrete design direction (palette, typography, spacing, components, tone of copy) and records the confirmed choices in the plan; `frontend-agent` builds from that record.
 - **UI/UX check (optional)**: when a browser tool is registered and the work changes UI, the PM asks during confirmation whether to run one. Only if you agree, `qa-agent` walks the agreed flows and screen sizes and reports problems with evidence. It is a scripted walkthrough by an subagent, not a test with real users, and it never enters real credentials, places orders or payments, or changes data.
 
-## What gets installed
+## Files created in your project
 
 ```text
-.claude/
-  agents/        9 role definitions
-  skills/subagent/   the /subagent skill (PM instructions), read only when called
-  hooks/         guard hook
-  subagent/         forms, project profile, check runner, install manifest
-  settings.json  hook registration (merged with existing settings); the main session is not pinned to the PM
-.claude-subagent-docs/   per-task records (request source, plan, reports, check records, diff); adding it to .gitignore is optional
-.mcp.json            Context7 and design tool MCP registration (optional, merged with existing settings)
+.claude/subagent/
+  profile.md        project settings (stack, check commands, rule source paths, forbidden areas), read by every role before work
+  manifest.json     setup record (used by update and remove)
+  roles.local.json  roles you added (only after adding a role)
+.claude/agents/     role files you added (only after adding a role)
+.claude-subagent-docs/   per-task records (request, plan, reports, check records, diff); adding it to .gitignore is optional
+.mcp.json            Context7 and design tool MCP entries (optional, merged with existing settings)
 ```

@@ -283,7 +283,9 @@ function parseCard(text) {
     mode: field('Mode').match(/\b(plan|final)\b/)?.[1] ?? null,
     planHash: field('Plan path and hash').match(/\b[0-9a-f]{64}\b/)?.[0] ?? null,
     ids: field('Assigned requirements').match(/\bR\d+\b/g) ?? [],
-    files: /^none\b/i.test(field('Allowed files')) ? [] : field('Allowed files').split(',').map((f) => stripCell(f).replace(/^\.\//, '')).filter((f) => f && f !== 'none'),
+    // 역할 자신의 보고서 경로(reports/...)는 소스 배정이 아니므로 대조에서 제외(읽기 전용 역할 카드에 적힌 경우)
+    files: /^none\b/i.test(field('Allowed files')) ? [] : field('Allowed files').split(',').map((f) => stripCell(f).replace(/^\.\//, ''))
+      .filter((f) => f && f !== 'none' && !/^(\.claude-subagent-docs\/runs\/[^/]+\/)?reports\//.test(f)),
     quote: quote === undefined ? null : quote.split(/\r?\n/).filter((l) => l.startsWith('>')).map((l) => l.replace(/^>\s?/, '')).join('\n'),
   };
 }

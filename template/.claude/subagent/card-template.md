@@ -10,7 +10,7 @@ Use file paths as the single source of truth, not summaries. If the card and the
 - Plan path and hash: `.claude-subagent-docs/runs/<runId>/plan.md`, hash
 - Mode: if applicable plan | final (a plan-mode card keeps the plan hash it was sent with; never rewrite it afterwards)
 - Goal:
-- Allowed files (exact paths):
+- Allowed files (exact paths): source files from plan section 6 only, comma separated, no notes. For read-only roles (planner, architecture, qa, analyst roles) write `none`; their report path goes in Output path
 - Forbidden files and areas:
 - Assigned requirements and completion criteria IDs:
 - Order and dependencies: prior work and output paths

@@ -215,6 +215,15 @@ test('trace: 계획 단계 카드는 확정 뒤 해시가 달라도 통과하고
   assert.ok(finalQa.json.problems.some((p) => p.includes('plan hash differs from the current plan')));
 });
 
+test('trace: 읽기 전용 카드의 허용 파일에 자기 보고서 경로를 적어도 소스 파일로 세지 않음', () => {
+  for (const files of ['reports/qa-final.md only', 'reports/qa-final.md (report only; no source writes)', `.claude-subagent-docs/runs/${RUN_ID}/reports/qa-final.md`]) {
+    const r = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files, mode: 'final' } } }));
+    assert.equal(r.status, 0, `${files}: ${JSON.stringify(r.json)}`);
+  }
+  const mixed = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files: 'reports/qa-final.md, src/other.js', mode: 'final' } } }));
+  assert.equal(mixed.status, 1, '보고서 옆의 계획 밖 소스 파일은 계속 탐지');
+});
+
 test('trace: 허용 파일이 none 뒤에 설명이 붙은 읽기 전용 카드는 파일로 세지 않음', () => {
   const readOnly = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files: 'none (read-only; write only reports/qa-final.md)', mode: 'final' } } }));
   assert.equal(readOnly.status, 0, JSON.stringify(readOnly.json));

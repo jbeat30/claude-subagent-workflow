@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/version-v0.6.0-blue" alt="version: v0.6.0">
+  <img src="https://img.shields.io/badge/version-v0.6.1-blue" alt="version: v0.6.1">
   <img src="https://img.shields.io/badge/Claude%20Code-%E2%89%A5%202.1.302-5A67D8" alt="Claude Code 2.1.302 or later">
   <img src="https://img.shields.io/badge/Node-%E2%89%A5%2020-339933" alt="Node 20 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
@@ -88,6 +88,7 @@ Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 | [How it works](docs/guide/how-it-works.en.md) | Roles, task flow, rule priority, token efficiency |
 | [Settings](docs/guide/settings.en.md) | Default mode, protection mode, MCP |
 | [Update and remove](docs/guide/update-remove.en.md) | New versions, moving from older versions, removal |
+| [Development tools guide](docs/DEV_TOOLS.en.md) | Owner-only tooling setup for developing this repository |
 | [Prompt design principles](docs/PROMPT_DESIGN.en.md) | Rules kept by prompts versus enforced by hooks and scripts |
 
 ## Contributing
@@ -96,4 +97,4 @@ Issues and fork PRs are welcome. Run `npm test` (Node 20 or later) for static ch
 
 ## License
 
-[MIT](LICENSE) · Copyright (c) 2026 jbeat
+[MIT](LICENSE), Copyright (c) 2026 jbeat

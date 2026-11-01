@@ -1,5 +1,5 @@
 name: 기능 제안
-description: 역할·워크플로·설치 흐름 개선 제안
+description: 역할, 워크플로, 설치 흐름 개선 제안
 labels: [enhancement]
 body:
   - type: textarea

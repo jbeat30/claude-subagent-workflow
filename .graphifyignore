@@ -1,0 +1,35 @@
+# graphify 분석 제외 목록 (.gitignore 규칙과 동일 문법)
+# .gitignore 항목(node_modules, .env*, evals/, docs/verification/ 등)은 graphify가 함께 적용
+
+# 비밀, 인증 파일
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*
+*.credentials.json
+*secret*
+
+# 의존성, 빌드, 캐시 산출물
+node_modules/
+dist/
+build/
+out/
+coverage/
+.cache/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.min.js
+*.map
+
+# 그래프 산출물과 로컬 도구 설정
+graphify-out/
+.claude/
+.claude-subagent-docs/
+.idea/
+.vscode/

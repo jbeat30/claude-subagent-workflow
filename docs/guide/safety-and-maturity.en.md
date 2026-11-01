@@ -25,8 +25,8 @@
 
 - Strict mode applies to every edit of the main session, so it can affect ordinary conversations where the workflow was not called. Limiting it to workflow runs is still to be done.
 - Experimental features are not verified in a real Claude environment, and there is no comparison yet showing they beat handling tasks directly.
-- **The guard blocks the PM from editing directly during a `/subagent` run, but classification and impact analysis rest on the prompt**: loading the skill creates a run state, and edits are blocked before the PM records a grade and for Q. L1 allows comment and document edits in any number of files, while other edits are limited to one file and the second such file requires raising the grade. The guard reads the line to be edited to decide whether it is a comment, and treats it as not a comment when it cannot tell. For L2 and L3 the PM cannot edit directly; only subagents edit after the plan is confirmed. The state is released once a close record exists or after 4 hours without updates, so it does not apply to ordinary conversation. The blocking scene itself was not observed in real Claude. Edits made through shell commands are not blocked, and a PM that fails to find a caller and edits only one file is still possible. Behavior in interactive use has not been checked.
-- Marketplace install and the `/subagent` call were checked in real Claude. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
+- **The guard blocks the PM from editing directly during a `/subagent-workflow:run` run, but classification and impact analysis rest on the prompt**: loading the skill creates a run state, and edits are blocked before the PM records a grade and for Q. L1 allows comment and document edits in any number of files, while other edits are limited to one file and the second such file requires raising the grade. The guard reads the line to be edited to decide whether it is a comment, and treats it as not a comment when it cannot tell. For L2 and L3 the PM cannot edit directly; only subagents edit after the plan is confirmed. The state is released once a close record exists or after 4 hours without updates, so it does not apply to ordinary conversation. The blocking scene itself was not observed in real Claude. Edits made through shell commands are not blocked, and a PM that fails to find a caller and edits only one file is still possible. Behavior in interactive use has not been checked.
+- The v0.6.0 plugin-native layout (the plugin provides the roles, instructions, and guard) was checked with unit tests and `claude plugin validate`. Real Claude checks are listed in the roadmap below. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
 
 - There is no guarantee that the workflow structure improves quality over handling tasks directly.
 
@@ -34,7 +34,7 @@
 
 | Item | Status |
 | --- | --- |
-| Skill (plugin) install and `/subagent` call | Implemented; marketplace install and `/subagent` checked once each in real Claude; interactive screens still to be checked |
+| Plugin install and `/subagent-workflow:run` call | Switched to the plugin-native layout in v0.6.0; interactive screens to be checked |
 | English prompts and user-language replies | Implemented; delegation evaluation planned |
 | Hard-task comparison (direct, Lite, Full, repeated runs) | One run published; repeated runs not done |
 | Context slimming (shorter PM instructions) | First pass done (PM instructions about 18% smaller, a rule-list check prevents omissions); more planned |

@@ -14,7 +14,7 @@
         <mxCell id="3" parent="1" vertex="1" value="Lite  |  The main session acts as PM and calls the roles it needs" style="whiteSpace=wrap;html=0;fontFamily=Malgun Gothic;fontSize=25;fontColor=#303b40;text;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;labelBackgroundColor=none;labelBorderColor=none;">
           <mxGeometry as="geometry" x="70" y="100" width="1560" height="45" />
         </mxCell>
-        <mxCell id="4" parent="1" vertex="1" value="User: /subagent request" style="whiteSpace=wrap;html=0;fontFamily=Malgun Gothic;fontSize=25;fontColor=#303b40;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillColor=#f3eadc;align=center;verticalAlign=middle;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;">
+        <mxCell id="4" parent="1" vertex="1" value="User: /subagent-workflow:run request" style="whiteSpace=wrap;html=0;fontFamily=Malgun Gothic;fontSize=25;fontColor=#303b40;rounded=1;sketch=1;jiggle=2;strokeWidth=2;strokeColor=#59656b;fillColor=#f3eadc;align=center;verticalAlign=middle;fillOpacity=100;opacity=100;fillStyle=solid;gradientColor=none;glass=0;">
           <mxGeometry as="geometry" x="680" y="180" width="340" height="65" />
         </mxCell>
         <mxCell id="5" parent="1" edge="1" style="sketch=1;strokeWidth=2;strokeColor=#74848c;endArrow=open;">

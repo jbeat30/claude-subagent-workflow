@@ -8,7 +8,7 @@
 
 ![Subagent workflow: Lite and Full](../assets/subagent-workflow.en.png)
 
-When you call the workflow, the main session acts as the PM for that request, talks with you, and calls only the roles it needs (the PM instructions are the `/subagent` skill).
+When you call the workflow, the main session acts as the PM for that request, talks with you, and calls only the roles it needs (the PM instructions are the `/subagent-workflow:run` skill).
 
 | Mode | Structure | Fits |
 | --- | --- | --- |
@@ -23,14 +23,14 @@ Full runs in relay mode: leaders do not call sub-roles directly but return call 
 
 | Role | Responsibility |
 | --- | --- |
-| PM (`/subagent` skill, main session) | Request classification, user conversation and confirmation, approval scope, running checks, final report |
+| PM (`/subagent-workflow:run` skill, main session) | Request classification, user conversation and confirmation, approval scope, running checks, final report |
 | planning-lead, dev-lead | Planning and development coordination in Full |
 | planner-agent | Requirement breakdown, finding items users may miss, acceptance criteria |
 | architecture-agent | Analysis of callers, contracts, regressions, and side effects |
 | frontend, backend, api, test | Edit only assigned files, write tests |
 | qa-agent | Independent verification of the plan, changes, check records, and completion checklist |
 
-Terms: a **subagent** is a Claude Code feature defined by one role file in `.claude/agents/`. The `-agent` and `-lead` in the table are only file name suffixes and every one is a subagent. The PM is not a subagent but the main session that talks with you, and `/subagent` is a skill holding the PM instructions, not an agent.
+Terms: a **subagent** is a Claude Code feature defined by one role file. The 9 built-in roles live in the plugin's `agents/`, and roles you add live in your project's `.claude/agents/`. The `-agent` and `-lead` in the table are only file name suffixes and every one is a subagent. The PM is not a subagent but the main session that talks with you, and `/subagent-workflow:run` is a skill holding the PM instructions, not an agent.
 
 ### Workflow
 
@@ -52,7 +52,7 @@ Terms: a **subagent** is a Claude Code feature defined by one role file in `.cla
 
 ### Project rules come first
 
-This workflow is a base layer, so it always ranks below the rules a project already has. The order is: your request > the project's rule files (`CLAUDE.md`, `AGENTS.md`, lint config, verification method, branch rules) > existing conventions > the profile > workflow defaults. Details: [rule-priority.md](../../template/.claude/subagent/rule-priority.md).
+This workflow is a base layer, so it always ranks below the rules a project already has. The order is: your request > the project's rule files (`CLAUDE.md`, `AGENTS.md`, lint config, verification method, branch rules) > existing conventions > the profile > workflow defaults. Details: [rule-priority.md](../../template/.claude/subagent-workflow:run/rule-priority.md).
 
 - The profile does not copy rules; it points to the **original paths**. Agents re-read the originals before work, so edits to them apply immediately.
 - Workflow behaviors fall into three classes.
@@ -60,7 +60,7 @@ This workflow is a base layer, so it always ranks below the rules a project alre
   2. **Confirm first**: behaviors the project lacks that change how you work (UI/UX walkthrough, a browser check in place of the project's own verification, strict mode, reports in the workflow's structure). Asked once before applying.
   3. **Fixed safety**: the guard hook, no edits before confirmation, assigned files only, never reporting unchecked items as passed. If a project rule conflicts, you are told and the workflow stops.
 - If the project defines its own verification method (for example measuring computed styles), it is used first; the browser check covers only what that method does not.
-- The guard protects only the workflow's policy files (hooks, subagent, the workflow skill, workflow role definitions, settings), not all of `.claude/`, so your own rules under `.claude/` stay editable.
+- The guard is a plugin hook, so it runs while the plugin is enabled, but it only acts in projects set up for the workflow. It protects only the workflow's files (`.claude/subagent/`, `settings.json`, workflow role definitions), not all of `.claude/`; your own rules, commands, agents, and hooks under `.claude/` stay editable.
 - Strict mode still applies to every edit of the main session (it is not limited to workflow runs). When no approval is registered, the block message states the reason and the fix.
 
 ### Against hallucination and unrequested edits
@@ -73,7 +73,7 @@ This workflow is a base layer, so it always ranks below the rules a project alre
 
 ### Token efficiency
 
-- When you do not call the workflow, the PM instructions are not added to the session; they are read only when `/subagent` runs.
+- When you do not call the workflow, the PM instructions are not added to the session; they are read only when `/subagent-workflow:run` runs.
 - Agent prompts (roles, forms, guard messages) are written in English, about 26% fewer always-injected tokens than the Korean version (measured on all 10 roles plus forms, one model).
 - Simple requests (Q and L1) never call the workflow.
 - Files and requirements of the same owner are bundled into one call.

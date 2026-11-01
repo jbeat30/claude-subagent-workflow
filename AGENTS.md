@@ -50,10 +50,12 @@
 
 | 경로 | 내용 |
 | --- | --- |
-| `template/` | 사용자 프로젝트에 복사되는 배포 원본(역할 정의·hook·양식·검사 실행기), 이 저장소 자체의 `.claude/`와 별개 |
-| `scripts/install.mjs` | 설치·검증·제거 스크립트 |
+| `agents/` | 기본 역할 9종(플러그인이 직접 제공) |
+| `skills/run/` | PM 스킬(`/subagent-workflow:run`)과 PM 전용 참고 문서(`references/`), 가드와 검사 실행기(`scripts/`) |
+| `skills/setup/`, `setting/`, `check/`, `add-role/` | 프로젝트 설정, 설정 변경, 점검, 역할 추가 스킬. 설정 스크립트는 `skills/setup/scripts/install.mjs` |
+| `references/` | PM과 역할이 함께 읽는 문서(규칙 우선순위, UI 검증, 체크리스트, 카드 양식, 디자인 도구) |
+| `hooks/hooks.json` | 가드 hook 등록(플러그인 hook) |
 | `tools/` | 정적 검사(`validate-template.mjs`)와 단위 테스트(`*.test.mjs`) |
-| `INSTALL.md` | 설치를 수행하는 Claude Code 에이전트용 절차 |
 
 - 변경 후 `npm test`(Node 20 이상) 실행, 정적 검사와 단위 테스트 전체 통과 확인
 - 정적 검사·단위 테스트의 통과는 권한 차단·위임 정확도·프롬프트 품질의 입증이 아님, 실제 Claude 실행 결과와 구분해 보고

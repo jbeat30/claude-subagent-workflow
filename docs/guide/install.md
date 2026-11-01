@@ -17,23 +17,19 @@
 1. 플러그인을 설치하고 프로젝트에서 `/subagent-workflow:setup` 실행
 2. 스킬이 프로젝트를 조사하고, 꼭 필요한 것만 질문
 3. 변경 계획을 10줄 이내로 표시, 확인은 **한 번**만
-4. 설치기가 파일을 복사·병합하고 보호 장치를 점검
-5. 워크플로가 필요할 때 `/subagent 요청 내용`으로 호출
+4. 프로젝트 설정 파일을 만들고 보호 장치를 스크립트로 점검
+5. 워크플로가 필요할 때 `/subagent-workflow:run 요청 내용`으로 호출
 
-저장소를 직접 가져오는 방식도 지원해요. Claude Code에 아래처럼 요청하세요.
-
-```text
-https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이 프로젝트에 세팅해줘
-```
+역할, PM 지침, 가드는 플러그인에 들어 있어요. 프로젝트에 복사하지 않아서, 플러그인을 업데이트하면 모든 프로젝트에 바로 반영돼요.
 
 ## 스킬
 
 | 스킬 | 용도 | 비용 |
 | --- | --- | --- |
-| `/subagent-workflow:setup` | 워크플로 **설치·갱신·제거**, 인자로 `install` `update` `remove` 지정 가능 | 설치 후 보호 장치 점검에서 Claude 1회 호출 |
-| `/subagent-workflow:check` | 설치 상태 점검(파일 해시, hook 등록, 역할 파일, 버전) | 없음, `--live` 없이는 Claude를 호출하지 않음 |
+| `/subagent-workflow:run` | 작업 맡기기(PM이 기획, 확인, 역할 호출, 검증, 보고) | 작업 크기에 따라 듦 |
+| `/subagent-workflow:setup` | 프로젝트 **설정·갱신·제거**, 인자로 `install` `update` `remove` 지정 가능 | 대화 몇 턴, 설치기 명령은 Claude를 호출하지 않음 |
+| `/subagent-workflow:check` | 설정 상태 점검(설정 파일, 이전 버전의 남은 파일, 가드 스크립트, 버전) | 없음, Claude를 호출하지 않음 |
 | `/subagent-workflow:setting` | 설정 **보기·바꾸기**: 기본 모드(Lite/Full), 보호 모드, 워크플로가 쓸 수 있는 MCP와 선택 여부, 선택하지 않았던 MCP 추가 | 대화 몇 턴 소요, 설치기 명령은 Claude를 호출하지 않음 |
-
 | `/subagent-workflow:add-role` | 프로젝트에 맞는 **역할 추가·제거**: 도메인과 스택을 보고 역할을 추천하고, 고른 역할 파일을 공통 규칙과 함께 만들어 검증 | 대화 몇 턴 소요, 설치기 명령은 Claude를 호출하지 않음 |
 
 말로 요청해도 동작해요: "C 게임 엔진을 맡을 서브에이전트를 추천해서 추가해줘", "서브에이전트 워크플로 세팅해줘", "워크플로 설치 상태 확인해줘", "워크플로 설정 보여줘", "모드를 Full로 바꿔줘", "워크플로 제거해줘"
@@ -52,7 +48,7 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 | 작업 기록 | `.claude-subagent-docs/`를 `.gitignore`에 추가 | 추가 |
 | 충돌 처리 | 기존 파일과 겹치면 항목별로 건너뛰거나 백업 후 교체 | 충돌 시 질문 |
 
-모드와 보호 모드는 설치할 때 묻지 않아요. 보호 모드는 **권고**(가드 hook이 위반을 차단)로 설치되고, **엄격**(승인 기록을 직접 추적하는 실험 기능, 승인 명령은 사용자가 직접 실행)은 원할 때 `/subagent-workflow:setting`에서 바꿔요. 역할 파일 9종이 항상 전부 설치되고 기본 모드는 Lite예요. 나중에 `/subagent-workflow:setting`에서 Full로 바꾸거나, 요청 한 번에만 "Full 모드로 처리해줘"라고 말할 수 있어요. Lite로 설치한 프로젝트에서 이렇게 요청해 보니 planning-lead → dev-lead → 담당 서브에이전트 → qa-agent 순서로 Full 경로가 실행됐어요(1회 확인).
+모드와 보호 모드는 설치할 때 묻지 않아요. 보호 모드는 **권고**(가드 hook이 위반을 차단)로 설치되고, **엄격**(승인 기록을 직접 추적하는 실험 기능, 승인 명령은 사용자가 직접 실행)은 원할 때 `/subagent-workflow:setting`에서 바꿔요. 역할 9종은 플러그인이 제공하고 기본 모드는 Lite예요. 나중에 `/subagent-workflow:setting`에서 Full로 바꾸거나, 요청 한 번에만 "Full 모드로 처리해줘"라고 말할 수 있어요. Lite로 설치한 프로젝트에서 이렇게 요청해 보니 planning-lead → dev-lead → 담당 서브에이전트 → qa-agent 순서로 Full 경로가 실행됐어요(1회 확인).
 
 디자인 도구는 `frontend-agent`와 `qa-agent`만 사용해요. 몇 가지 알아 두세요.
 
@@ -64,15 +60,14 @@ https://github.com/jbeat30/claude-subagent-workflow 의 INSTALL.md를 읽고 이
 
 **UI/UX 점검(선택)**: 브라우저 도구가 등록돼 있고 UI를 바꾸는 작업이면, PM이 확인 단계에서 점검할지 물어봐요. 동의할 때만 `qa-agent`가 정해진 흐름과 화면 크기로 둘러보고, 발견한 문제를 근거와 함께 보고해요. 서브에이전트가 하는 시나리오 점검이고 실제 사용자 테스트는 아니에요. 실제 계정 입력·주문·결제·데이터 변경은 하지 않아요.
 
-## 설치되는 것
+## 프로젝트에 생기는 것
 
 ```text
-.claude/
-  agents/        역할 정의 9종
-  skills/subagent/   /subagent 스킬(PM 지침), 부를 때만 읽힘
-  hooks/         가드 hook
-  subagent/         양식, 프로젝트 프로필, 검사 실행기, 설치 매니페스트
-  settings.json  hook 등록(기존 설정과 병합), 메인 세션을 PM으로 고정하지 않음
-.claude-subagent-docs/   작업별 기록(요청 원문·기획안·보고·검사 기록·diff), .gitignore 추가는 선택
-.mcp.json            Context7·디자인 도구 MCP 등록(선택, 기존 설정과 병합)
+.claude/subagent/
+  profile.md        프로젝트 설정(스택, 테스트 명령, 규칙 원본 경로, 수정 금지 영역), 모든 역할이 작업 전에 읽음
+  manifest.json     설정 기록(갱신, 제거에 사용)
+  roles.local.json  직접 추가한 역할 목록(역할을 추가했을 때만)
+.claude/agents/     직접 추가한 역할 파일(역할을 추가했을 때만)
+.claude-subagent-docs/   작업별 기록(요청 원문, 기획안, 보고, 검사 기록, diff), .gitignore 추가는 선택
+.mcp.json            Context7, 디자인 도구 MCP 등록(선택, 기존 설정과 병합)
 ```

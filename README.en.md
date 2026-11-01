@@ -4,50 +4,30 @@
 
 <p align="center">
   <a href="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml"><img src="https://github.com/jbeat30/claude-subagent-workflow/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/release-v0.5.0-blue" alt="release: v0.5.0">
+  <img src="https://img.shields.io/badge/version-v0.6.0-blue" alt="version: v0.6.0">
   <img src="https://img.shields.io/badge/Claude%20Code-%E2%89%A5%202.1.302-5A67D8" alt="Claude Code 2.1.302 or later">
   <img src="https://img.shields.io/badge/Node-%E2%89%A5%2020-339933" alt="Node 20 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
 </p>
 
 <p align="center"><a href="README.md">한국어</a></p>
+
 # claude-subagent-workflow
 
-**A plugin that installs, with one skill, a Claude Code workflow in which the main session acts as the PM, hands work to role subagents, and an independent QA verifies it**
+**A plugin that makes Claude Code work like a PM.** It plans first, asks when something is unclear, hands the work to role subagents, and has an independent QA verify it before reporting.
 
-## What problem does it solve
+## What changes
 
-It is for Claude Code users who worry about these things on larger changes:
-
-- Unstated requirements (validation, error handling) get dropped
-- Hidden callers are missed, such as function references or names in config files
-- Files outside the assignment get edited
-- Unchecked work is reported as done
-
-When you call the workflow, a request goes through intake, plan, confirm, build, and independent QA. Every role reads the original request and the plan file itself, no source is edited before confirmation, only assigned files are edited, and anything not verified stays marked `unchecked`. Your project's existing rules (`CLAUDE.md`, `AGENTS.md`, lint config, and so on) always win. Installing does not change normal Claude conversations; the workflow runs only when you call it with `/subagent`.
-
-## When to use it and when to ask directly
-
-| Call the workflow | Just ask directly |
+| What happens when Claude works alone | With this workflow |
 | --- | --- |
-| Changing a function's return shape or an API contract with many callers to fix | Code explanations, questions |
-| Adding a feature where unstated requirements are easy to miss | Typos, comments, wording fixes |
-| Changes to data structures, permissions, or security where impact must be traced first | Small edits to a single file |
+| A vague request such as "add a discount" gets built on a guess | It shows options and a recommendation before building, and only recommends an option whose result actually shows up |
+| A function changes and a hidden caller is missed | An analysis role finds the callers first, and only the files in the plan are edited |
+| Unchecked work is reported as done | An independent QA verifies it, and anything not checked is reported as not checked |
+| Work ignores the project's rules | Your project's rules (`CLAUDE.md`, `AGENTS.md`, lint config) always come first; conflicts are asked |
 
-When you call `/subagent`, the main session (the PM) first sorts the request into four grades. Subagents are called only for L2 and L3.
+Normal conversations stay the same. The workflow runs only when you call it.
 
-| Grade | What kind of request | Handling |
-| --- | --- | --- |
-| Q | Question, explanation, or research (no file changes) | The PM answers directly |
-| L1 | A comment, typo, or wording fix with no behavior change | The PM edits directly |
-| L2 | A behavior change that keeps the existing contract | Plan, confirm, build, independent QA |
-| L3 | A wide-impact change: the signature of a function or API other files use, data structures, permissions, security | L2 plus impact analysis, and the user is always asked to confirm |
-
-If you call `/subagent` for a simple request, the PM handles it directly and no subagent cost is incurred. Classifying still has a cost, so for small tasks asking directly is faster and cheaper. See [Extra cost and verification level](#extra-cost-and-limits) below first.
-
-## Quick start
-
-Requirements: Claude Code 2.1.302 or later, Node 20 or later
+## Install
 
 ```text
 /plugin marketplace add jbeat30/jbeat-plugins
@@ -55,50 +35,65 @@ Requirements: Claude Code 2.1.302 or later, Node 20 or later
 /subagent-workflow:setup
 ```
 
-![Install flow](docs/assets/install-flow.en.png)
+`setup` surveys the project, asks only what it needs, and writes one project file (`.claude/subagent/profile.md`). The roles and instructions live in the plugin and are not copied into your project.
 
-The setup skill inspects the project, asks only what it must, shows the change plan, and asks for confirmation once. It does not overwrite existing files and does not touch global settings or feature code. After install, call it like this:
+Requirements: Claude Code 2.1.302 or later, Node 20 or later
+
+## Use
 
 ```text
-/subagent Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
+/subagent-workflow:run Add a show-password toggle to the login screen
 ```
 
-Saying "solve this with the subagent workflow: ..." also works, but the model decides, so it can occasionally miss; use `/subagent` then. Fetching the repository directly is covered in the [install guide](docs/guide/install.en.md).
+You can also say "solve this with the subagent workflow: ...".
 
-## Extra cost and limits
+Need a role for your domain? It recommends roles and adds the one you pick.
 
-- **Cost**: L2 and L3 call the planning, development, and verification roles several times, so they cost several times more and take longer than handling the task directly. After install, the guard check makes one Claude call, and registering MCP servers adds their tool definitions to every call, which raises tokens. Questions (Q) and trivial edits (L1) call no subagents.
-- **Verification level**: the static checks and unit tests in `npm test` check the guard and installer behavior, but they do not prove delegation accuracy or prompt quality. There is no guarantee that the workflow improves quality over direct handling.
-- **Scope of the bypass block**: during a `/subagent` run the guard blocks the PM from editing directly. Before classification and for questions (Q) no edits are allowed, L1 allows comment and document edits in any number of files and other edits in one file, and for L2 and L3 only subagents edit. Classification itself is still the PM's judgment and whether the impact analysis is thorough rests on instructions.
-- **Experimental**: Full mode, relay execution, and strict mode are not well verified in a real Claude environment.
-- **Limits of protection**: the guard hook is a safety net against mistakes, not a security boundary. It cannot stop shell commands in the main session or changes to user and hook settings. Strict mode applies to edits in ordinary conversations where `/subagent` was not called.
-- **Not checked**: interactive screens such as the skill permission prompt, macOS and Linux, and updating between releases.
+```text
+/subagent-workflow:add-role I build a game engine in C; recommend a subagent for it
+```
+
+| Command | What it does |
+| --- | --- |
+| `/subagent-workflow:run` | Hand over a task |
+| `/subagent-workflow:setup` | Set up, update, or remove the project setup |
+| `/subagent-workflow:setting` | Change the default mode (Lite, Full), protection mode, MCP servers |
+| `/subagent-workflow:add-role` | Add or remove a project role |
+| `/subagent-workflow:check` | Check the setup (no Claude call) |
+
+## When to use it
+
+| Call the workflow | Just ask |
+| --- | --- |
+| Changing a return shape or API contract so several callers must change | Explaining code, questions |
+| Adding a feature where unstated requirements (validation, errors) are easy to miss | Typos, comments, wording |
+| Data structure, permission, or security changes whose impact needs working out first | A small edit to one file |
+
+A simple request still gets handled directly by the PM without subagents, but classifying it has a cost.
+
+## Cost and limits
+
+- Larger tasks call the planning, development, and verification roles several times, so they cost several times more and take longer than handling the task directly.
+- The guard hook is a safety net against mistakes, not a security boundary. It cannot stop shell commands in the main session.
+- How a task is classified and whether the impact analysis is thorough rest on the instructions. Better quality is not guaranteed.
+- Full mode, relay execution, and strict mode are experimental.
 
 Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 
-## Guides
+## Docs
 
-| Document | Content |
+| Doc | Content |
 | --- | --- |
-| [Install and choices](docs/guide/install.en.md) | The four skills (setup, check, setting, add-role), what you choose at setup (Context7, document reading, design tool MCP, protection mode, conflict handling), installed files |
-| [Using it after install](docs/guide/usage.en.md) | Calling `/subagent`, usage examples, when to call it |
-| [How it works](docs/guide/how-it-works.en.md) | Lite and Full structure, roles, task grade flow, project rule priority, against hallucination and unrequested edits, token efficiency |
-| [Changing settings](docs/guide/settings.en.md) | Default mode, protection mode, adding and removing MCP servers |
-| [Getting a new version, update and removal](docs/guide/update-remove.en.md) | Plugin update, project file update, removal |
-| [Safeguards, feature maturity, roadmap](docs/guide/safety-and-maturity.en.md) | Guard hook and protection mode, feature maturity, evaluation records, roadmap |
-| [Prompt design principles](docs/PROMPT_DESIGN.en.md) | Rules kept by prompt alone versus rules enforced by hooks and the check runner |
+| [Install and choices](docs/guide/install.en.md) | What you choose at setup, files created in your project |
+| [Usage](docs/guide/usage.en.md) | How to call it, examples |
+| [How it works](docs/guide/how-it-works.en.md) | Roles, task flow, rule priority, token efficiency |
+| [Settings](docs/guide/settings.en.md) | Default mode, protection mode, MCP |
+| [Update and remove](docs/guide/update-remove.en.md) | New versions, moving from older versions, removal |
+| [Prompt design principles](docs/PROMPT_DESIGN.en.md) | Rules kept by prompts versus enforced by hooks and scripts |
 
 ## Contributing
 
-Issues and fork PRs are welcome. Only the owner has write access, and every change is merged after the owner reviews and approves it.
-
-- Bug reports and feature ideas: [Issues](https://github.com/jbeat30/claude-subagent-workflow/issues/new/choose)
-- Proposing changes: fork, then open a PR against the `feature/vX.Y.Z` branch the owner names.
-- `main`, `release`, and `feature` require PRs and forbid force pushes; outside contributors cannot push or merge directly.
-- Fork PR workflows from outside contributors need the owner's approval to run, regardless of contribution history.
-- Development needs Node 20 or later; `npm test` runs static checks and unit tests.
-- Details: [Contributing](.github/CONTRIBUTING.md), [Branch strategy](.github/BRANCH_STRATEGY.md), [Development rules](AGENTS.md)
-- Report security vulnerabilities privately, see [SECURITY.md](SECURITY.md).
+Issues and fork PRs are welcome. Run `npm test` (Node 20 or later) for static checks and unit tests. See [Contributing](.github/CONTRIBUTING.md) for the rules (Korean). Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

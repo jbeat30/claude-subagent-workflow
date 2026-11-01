@@ -7,7 +7,7 @@
 
 - Node 20 이상, 의존성 설치 없음
 - `npm test`로 정적 검사와 단위 테스트 실행, 통과 결과와 실행하지 못한 검사를 PR에 명시
-- `template/`은 사용자 프로젝트에 복사되는 배포 원본, 역할 정의를 바꾸면 `tools/validate-template.mjs`도 함께 갱신
+- 저장소 루트가 곧 플러그인(`agents/`, `skills/`, `hooks/`, `references/`), 역할 정의를 바꾸면 `tools/validate-template.mjs`도 함께 갱신하고 `claude plugin validate .`로 확인
 
 ## 문서 이미지
 

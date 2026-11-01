@@ -193,7 +193,7 @@ test('갱신: v0.5.x가 복사한 파일과 settings의 가드 hook을 정리하
   assert.deepEqual(settings.permissions, { allow: ['Bash(ls)'] });
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   assert.deepEqual(manifest.files.map((f) => f.path), ['.claude/subagent/profile.md']);
-  assert.equal(manifest.templateVersion, '0.6.0');
+  assert.equal(manifest.templateVersion, '0.6.1');
   assert.equal(install(['verify', '--target', dir]).json.ok, true);
 });
 

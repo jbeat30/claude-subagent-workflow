@@ -2,7 +2,6 @@ node_modules/
 .env
 .env.*
 !.env.example
-.claude/settings.local.json
 work/
 .DS_Store
 Thumbs.db
@@ -10,6 +9,37 @@ Thumbs.db
 .idea/
 .vscode/
 .claude-subagent-docs/
+
+# 비밀, 인증 파일과 설정 백업
+*.pem
+*.key
+*.p12
+*.pfx
+*.credentials.json
+claude.json
+.claude.json
+*.bak
+*.graphify-bak
+.headroom/
+
+# 빌드, 캐시 산출물
+dist/
+build/
+out/
+coverage/
+.cache/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 소유자 로컬 개발 도구 설정(이 저장소 자체용, 플러그인 배포물과 별개)
+# .claude/는 훅, 플러그인 활성화, 스킬 사본을 담으므로 기여자에게 공유하지 않음
+.claude/
+CLAUDE.local.md
+
+# graphify 그래프 산출물은 `graphify update .`로 재생성 가능하고 로컬 절대 경로와 세션 캐시를 포함하므로 커밋하지 않음
+graphify-out/
 
 # 행동 평가 도구와 시험 결과는 공개하지 않음(로컬 전용)
 evals/

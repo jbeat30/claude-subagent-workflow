@@ -6,10 +6,10 @@ import { mkdtempSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decide } from '../scripts/plugin-read.mjs';
+import { decide } from '../skills/run/scripts/plugin-read.mjs';
 
 const repo = realpathSync.native(join(dirname(fileURLToPath(import.meta.url)), '..'));
-const script = join(repo, 'scripts', 'plugin-read.mjs');
+const script = join(repo, 'skills', 'run', 'scripts', 'plugin-read.mjs');
 const run = (input) => spawnSync(process.execPath, [script], { input: typeof input === 'string' ? input : JSON.stringify(input), encoding: 'utf8' });
 
 test('플러그인 폴더 안의 파일 읽기는 allow를 돌려줌(절대 경로, 상대 경로, Glob과 Grep의 path)', () => {

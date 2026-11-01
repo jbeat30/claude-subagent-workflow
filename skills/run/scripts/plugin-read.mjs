@@ -7,7 +7,8 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PLUGIN_ROOT = realpathSync.native(join(dirname(fileURLToPath(import.meta.url)), '..'));
+// 이 파일은 skills/run/scripts/에 있으므로 플러그인 루트는 세 단계 위
+const PLUGIN_ROOT = realpathSync.native(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..'));
 const CASE_INSENSITIVE = process.platform !== 'linux';
 
 // 존재하는 가장 가까운 상위까지 실제 경로로 풀어 바로가기로 플러그인 밖을 가리키는 경우를 걸러냄

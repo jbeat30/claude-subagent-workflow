@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/plugin-read.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/plugin-read.mjs\""
           }
         ]
       },

@@ -1,6 +1,6 @@
 {
   "name": "subagent-workflow",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Claude Code subagent workflow: a PM in the main session plans with you, delegates to role subagents, and has an independent QA verify, while respecting your project rules.",
   "author": {
     "name": "jbeat",

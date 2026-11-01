@@ -334,7 +334,7 @@ function cmdTrace(args) {
   for (const row of changeRows) {
     const file = stripCell(row[1]).replace(/\\/g, '/').replace(/^\.\//, '');
     if (!file || file === 'File') continue;
-    planned.set(file, stripCell(row[4]));
+    planned.set(file, stripCell(row[4]).replace(/^subagent-workflow:/, ''));
   }
 
   const cardsDir = join(dir, 'cards');

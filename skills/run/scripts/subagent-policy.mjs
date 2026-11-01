@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { loadRoles } from './subagent-roles.mjs';
+import { loadRoles, roleName } from './subagent-roles.mjs';
 const normalize = (value) => process.platform === 'linux' ? value : value.toLowerCase();
 const fail = (message) => { throw new Error(message); };
 const within = (path, base) => base === '.' || path === base || path.startsWith(`${base}/`);
@@ -84,8 +84,8 @@ export function snapshot(root, runId) {
   if (text.match(/^- runId:\s*(\S+)/m)?.[1] !== runId) fail('plan runId mismatch');
   const writers = ['pm-agent', ...loadRoles(root).writers];
   const files = rows(text, 6).filter((cells) => cells[0] !== 'Order').map((cells) => {
-    if (cells.length !== 5 || !writers.includes(cells[4]) || !grant.operations.includes(cells[3])) fail('the change plan needs modify/create work and an owner role; delete and move are unsupported');
-    return { file: checkFile(root, grant, cells[1]), operation: cells[3], role: cells[4] };
+    if (cells.length !== 5 || !writers.includes(roleName(cells[4])) || !grant.operations.includes(cells[3])) fail('the change plan needs modify/create work and an owner role; delete and move are unsupported');
+    return { file: checkFile(root, grant, cells[1]), operation: cells[3], role: roleName(cells[4]) };
   });
   if (!files.length || new Set(files.map((f) => normalize(f.file))).size !== files.length) fail('assigned files missing or duplicated');
   const checks = rows(text, 8).filter((cells) => cells[0] !== 'Command').map((cells) => {

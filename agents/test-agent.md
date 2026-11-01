@@ -52,7 +52,7 @@ Do not run checks; return a check request to the PM.
 
 ## Report saving
 
-- Before returning, save the full report (all fields below) with Write to `.claude-subagent-docs/runs/<runId>/reports/<role>-<seq>.md`. The sequence is the existing report count for the same role plus one, always two digits (for example `planner-agent-01.md`). The guard rejects one-digit sequences such as `-1`.
+- Before returning, save the full report (all fields below) with Write to `.claude-subagent-docs/runs/<runId>/reports/<role>-<seq>.md`, where `<role>` is your plain role name without the `subagent-workflow:` prefix. The sequence is the existing report count for the same role plus one, always two digits (for example `planner-agent-01.md`). The guard rejects one-digit sequences such as `-1`.
 - Then return a short message, not the whole report: `status`, `report: <saved path>`, a `summary` of at most five lines (the saved file keeps the full summary), and `unverified` and `blockers` in full (never drop or shorten these two). The file is the full record; the caller reads it when it needs the evidence, so do not repeat the evidence in the message.
 - If the call card has no runId, do not save; return the full report in the message with `status: needs-input`. If saving fails, return the full report in the message and record the reason in `blockers`.
 

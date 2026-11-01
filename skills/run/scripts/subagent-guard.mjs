@@ -121,7 +121,7 @@ function assignedFiles(root, runId, role) {
     const cells = splitRow(line);
     const file = (cells[1] ?? '').replace(/\\/g, '/').replace(/^\.\//, '');
     if (!file || file === 'File' || /[*?[\]]/.test(file) || file.startsWith('/') || file.split('/').includes('..')) continue;
-    if (cells[4] === role) files.push(norm(file));
+    if (roleName(cells[4]) === role) files.push(norm(file));
   }
   return files;
 }
@@ -269,7 +269,7 @@ function decideWrite(root, input) {
     return;
   }
   if (!WRITERS.includes(role)) {
-    const expected = role === 'qa-agent' ? 'reports/qa-plan.md or reports/qa-final.md' : role === 'dev-lead' ? 'reports/dev-lead.md' : `reports/${role}-NN.md (full role name, two-digit number, for example reports/${role}-01.md)`;
+    const expected = role === 'qa-agent' ? 'reports/qa-plan.md or reports/qa-final.md' : role === 'dev-lead' ? 'reports/dev-lead.md' : `reports/${role}-NN.md (plain role name without the subagent-workflow: prefix, two-digit number, for example reports/${role}-01.md)`;
     return deny(`${role} may write only its own report file, ${expected}; this path was rejected: ${rel}`);
   }
 

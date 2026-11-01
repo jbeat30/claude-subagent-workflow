@@ -313,3 +313,10 @@ test('플러그인 역할 이름(subagent-workflow: 접두사)은 기본 역할�
   assert.equal(call(dir, 'subagent-workflow:dev-lead', 'subagent-workflow:qa-agent').allowed, false, 'dev-lead는 qa를 부를 수 없음');
   assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent', '인계 없음', 'toolu_2').allowed, false, 'runId 없는 호출 거부');
 });
+
+test('기획서 담당 칸에 플러그인 이름 접두사가 붙어 있어도 같은 역할로 배정을 판정', () => {
+  const dir = project({ rows: [['src/a.js', 'subagent-workflow:backend-agent']] });
+  assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/a.js').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/b.js').allowed, false);
+});

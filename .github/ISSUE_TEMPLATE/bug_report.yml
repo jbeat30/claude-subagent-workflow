@@ -1,11 +1,11 @@
 name: 버그 제보
-description: 설치·역할 동작·가드·검사 실행기의 문제 제보
+description: 설치, 역할 동작, 가드, 검사 실행기의 문제 제보
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        한국어 또는 영어로 작성해 주세요. 시크릿·개인 설정·실제 고객 데이터는 첨부하지 마세요.
+        한국어 또는 영어로 작성해 주세요. 시크릿, 개인 설정, 실제 고객 데이터는 첨부하지 마세요.
   - type: textarea
     id: what
     attributes:
@@ -30,7 +30,7 @@ body:
   - type: input
     id: env
     attributes:
-      label: OS·Node 버전
+      label: OS, Node 버전
       placeholder: "예: Windows 11, Node 20"
     validations:
       required: true
@@ -48,6 +48,6 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: 로그·출력
+      label: 로그, 출력
       description: 설치기 JSON 출력이나 `.claude-subagent-docs/` 기록 중 관련 부분, 비밀값 제거 후 첨부
       render: text

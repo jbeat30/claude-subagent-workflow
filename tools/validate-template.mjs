@@ -226,6 +226,14 @@ else {
     if (!script || !existsSync(join(repoRoot, script))) fail('hooks/hooks.json', 'hook 스크립트 파일 없음');
   }
   if (!JSON.stringify(hooks.PostToolUse ?? []).includes('subagent-guard')) fail('hooks/hooks.json', 'PostToolUse에 subagent-guard 없음');
+  // 플러그인 폴더는 프로젝트 밖이라 PM과 역할이 양식, 규칙 문서를 읽을 때마다 권한 확인에 걸림, 매 턴과 서브에이전트에 적용되는 hook으로 자기 파일 읽기만 허용
+  const reader = pre.find((h) => /plugin-read\.mjs/.test(h.command));
+  if (!reader) fail('hooks/hooks.json', 'PreToolUse에 plugin-read(플러그인 파일 읽기 허용) 없음');
+  else {
+    if (!reader.matcher.split('|').includes('Read')) fail('hooks/hooks.json', 'plugin-read matcher에 Read 없음');
+    const script = reader.command.match(/\$\{CLAUDE_PLUGIN_ROOT\}\/([\w./-]+\.mjs)/)?.[1];
+    if (!script || !existsSync(join(repoRoot, script))) fail('hooks/hooks.json', 'plugin-read 스크립트 파일 없음');
+  }
 }
 
 // 기획안 양식의 12개 구성 번호 확인

@@ -4,30 +4,38 @@
 
 ## Getting a new version
 
-An installed plugin does not update by itself. Auto-update is off by default for a self-made marketplace, and updating the plugin does not change the workflow files already installed in a project, so two steps are needed.
-
-1. Update the plugin (terminal)
+The roles, the PM instructions, and the guard live in the plugin, so updating the plugin updates every project. Auto-update is off by default for a self-hosted marketplace.
 
 ```text
 claude plugin marketplace update jbeat-plugins
 claude plugin update subagent-workflow@jbeat-plugins
 ```
 
-2. Start a new session or run `/reload-plugins`
-3. Update the workflow files in the project: `/subagent-workflow:setup update`
+After updating, start a new session or run `/reload-plugins`.
 
-- To see whether an update is needed, run `/subagent-workflow:check`; a `workflow version` item with status `update` means the project's workflow files are older than the plugin
-- Inside a session: `/plugin` → Marketplaces tab → `jbeat-plugins` → Update marketplace (also updates the installed plugins)
-- Optional auto-update: `/plugin` → Marketplaces tab → `jbeat-plugins` → Enable auto-update. It updates only the plugin; step 3 is still run by you
+- Update inside a session: `/plugin` → Marketplaces tab → `jbeat-plugins` → Update marketplace
+- Turn on auto-update (optional): `/plugin` → Marketplaces tab → `jbeat-plugins` → Enable auto-update
 
-## Update and removal
+## Moving from v0.5.x or earlier
+
+Up to v0.5.x the roles, PM instructions, and guard were copied into the project's `.claude/`. From v0.6.0 the plugin provides them. After updating the plugin, run this once per project:
 
 ```text
 /subagent-workflow:setup update
+```
+
+- It cleans up the files copied earlier (the 9 built-in roles in `.claude/agents/`, `.claude/skills/subagent/`, `.claude/hooks/subagent-guard.mjs`, `.claude/subagent/bin/`, and so on) and the old guard hook in `.claude/settings.json`. **Files you edited are not deleted**; they are listed for you.
+- It shows the changes as a plan and applies them after you confirm.
+- The task command changed from `/subagent` to `/subagent-workflow:run`.
+- `/subagent-workflow:check` tells you whether cleanup is needed: a `workflow version` or `settings hooks` item with status `update` means old files remain.
+- Task records from an older version may not be readable by the new version; finish them before updating.
+
+## Removal
+
+```text
 /subagent-workflow:setup remove
 ```
 
-- Update: **fully replaces** the installed workflow files with the new version. It shows the changes as a plan and applies them after confirmation. Files you edited after install are never overwritten automatically; you choose skip or replace with backup.
-- Updating from v0.2.x or earlier releases the `agent=pm-agent` setting that version added, so the main session is no longer pinned to the PM, and deletes the unmodified legacy PM subagent file (settings and files you changed are kept).
-- Removal: shows a preview and, after confirmation, reverts only what was installed. Files you edited are kept, and task records (`.claude-subagent-docs`) and backups are not deleted.
-- From v0.2.0 prompts and record labels are English, so runs left in progress by an older version are not read by the new one. Finish them before updating.
+- It shows a preview, asks for confirmation, and reverts only what setup created (the project profile, MCP entries, the `.gitignore` block). Files you edited stay.
+- Task records (`.claude-subagent-docs`) and backups are not deleted.
+- To turn the workflow off completely, also uninstall the plugin: `/plugin` → Installed tab

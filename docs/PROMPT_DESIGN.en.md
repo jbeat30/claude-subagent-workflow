@@ -1,7 +1,7 @@
 # Prompt design principles
 
 The rules this workflow's role prompts use to reduce **guessing, unsupported answers (hallucination), and edits nobody asked for**, and what enforces each rule.
-The English originals are in `template/.claude/agents/` and `template/.claude/subagent/`.
+The English originals are in `agents/`, `references/`, and `skills/run/`.
 
 [한국어](PROMPT_DESIGN.md)
 

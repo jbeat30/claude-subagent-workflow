@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'subagent', 'bin', 'subagent-check.mjs');
+const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'run', 'scripts', 'subagent-check.mjs');
 const RUN_ID = '20260101-0000-test';
 
 function plan(rows) {
@@ -83,6 +83,41 @@ test('출력 변조와 기획안 변경을 verify가 탐지', () => {
   assert.match(changed.stdout, /the plan changed/);
 });
 
+test('verify: 계획이 바뀐 뒤 같은 명령을 다시 돌리면 이전 기록은 대체된 것으로 보고 통과', () => {
+  const cmd = 'node -e "console.log(1)"';
+  const other = 'node -e "console.log(2)"';
+  const dir = project([[cmd, '.', 'none'], [other, '.', 'none']]);
+  run(dir, 'run', RUN_ID, cmd);
+  run(dir, 'run', RUN_ID, other);
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md');
+  writeFileSync(planPath, `${readFileSync(planPath, 'utf8')}\n수정\n`);
+  const stale = run(dir, 'verify', RUN_ID);
+  assert.equal(stale.status, 1);
+  // 한 명령만 다시 돌리면 다른 명령의 오래된 기록이 남아 계속 실패
+  run(dir, 'run', RUN_ID, cmd);
+  const partial = run(dir, 'verify', RUN_ID);
+  assert.equal(partial.status, 1);
+  assert.match(partial.stdout, /02: the plan changed after the record/);
+  run(dir, 'run', RUN_ID, other);
+  const fixed = run(dir, 'verify', RUN_ID);
+  assert.equal(fixed.status, 0, fixed.stdout);
+  assert.deepEqual(JSON.parse(fixed.stdout).superseded, ['01', '02']);
+});
+
+test('verify: 대체된 기록이라도 출력 변조는 계속 탐지', () => {
+  const cmd = 'node -e "console.log(1)"';
+  const dir = project([[cmd, '.', 'none']]);
+  run(dir, 'run', RUN_ID, cmd);
+  const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN_ID, 'plan.md');
+  writeFileSync(planPath, `${readFileSync(planPath, 'utf8')}\n수정\n`);
+  run(dir, 'run', RUN_ID, cmd);
+  assert.equal(run(dir, 'verify', RUN_ID).status, 0);
+  writeFileSync(join(checksDir(dir), '01', 'stdout.txt'), 'tampered\n');
+  const tampered = run(dir, 'verify', RUN_ID);
+  assert.equal(tampered.status, 1);
+  assert.match(tampered.stdout, /01: stdout.txt hash mismatch/);
+});
+
 test('검사 기록이 없으면 verify 실패', () => {
   const dir = project([['node -e "0"', '.', 'none']]);
   assert.equal(run(dir, 'verify', RUN_ID).status, 1);
@@ -116,9 +151,9 @@ function tracePlan({ quote = REQUEST, rows = [R1, R2], done = ['R1', 'R2'], file
   return `# Plan\n\n## 1. User request source\n\n${q}\n\n## 2. 요구사항 목록\n\n| ID | 요구 | 원문 근거(인용) |\n| --- | --- | --- |\n${req}\n\n## 6. 변경 계획\n\n| Order | File | New file | Work | Owner |\n| --- | --- | --- | --- | --- |\n${ch}\n\n## 7. 완료 기준\n\n| ID | Given | When | Then | 검증 방법 |\n| --- | --- | --- | --- | --- |\n${dn}\n\n## 8. 검사 명령과 부작용 분류\n\n| Command | Working directory | Side effects |\n| --- | --- | --- |\n| \`${CMD}\` | . | none |\n`;
 }
 
-function cardText({ quote = REQUEST, ids = 'R1, R2', files = 'src/login.js', hash = '' } = {}) {
+function cardText({ quote = REQUEST, ids = 'R1, R2', files = 'src/login.js', hash = '', mode = '' } = {}) {
   const q = quote.split('\n').map((l) => `> ${l}`).join('\n');
-  return `# 작업 카드\n\n- runId: ${RUN_ID}\n- Plan path and hash: \`plan.md\`, ${hash}\n- Allowed files (exact paths): ${files}\n- Assigned requirements and completion criteria IDs: ${ids}\n\n## Request source\n\n${q}\n`;
+  return `# 작업 카드\n\n- runId: ${RUN_ID}\n- Plan path and hash: \`plan.md\`, ${hash}\n${mode ? `- Mode: ${mode}\n` : ''}- Allowed files (exact paths): ${files}\n- Assigned requirements and completion criteria IDs: ${ids}\n\n## Request source\n\n${q}\n`;
 }
 
 function traceProject({ planOpts, card, report, patch } = {}) {
@@ -163,6 +198,35 @@ test('trace: 실행 기록 파일(plan.md 등)을 허용 파일로 적은 카드
   const sourceOutside = trace(traceProject({ card: { name: '01-planning-lead.md', opts: { files: `${recordFile}, src/other.js` } } }));
   assert.equal(sourceOutside.status, 1, '계획에 없는 소스 파일은 계속 탐지');
   assert.match(JSON.stringify(sourceOutside.json), /src\/other\.js/);
+});
+
+test('trace: 계획 단계 카드는 확정 뒤 해시가 달라도 통과하고 쓰기와 최종 검증 카드는 계속 탐지', () => {
+  const old = 'a'.repeat(64);
+  const planCard = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { hash: old, mode: 'plan', ids: 'R1, R2', files: 'none' } } }));
+  assert.equal(planCard.status, 0, JSON.stringify(planCard.json));
+  assert.ok(planCard.json.notes.some((n) => n.includes('plan-stage card keeps the hash')));
+  const planner = trace(traceProject({ card: { name: '01-planner-agent.md', opts: { hash: old, files: 'none' } } }));
+  assert.equal(planner.status, 0, JSON.stringify(planner.json));
+  const writer = trace(traceProject({ card: { name: '01-frontend-agent.md', opts: { hash: old } } }));
+  assert.equal(writer.status, 1);
+  assert.ok(writer.json.problems.some((p) => p.includes('plan hash differs from the current plan')));
+  const finalQa = trace(traceProject({ card: { name: '02-qa-agent.md', opts: { hash: old, mode: 'final' } } }));
+  assert.equal(finalQa.status, 1);
+  assert.ok(finalQa.json.problems.some((p) => p.includes('plan hash differs from the current plan')));
+});
+
+test('trace: 읽기 전용 카드의 허용 파일에 자기 보고서 경로를 적어도 소스 파일로 세지 않음', () => {
+  for (const files of ['reports/qa-final.md only', 'reports/qa-final.md (report only; no source writes)', `.claude-subagent-docs/runs/${RUN_ID}/reports/qa-final.md`]) {
+    const r = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files, mode: 'final' } } }));
+    assert.equal(r.status, 0, `${files}: ${JSON.stringify(r.json)}`);
+  }
+  const mixed = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files: 'reports/qa-final.md, src/other.js', mode: 'final' } } }));
+  assert.equal(mixed.status, 1, '보고서 옆의 계획 밖 소스 파일은 계속 탐지');
+});
+
+test('trace: 허용 파일이 none 뒤에 설명이 붙은 읽기 전용 카드는 파일로 세지 않음', () => {
+  const readOnly = trace(traceProject({ card: { name: '01-qa-agent.md', opts: { files: 'none (read-only; write only reports/qa-final.md)', mode: 'final' } } }));
+  assert.equal(readOnly.status, 0, JSON.stringify(readOnly.json));
 });
 
 test('trace: 기획안의 요구 누락·원문 변형을 탐지', () => {

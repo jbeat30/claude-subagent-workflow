@@ -810,3 +810,59 @@ test('config: 보호 모드는 엄격 전환 경고와 함께 미리보기 후 �
   assert.equal(install(['verify', '--target', dir]).json.ok, true);
   assert.equal(install(['config', '--target', dir, '--set-protection', 'off']).status, 2);
 });
+
+// 역할 추가와 제거: 미리보기 뒤 --yes로만 적용, 공통 절은 기본 역할에서 복사, 도구 상한과 공통 절 변조는 verify가 잡음
+const roleBody = '# Role\n\nChange the C engine files the card assigns.\n\n# Call conditions\n\n- Called by the PM through a card when the confirmed plan assigns engine files.\n- Excluded: screens, server, tests.\n\n# Procedure\n\n1. Read the plan and request source from the card and compare them.\n2. Check memory ownership and undefined behavior.\n';
+function bodyFile(text = roleBody) {
+  const file = join(temp('role-body-'), 'body.md');
+  writeFileSync(file, text);
+  return file;
+}
+const addRoleArgs = (dir, extra = []) => ['add-role', '--target', dir, '--name', 'engine-agent', '--kind', 'writer', '--description', 'Use when C engine files must change.', '--body', bodyFile(), ...extra];
+
+test('add-role: 미리보기는 파일을 만들지 않고, --yes로 정의 파일과 등록 파일을 만들며 verify 통과', () => {
+  const { dir } = installFresh();
+  const preview = install(addRoleArgs(dir));
+  assert.equal(preview.status, 0, preview.stderr);
+  assert.equal(preview.json.dryRun, true);
+  assert.equal(existsSync(join(dir, '.claude', 'agents', 'engine-agent.md')), false);
+  assert.match(preview.json.preview.content, /## Common rules/);
+  assert.doesNotMatch(preview.json.preview.content, /Bash/);
+  const applied = install(addRoleArgs(dir, ['--yes']));
+  assert.equal(applied.json.ok, true);
+  const text = readFileSync(join(dir, '.claude', 'agents', 'engine-agent.md'), 'utf8');
+  const base = readFileSync(join(here, '..', 'template', '.claude', 'agents', 'backend-agent.md'), 'utf8').replace(/\r\n/g, '\n');
+  assert.ok(text.includes(base.slice(base.indexOf('## Common rules'))), '공통 절이 기본 writer와 같음');
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), 'utf8')).roles, [{ name: 'engine-agent', kind: 'writer' }]);
+  const verified = install(['verify', '--target', dir]);
+  assert.equal(verified.json.checks.find((c) => c.name === 'added role engine-agent').status, 'pass');
+});
+
+test('add-role: 기본 역할 이름, 공통 절을 직접 쓴 본문, 이미 있는 파일은 거부', () => {
+  const { dir } = installFresh();
+  assert.equal(install(['add-role', '--target', dir, '--name', 'qa-agent', '--kind', 'writer', '--description', 'Use when x.', '--body', bodyFile()]).status, 2);
+  assert.equal(install(['add-role', '--target', dir, '--name', 'x-agent', '--kind', 'lead', '--description', 'Use when x.', '--body', bodyFile()]).status, 2);
+  assert.equal(install(['add-role', '--target', dir, '--name', 'x-agent', '--kind', 'writer', '--description', 'Use when x.', '--body', bodyFile(`${roleBody}\n## Common rules\n\n- anything\n`)]).status, 2);
+  mkdirSync(join(dir, '.claude', 'agents'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'agents', 'engine-agent.md'), 'mine');
+  const clash = install(addRoleArgs(dir, ['--yes']));
+  assert.equal(clash.json.ok, false);
+  assert.equal(readFileSync(join(dir, '.claude', 'agents', 'engine-agent.md'), 'utf8'), 'mine');
+});
+
+test('verify: 추가 역할에 셸 도구를 넣거나 공통 절을 지우면 실패, remove-role은 백업 뒤 제거', () => {
+  const { dir } = installFresh();
+  install(addRoleArgs(dir, ['--yes']));
+  const file = join(dir, '.claude', 'agents', 'engine-agent.md');
+  const original = readFileSync(file, 'utf8');
+  writeFileSync(file, original.replace(/^tools: (.+)$/m, 'tools: $1, Bash'));
+  assert.equal(install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'added role engine-agent').status, 'fail');
+  writeFileSync(file, original.replace(/- Do not state unchecked content as fact\.[^\n]*\n/, ''));
+  assert.equal(install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'added role engine-agent').status, 'fail');
+  assert.equal(install(['remove-role', '--target', dir, '--name', 'engine-agent']).json.dryRun, true);
+  const removed = install(['remove-role', '--target', dir, '--name', 'engine-agent', '--yes']);
+  assert.equal(removed.json.ok, true);
+  assert.equal(existsSync(file), false);
+  assert.ok(removed.json.backup);
+  assert.equal(install(['remove-role', '--target', dir, '--name', 'backend-agent']).status, 1);
+});

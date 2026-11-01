@@ -7,12 +7,22 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkS
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { strictMode, verifyRegistration, verifyWrite } from '../subagent/bin/subagent-policy.mjs';
 import { isActive, readState, writeState } from '../subagent/bin/subagent-state.mjs';
+import { BUILTIN_ANALYSTS, BUILTIN_WRITERS, customRoles } from '../subagent/bin/subagent-roles.mjs';
 
 const DOCS = '.claude-subagent-docs';
-const WRITERS = ['frontend-agent', 'backend-agent', 'api-agent', 'test-agent'];
-const ANALYSTS = ['planner-agent', 'architecture-agent'];
+// 기본 역할에 사용자가 추가한 역할(roles.local.json)을 실행 시점에 더함(아래 addCustomRoles)
+const WRITERS = [...BUILTIN_WRITERS];
+const ANALYSTS = [...BUILTIN_ANALYSTS];
 const ROLES = ['pm-agent', 'planning-lead', 'dev-lead', ...ANALYSTS, ...WRITERS, 'qa-agent'];
 const SUBAGENT_ROLES = ROLES.filter((r) => r !== 'pm-agent');
+
+function addCustomRoles(root) {
+  for (const { name, kind } of customRoles(root)) {
+    (kind === 'writer' ? WRITERS : ANALYSTS).push(name);
+    ROLES.push(name);
+    SUBAGENT_ROLES.push(name);
+  }
+}
 // 서브에이전트 정의는 Agent 호출 대상 제한을 강제하지 않으므로 이 표로 검사
 const CALL_TARGETS = {
   'planning-lead': ['planner-agent', 'architecture-agent', 'qa-agent'],
@@ -323,6 +333,7 @@ function releaseLock(root, input) {
 try {
   const input = readInput();
   const root = projectRoot(input);
+  addCustomRoles(root);
   const tool = input.tool_name;
   if (input.hook_event_name === 'PreToolUse') {
     if (tool === 'Agent' || tool === 'Task') decideAgent(root, input);

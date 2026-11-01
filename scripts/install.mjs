@@ -9,11 +9,14 @@
 //   node install.mjs apply  --target <dir> --answers <file> --plan-hash <hash> [--on-conflict ...]
 //   node install.mjs verify --target <dir> [--live]
 //   node install.mjs remove --target <dir> [--yes]
+//   node install.mjs add-role --target <dir> --name <x-agent> --kind writer|analyst --description <text> --body <file> [--yes]
+//   node install.mjs remove-role --target <dir> --name <x-agent> [--yes]
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, unlinkSync, writeFileSync, rmdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CUSTOM_KINDS, KIND_TOOLS, ROLES_LOCAL, validRoleName } from '../template/.claude/subagent/bin/subagent-roles.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const templateRoot = join(repoRoot, 'template');
@@ -662,6 +665,14 @@ function verify(dir, options) {
   if (settings.value?.agent === 'pm-agent') add('settings agent', 'unverified', 'legacy agent=pm-agent pins every request to the PM; run the update to release it');
   const roles = ROLE_FILES.filter((r) => !existsSync(join(dir, '.claude', 'agents', `${r}.md`)));
   add('role files', roles.length ? 'fail' : 'pass', roles.length ? `missing ${roles.join(', ')}` : 'all 9 role files present');
+  // 사용자가 추가한 역할: 등록 파일의 항목마다 정의 파일, 도구 상한, 공통 절 확인
+  const added = existsSync(join(dir, ROLES_LOCAL)) ? readRolesLocal(dir).roles : [];
+  for (const r of added) {
+    const abs = join(dir, '.claude', 'agents', `${r.name}.md`);
+    const problems = !validRoleName(r.name) || !CUSTOM_KINDS.includes(r.kind) ? ['invalid name or kind in roles.local.json']
+      : !existsSync(abs) ? ['role file missing'] : checkRoleText(readFileSync(abs, 'utf8'), r.name, r.kind);
+    add(`added role ${r.name}`, problems.length ? 'fail' : 'pass', problems.length ? problems.join('; ') : `${r.kind}, shared rules and tool limit intact`);
+  }
   const claude = claudeStatus();
   add('claude version', claude.status === 'ok' ? 'pass' : claude.status === 'below' ? 'fail' : 'unverified', `${claude.version ?? 'unavailable'} (minimum ${MIN_CLAUDE})`);
   const canary = guardCanary(dir);
@@ -972,6 +983,103 @@ function config(dir, options) {
   return output({ ok: true, dryRun: false, changes, warnings, conflicts, next, backups: backedUp.length ? backupRel : null, note: mcpChanged ? 'start a new Claude Code session so the new MCP server is loaded; Claude asks to approve project MCP servers on first use' : undefined });
 }
 
+// ---------- 역할 추가와 제거 ----------
+// 사용자 역할은 사용자 소유 파일(roles.local.json, .claude/agents/<name>.md)로 두어 설치와 갱신이 덮어쓰지 않음
+// 공통 규칙, 권한, 보고 절은 기본 역할 파일에서 그대로 붙여 추가 역할이 빠뜨리거나 약화하지 못하게 함
+
+const ROLE_BASE = { writer: 'backend-agent', analyst: 'architecture-agent' };
+const RESERVED_SECTIONS = ['Required input', 'Authority and stopping', 'Common rules', 'Report saving', 'Report format'];
+
+// 마크다운 본문을 `#`, `##` 제목 단위로 나눔
+function sections(body) {
+  const out = [];
+  for (const line of body.replace(/\r\n/g, '\n').split('\n')) {
+    const m = line.match(/^(#{1,2}) (.+)$/);
+    if (m) out.push({ title: m[2].trim(), lines: [line] });
+    else if (out.length) out[out.length - 1].lines.push(line);
+  }
+  return out;
+}
+
+function inheritedSections(kind) {
+  const text = readFileSync(join(templateRoot, '.claude', 'agents', `${ROLE_BASE[kind]}.md`), 'utf8');
+  const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  return sections(body).filter((s) => RESERVED_SECTIONS.includes(s.title)).map((s) => s.lines.join('\n').trimEnd()).join('\n\n');
+}
+
+function composeRole({ name, kind, description, body }) {
+  const tools = KIND_TOOLS[kind].join(', ');
+  const own = body.replace(/\r\n/g, '\n').trim();
+  return `---\nname: ${name}\ndescription: ${description}\ntools: ${tools}\nmodel: sonnet\n---\n\n${own}\n\n${inheritedSections(kind)}\n`;
+}
+
+// 추가 역할 파일 검사: 이름, 도구 상한, 공통 절이 기본 역할과 같은지
+function checkRoleText(text, name, kind) {
+  const problems = [];
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+  if (!fm) return ['frontmatter missing'];
+  const field = (k) => fm[1].match(new RegExp(`^${k}:\\s*(.+)$`, 'm'))?.[1]?.trim();
+  if (field('name') !== name) problems.push(`name must be ${name}`);
+  if (!field('description')) problems.push('description missing');
+  const tools = (field('tools') ?? '').split(',').map((t) => t.trim()).filter(Boolean);
+  const extra = tools.filter((t) => !KIND_TOOLS[kind].includes(t));
+  if (extra.length) problems.push(`tools beyond the ${kind} limit: ${extra.join(', ')}`);
+  const normalized = text.replace(/\r\n/g, '\n');
+  if (!normalized.includes(inheritedSections(kind))) problems.push(`the inherited sections (${RESERVED_SECTIONS.join(', ')}) differ from ${ROLE_BASE[kind]}; regenerate the role with add-role`);
+  return problems;
+}
+
+function readRolesLocal(dir) {
+  const file = join(dir, ROLES_LOCAL);
+  if (!existsSync(file)) return { roles: [] };
+  const parsed = readJson(file);
+  if (parsed.error) fail(`${ROLES_LOCAL} JSON cannot be parsed: ${parsed.error}`, 1);
+  return { roles: Array.isArray(parsed.value?.roles) ? parsed.value.roles : [] };
+}
+
+function addRole(dir, options) {
+  if (!existsSync(join(dir, MANIFEST_PATH))) fail('the workflow is not installed here; run /subagent-workflow:setup first', 1);
+  const name = options.name;
+  const kind = options.kind;
+  const description = typeof options.description === 'string' ? options.description.trim() : '';
+  if (!validRoleName(name)) fail('--name must be lowercase, end with -agent, and not be a built-in role (for example game-engine-agent)');
+  if (!CUSTOM_KINDS.includes(kind)) fail(`--kind must be ${CUSTOM_KINDS.join(' or ')}`);
+  if (!description || /[\r\n]/.test(description)) fail('--description is required, one line, in English, starting with "Use when"');
+  if (typeof options.body !== 'string' || !existsSync(options.body)) fail('--body <file> with the role sections (# Role, # Call conditions, # Procedure) is required');
+  const body = readFileSync(options.body, 'utf8');
+  const titles = sections(body).map((s) => s.title);
+  const missing = ['Role', 'Call conditions', 'Procedure'].filter((t) => !titles.includes(t));
+  if (missing.length) fail(`the body needs these sections: ${missing.join(', ')}`);
+  const reserved = titles.filter((t) => RESERVED_SECTIONS.includes(t));
+  if (reserved.length) fail(`do not write ${reserved.join(', ')}; they are copied from ${ROLE_BASE[kind]} so the shared rules stay the same`);
+  const rel = `.claude/agents/${name}.md`;
+  const conflicts = existsSync(join(dir, rel)) ? [{ item: rel, reason: 'a file with this name already exists; choose another name or remove it first' }] : [];
+  const local = readRolesLocal(dir);
+  const content = composeRole({ name, kind, description, body });
+  const problems = checkRoleText(content, name, kind);
+  if (problems.length) fail(problems.join('; '), 1);
+  const next = { roles: [...local.roles.filter((r) => r.name !== name), { name, kind }] };
+  const preview = { file: rel, kind, tools: KIND_TOOLS[kind], registry: ROLES_LOCAL, content };
+  if (conflicts.length || options.yes !== true) return output({ ok: conflicts.length === 0, dryRun: true, conflicts, preview });
+  writeFile(dir, rel, content);
+  writeFile(dir, ROLES_LOCAL, `${JSON.stringify(next, null, 2)}\n`);
+  return output({ ok: true, dryRun: false, added: { name, kind, file: rel }, note: 'start a new Claude Code session if the role does not appear in /agents; the PM can call it in Lite mode and in Full relay mode' });
+}
+
+function removeRole(dir, options) {
+  const name = options.name;
+  const local = readRolesLocal(dir);
+  if (!local.roles.some((r) => r.name === name)) fail(`${name} is not an added role in ${ROLES_LOCAL}; built-in roles are removed only with the setup remove`, 1);
+  const rel = `.claude/agents/${name}.md`;
+  if (options.yes !== true) return output({ ok: true, dryRun: true, remove: [rel], registry: ROLES_LOCAL });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupRel = `${DOCS_DIR}/backups/${stamp}`;
+  const saved = backup(dir, join(dir, backupRel), rel);
+  if (existsSync(join(dir, rel))) unlinkSync(join(dir, rel));
+  writeFile(dir, ROLES_LOCAL, `${JSON.stringify({ roles: local.roles.filter((r) => r.name !== name) }, null, 2)}\n`);
+  return output({ ok: true, dryRun: false, removed: name, backup: saved ? backupRel : null });
+}
+
 // ---------- 진입 ----------
 
 const { command, options } = parseArgs(process.argv.slice(2));
@@ -985,4 +1093,6 @@ else if (command === 'plan') {
 else if (command === 'verify') verify(dir, options);
 else if (command === 'remove') remove(dir, options);
 else if (command === 'config') config(dir, options);
+else if (command === 'add-role') addRole(dir, options);
+else if (command === 'remove-role') removeRole(dir, options);
 else fail(`unknown command: ${command}`);

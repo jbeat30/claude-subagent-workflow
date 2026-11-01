@@ -260,3 +260,38 @@ test('L2 기획은 architecture-agent 보고 없이도 개발 호출 허용', ()
   writeFileSync(planPath, readFileSync(planPath, 'utf8').replace('- Status: confirmed', '- Risk: L2\n- Status: confirmed'));
   assert.equal(call(dir, 'pm-agent', 'backend-agent').allowed, true);
 });
+
+// 사용자가 추가한 역할: roles.local.json에 등록되고 정의 파일이 있어야 워크플로 역할로 인정
+function withCustomRoles(dir, roles) {
+  mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+  mkdirSync(join(dir, '.claude', 'agents'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), JSON.stringify({ roles }));
+  for (const r of roles) writeFileSync(join(dir, '.claude', 'agents', `${r.name}.md`), `---\nname: ${r.name}\n---\n`);
+  return dir;
+}
+
+test('추가 역할 writer: 기본 쓰기 역할과 같은 잠금, confirmed, 배정 파일 규칙', () => {
+  const dir = withCustomRoles(project({ rows: [['src/engine.c', 'engine-agent'], ['src/a.js', 'backend-agent']] }), [{ name: 'engine-agent', kind: 'writer' }]);
+  assert.equal(write(dir, 'engine-agent', 'src/engine.c').allowed, false, '잠금 없음');
+  assert.equal(call(dir, 'pm-agent', 'engine-agent').allowed, true);
+  assert.equal(write(dir, 'engine-agent', 'src/engine.c').allowed, true);
+  assert.equal(write(dir, 'engine-agent', 'src/a.js').allowed, false, '다른 역할 배정');
+  assert.equal(write(dir, 'engine-agent', reports('engine-agent-01.md')).allowed, true, '자신의 보고');
+  assert.equal(write(dir, 'engine-agent', '.claude/agents/engine-agent.md').allowed, false, '자기 정의 파일은 보호');
+});
+
+test('추가 역할 analyst: 자기 보고서만 쓰기, 개발 호출 조건 없이 호출 가능', () => {
+  const dir = withCustomRoles(project({ status: 'draft' }), [{ name: 'perf-agent', kind: 'analyst' }]);
+  assert.equal(call(dir, 'pm-agent', 'perf-agent').allowed, true);
+  assert.equal(write(dir, 'perf-agent', reports('perf-agent-01.md')).allowed, true);
+  assert.equal(write(dir, 'perf-agent', 'src/a.js').allowed, false);
+});
+
+test('추가 역할 등록이 잘못되면 워크플로 역할로 인정하지 않음(기본 역할 이름, 잘못된 종류, 정의 파일 없음)', () => {
+  const dir = withCustomRoles(project(), [{ name: 'qa-agent', kind: 'writer' }, { name: 'lead-agent', kind: 'lead' }]);
+  writeFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), JSON.stringify({ roles: [{ name: 'qa-agent', kind: 'writer' }, { name: 'lead-agent', kind: 'lead' }, { name: 'ghost-agent', kind: 'writer' }] }));
+  assert.equal(write(dir, 'qa-agent', 'src/a.js').allowed, false, '기본 qa는 여전히 보고서만');
+  // 인정되지 않은 이름은 권고 모드에서 이 워크플로 밖 에이전트로 취급(호출에 간섭하지 않음)
+  assert.equal(call(dir, 'pm-agent', 'ghost-agent', 'no run id').allowed, true);
+  assert.equal(call(dir, 'pm-agent', 'lead-agent', 'no run id').allowed, true);
+});

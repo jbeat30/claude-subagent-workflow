@@ -8,7 +8,7 @@ const repo = process.argv[2];
 const prompt1 = process.argv[3];
 const answer = process.argv[4];
 const out = process.argv[5];
-const CLAUDE = 'C:/Users/light/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/bin/claude.exe';
+const CLAUDE = 'C:/Users/<user>/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/bin/claude.exe';
 
 const work = realpathSync.native(mkdtempSync(join(tmpdir(), 'qcheck-')));
 cpSync(join(repo, 'tools/eval/hard/fixture'), work, { recursive: true });

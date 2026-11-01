@@ -6,8 +6,9 @@
 | 층 | 명령 | 비용 | CI | 확인하는 것 |
 | --- | --- | --- | --- | --- |
 | 정적 검사·단위 테스트 | `npm test` | 없음 | 실행 | 배포 원본 구조, 역할 정의 규칙, 검사 실행기·가드·설치 스크립트의 동작 |
-| 실제 Claude 측정(소규모) | `node tools/eval/run-eval.mjs` | 사용 한도·비용 발생 | 미실행 | 위임·가드·보고 등 실제 행동, 비용·시간·토큰 |
-| 실제 Claude 측정(어려운 과제) | `node tools/eval/hard/run.mjs` | 사용 한도·비용 발생 | 미실행 | 놓친 요구, 깨진 호출처, 범위 이탈, 허위 성공, 주입 수용을 코드로 채점 |
+| 실제 Claude 측정(소규모) | `node tools/eval/run-eval.mjs` | 비용 발생 | 미실행 | 위임·가드·보고 등 실제 행동, 비용·시간·토큰 |
+| 실제 Claude 측정(어려운 과제) | `node tools/eval/hard/run.mjs` | 비용 발생 | 미실행 | 놓친 요구, 깨진 호출처, 범위 이탈, 허위 성공, 주입 수용을 코드로 채점 |
+| 실제 Claude 측정(질문 정책) | `node tools/eval/hard/question-check.mjs` | 비용 발생 | 미실행 | 모호하거나 위험하거나 위임된 요청에서 PM이 묻는 방식과 끝내는 방식 |
 
 ## 1. 정적 검사·단위 테스트
 
@@ -92,16 +93,16 @@ node tools/eval/report.mjs docs/verification/data/small-fixture docs/verificatio
 
 ### 비용 예산
 
-- 호출 수 × 호출당 상한(`BUDGET`)이 최대 지출, 시작 전에 계산해 승인
+- 호출 수 × 호출당 상한(`BUDGET`)이 최대 지출
 - 직접 처리는 호출당 0.1~0.2달러, 워크플로 조건 L2·L3는 호출당 1~2달러 수준이 나왔음(환산 값)
-- 구독 로그인이면 표시 비용은 청구액이 아닌 환산 값이며 사용 한도를 소모
+- 표시 비용은 청구액이 아닌 환산 값
 
 ### 결과 기록
 
 결과를 공개할 때 아래를 함께 기재
 
-- 무엇을 재는지, 조건, 과제, 반복 횟수, 모델, 호출당 상한, 측정일, 대상 커밋, Claude Code 버전
-- 실패·중단 사례(결과에서 제외한 실행 포함)와 원본 JSON 위치
+- 무엇을 재는지, 조건, 과제, 반복 횟수, 모델, 호출당 상한, Claude Code 버전
+- 실패·중단 사례(결과에서 제외한 실행 수 포함)와 원본 JSON 위치
 - 확인하지 못한 것: 과제당 1회는 변동 범위를 알 수 없고 통계적 비교가 아님
 
 기록은 릴리즈 버전이 아니라 시험 종류별로 `results/`에 모으고, 같은 시험을 다시 하면 새 회차를 같은 문서에 추가, 목록은 [검증 기록 목차](README.md)
@@ -116,7 +117,7 @@ node tools/eval/report.mjs docs/verification/data/small-fixture docs/verificatio
 ## 4. 어려운 과제 평가
 
 직접 처리·Lite·Full을 같은 과제·같은 격리 조건에서 실행하고 코드로 채점, 선택 사항이며 PR 요건이 아님
-설계와 성공 기준은 [평가 설계](EVAL_DESIGN.md)에 실행 전에 고정, 결과에 맞춰 바꾸지 않고 바꾸면 변경 이력을 남김
+설계와 성공 기준은 [평가 설계](EVAL_DESIGN.md)에 있고 결과에 맞춰 바꾸지 않음
 
 ```sh
 REPO=<저장소 절대 경로> BUDGET=2 CLAUDE_BIN=<claude 실행 파일> node tools/eval/hard/run.mjs <direct|lite|full> <s1|s2|x1|m1|m2|m3|l1|l2> <반복 번호> <출력 폴더>
@@ -128,6 +129,19 @@ node tools/eval/hard/aggregate.mjs <출력 폴더> > results.json
 - Windows에서 npm으로 설치한 Claude Code는 `claude`가 셸 스크립트라 `run.mjs`가 직접 실행하지 못하고 모델이 호출되지 않은 채 끝남, `CLAUDE_BIN`에 `claude.exe`의 실제 경로(npm 전역 폴더 아래 `node_modules/@anthropic-ai/claude-code/bin/claude.exe`)를 지정
 - 여러 Claude Code가 설치돼 있으면 `CLAUDE_BIN`과 PATH 앞쪽 실행 파일이 같은 버전인지 확인, 결과 JSON에 실행한 버전이 기록됨
 - 사용 한도에 걸리면 `run.mjs`가 기록 없이 종료 코드 3으로 끝나므로 배치는 그 시점에 멈추고 풀린 뒤 이어서 실행
-- 호출 수 × `BUDGET`이 최대 지출, 시작 전에 계산해 승인
+- 호출 수 × `BUDGET`이 최대 지출
 
 결과 기록: [어려운 과제 비교](results/hard-task-comparison.md)
+
+## 5. 질문 정책 평가
+
+`/subagent` 요청이 모호하거나 위험하거나 분명하거나 위임될 때 PM이 어떻게 묻고 끝내는지를 시나리오별로 확인, 선택 사항이며 PR 요건이 아님
+요청(1턴)을 보내고 질문이 나오면 정해진 답변(2턴)을 같은 세션에 이어서 보내며, 판정 기준은 [질문 정책 점검](results/question-policy.md)에 있음
+
+```sh
+REPO=<저장소 절대 경로> BUDGET=1.5 CLAUDE_BIN=<claude 실행 파일> node tools/eval/hard/question-check.mjs <s1|s2|s3|s4|s5> <반복 번호> <출력 폴더>
+```
+
+- 결과 JSON에 1턴과 2턴 응답 원문, 소스 변경, 정책 유입 여부, 내부 용어와 고정 문구 판별, 기존 테스트 약화 줄, 실행 기록 점검(`verify`, `trace`), S1·S4·S5의 주문 합계 확인값이 저장됨
+- 사람이 읽고 판정하는 항목은 응답 원문으로 판정
+- 사용 한도 응답을 받으면 결과를 저장하지 않고 종료 코드 3으로 끝남

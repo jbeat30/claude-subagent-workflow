@@ -39,6 +39,6 @@
     "requirements": 4,
     "npmTestPass": true
   },
-  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\evalhard-lite-m2-r1-wdNPjw",
+  "workdir": "<temp>\\evalhard-lite-m2-r1-wdNPjw",
   "stderr": ""
 }

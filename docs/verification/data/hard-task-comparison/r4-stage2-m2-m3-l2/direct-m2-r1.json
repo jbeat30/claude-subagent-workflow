@@ -36,6 +36,6 @@
     "requirements": 4,
     "npmTestPass": true
   },
-  "workdir": "C:\\Users\\light\\AppData\\Local\\Temp\\evalhard-direct-m2-r1-tT7HRf",
+  "workdir": "<temp>\\evalhard-direct-m2-r1-tT7HRf",
   "stderr": ""
 }

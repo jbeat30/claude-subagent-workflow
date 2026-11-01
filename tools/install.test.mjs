@@ -9,7 +9,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const script = join(here, '..', 'scripts', 'install.mjs');
+const script = join(here, '..', 'skills', 'setup', 'scripts', 'install.mjs');
 const fakeClaude = join(realpathSync(mkdtempSync(join(tmpdir(), 'fake-claude-'))), 'claude.mjs');
 writeFileSync(fakeClaude, "console.log(process.env.FAKE_CLAUDE_VERSION ?? '2.1.302 (Claude Code)');\n");
 
@@ -91,19 +91,12 @@ test('plan은 결정적이고 apply는 plan 해시가 맞을 때만 적용', () 
   assert.equal(changed.status, 1, '답변이 바뀌면 거부');
 });
 
-test('신규 설치: 파일·settings·MCP·gitignore·프로필·매니페스트 생성 후 verify 통과', () => {
+test('신규 설치: 프로젝트에는 프로필, 매니페스트, MCP, gitignore만 만들고 역할, 스킬, 가드는 복사하지 않음', () => {
   const { dir, applied } = installFresh();
   assert.equal(applied.json.ok, true, applied.stderr);
-  for (const role of ['planning-lead', 'dev-lead', 'qa-agent']) assert.ok(existsSync(join(dir, '.claude', 'agents', `${role}.md`)));
-  assert.ok(existsSync(join(dir, '.claude', 'skills', 'subagent', 'SKILL.md')), 'PM은 /subagent 스킬');
-  assert.equal(existsSync(join(dir, '.claude', 'agents', 'pm-agent.md')), false, 'PM은 서브에이전트로 설치하지 않음');
-  assert.ok(existsSync(join(dir, '.claude', 'hooks', 'subagent-guard.mjs')));
-  assert.ok(existsSync(join(dir, '.claude', 'subagent', 'bin', 'subagent-check.mjs')));
-  assert.equal(existsSync(join(dir, '.claude', 'subagent', 'profile.template.md')), false);
-  assert.equal(existsSync(join(dir, '.claude', 'settings.fragment.json')), false);
-  const settings = JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8'));
-  assert.equal(settings.agent, undefined, '메인 세션을 PM으로 고정하지 않음');
-  assert.ok(settings.hooks.PreToolUse[0].hooks[0].command.includes('subagent-guard.mjs'));
+  for (const p of ['.claude/agents', '.claude/skills', '.claude/hooks', '.claude/subagent/bin', '.claude/settings.json']) {
+    assert.equal(existsSync(join(dir, p)), false, `${p}는 플러그인이 제공하므로 만들지 않음`);
+  }
   assert.equal(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers.context7.command, 'npx');
   assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /\.claude-subagent-docs\//);
   const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
@@ -111,11 +104,16 @@ test('신규 설치: 파일·settings·MCP·gitignore·프로필·매니페스�
   assert.match(profile, /Execution mode: relay/);
   assert.match(profile, /`npm test`/);
   assert.match(profile, /dist\//);
+  assert.match(profile, /built-in roles come from the plugin/);
+  const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8'));
+  assert.deepEqual(manifest.files.map((f) => f.path), ['.claude/subagent/profile.md']);
   const verified = install(['verify', '--target', dir]);
   assert.equal(verified.json.ok, true, JSON.stringify(verified.json));
   const status = Object.fromEntries(verified.json.checks.map((c) => [c.name, c.status]));
   assert.equal(status['guard canary'], 'pass');
-  assert.equal(status['guard live'], 'unverified', 'live 확인 전에는 미확인');
+  assert.equal(status['plugin roles'], 'pass');
+  assert.equal(status['settings hooks'], 'pass');
+  assert.equal(status['guard live'], 'unverified', '실제 Claude에서 발동했는지는 미확인');
 });
 
 test('재적용은 변경 없음(멱등)', () => {
@@ -128,89 +126,97 @@ test('재적용은 변경 없음(멱등)', () => {
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
 });
 
-test('기존 다른 파일과 충돌하면 결정을 요구하고 skip·백업 교체를 지원', () => {
-  const dir = project({ '.claude/agents/planner-agent.md': '내 기획 에이전트\n' });
+test('기존 프로필과 다르면 결정을 요구하고 skip, 백업 교체를 지원', () => {
+  const dir = project({ '.claude/subagent/profile.md': '내 프로필\n' });
   const file = answersFile();
   const plan = install(planArgs(dir, file));
   assert.equal(plan.json.ok, false);
-  assert.equal(plan.json.conflicts[0].item, '.claude/agents/planner-agent.md');
+  assert.equal(plan.json.conflicts[0].item, '.claude/subagent/profile.md');
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).status, 1, '충돌 방식 없이는 거부');
-
   const skipPlan = install(planArgs(dir, file, ['--on-conflict', 'skip']));
   const skipped = install(applyArgs(dir, file, skipPlan.json.hash, ['--on-conflict', 'skip']));
   assert.equal(skipped.json.ok, true);
-  assert.equal(readFileSync(join(dir, '.claude', 'agents', 'planner-agent.md'), 'utf8'), '내 기획 에이전트\n');
-  assert.equal(skipped.json.skipped[0].path, '.claude/agents/planner-agent.md');
-
-  const dir2 = project({ '.claude/agents/planner-agent.md': '내 기획 에이전트\n' });
+  assert.equal(readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8'), '내 프로필\n');
+  const dir2 = project({ '.claude/subagent/profile.md': '내 프로필\n' });
   const replacePlan = install(planArgs(dir2, file, ['--on-conflict', 'replace-with-backup']));
   const replaced = install(applyArgs(dir2, file, replacePlan.json.hash, ['--on-conflict', 'replace-with-backup']));
-  assert.match(readFileSync(join(dir2, '.claude', 'agents', 'planner-agent.md'), 'utf8'), /name: planner-agent/);
-  assert.equal(readFileSync(join(dir2, replaced.json.backups, '.claude', 'agents', 'planner-agent.md'), 'utf8'), '내 기획 에이전트\n');
+  assert.match(readFileSync(join(dir2, '.claude', 'subagent', 'profile.md'), 'utf8'), /# Project profile/);
+  assert.equal(readFileSync(join(dir2, replaced.json.backups, '.claude', 'subagent', 'profile.md'), 'utf8'), '내 프로필\n');
 });
 
-test('기존 settings: 사용자 hook·agent 설정은 건드리지 않고, 제거 시 사용자 항목 유지', () => {
+test('기존 settings: 사용자 hook, agent 설정은 그대로 두고 settings 파일을 만들거나 바꾸지 않음', () => {
   const userSettings = { agent: 'my-agent', permissions: { allow: ['Bash(ls)'] }, hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'echo user' }] }] } };
   const dir = project({ '.claude/settings.json': userSettings });
   const file = answersFile();
   const plan = install(planArgs(dir, file));
-  assert.equal(plan.json.conflicts.some((c) => c.item === 'settings.agent'), false, 'agent 설정은 충돌 대상이 아님');
+  assert.equal(plan.json.settings.action, 'unchanged');
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
-  const merged = JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8'));
-  assert.equal(merged.agent, 'my-agent');
-  assert.deepEqual(merged.permissions, userSettings.permissions);
-  assert.equal(merged.hooks.PreToolUse.length, 2);
-  const verified = install(['verify', '--target', dir]);
-  assert.equal(verified.json.checks.some((c) => c.name === 'settings agent'), false);
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8')), userSettings);
   assert.equal(install(['remove', '--target', dir, '--yes']).json.ok, true);
-  const after = JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8'));
-  assert.deepEqual(after, userSettings);
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, '.claude', 'settings.json'), 'utf8')), userSettings);
 });
 
-// v0.2.x 설치 상태를 재현: PM 에이전트 파일과 settings.agent 기록을 매니페스트에 남김
-function legacyInstall(agentRecord, settingsAgent) {
+// v0.5.x 설치 상태를 재현: 프로젝트에 복사한 역할, 가드, PM 스킬과 settings의 가드 hook, 매니페스트 기록
+const LEGACY_HOOK = 'node .claude/hooks/subagent-guard.mjs';
+function legacyInstall(agentRecord = { action: 'none', previous: null }, settingsAgent) {
   const { dir, file } = installFresh();
   const manifestPath = join(dir, '.claude', 'subagent', 'manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  const body = '구 PM 에이전트\n';
-  writeFileSync(join(dir, '.claude', 'agents', 'pm-agent.md'), body);
-  manifest.files.push({ path: '.claude/agents/pm-agent.md', sha256: createHash('sha256').update(body).digest('hex') });
-  manifest.settings.agent = agentRecord;
+  const copied = { '.claude/agents/qa-agent.md': 'old qa\n', '.claude/hooks/subagent-guard.mjs': 'old guard\n', '.claude/skills/subagent/SKILL.md': 'old pm\n', '.claude/agents/pm-agent.md': 'old v0.2 pm\n' };
+  for (const [p, body] of Object.entries(copied)) {
+    mkdirSync(dirname(join(dir, p)), { recursive: true });
+    writeFileSync(join(dir, p), body);
+    manifest.files.push({ path: p, sha256: createHash('sha256').update(body).digest('hex') });
+  }
+  manifest.templateVersion = '0.5.0';
+  manifest.settings = { hooks: [{ event: 'PreToolUse', matcher: 'Write|Edit|MultiEdit|NotebookEdit|Agent|Task', command: LEGACY_HOOK }], agent: agentRecord };
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   const settingsPath = join(dir, '.claude', 'settings.json');
-  const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
-  settings.agent = settingsAgent;
+  const settings = { permissions: { allow: ['Bash(ls)'] }, hooks: { PreToolUse: [{ matcher: 'Write|Edit|MultiEdit|NotebookEdit|Agent|Task', hooks: [{ type: 'command', command: LEGACY_HOOK, onFailure: 'block' }] }, { matcher: 'Bash', hooks: [{ type: 'command', command: 'echo user' }] }] } };
+  if (settingsAgent !== undefined) settings.agent = settingsAgent;
   writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   return { dir, file, manifestPath, settingsPath };
 }
 
-test('갱신: v0.2.x가 설정한 agent=pm-agent를 해제하고 PM 에이전트 파일을 삭제', () => {
-  const { dir, file, manifestPath, settingsPath } = legacyInstall({ action: 'set', previous: null }, 'pm-agent');
+test('갱신: v0.5.x가 복사한 파일과 settings의 가드 hook을 정리하고 사용자 hook은 보존', () => {
+  const { dir, file, manifestPath, settingsPath } = legacyInstall();
+  assert.equal(install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'settings hooks').status, 'update');
   const plan = install(planArgs(dir, file));
   assert.equal(plan.json.ok, true, JSON.stringify(plan.json.conflicts));
+  assert.equal(plan.json.settings.removedHooks.length, 1);
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
-  assert.equal(JSON.parse(readFileSync(settingsPath, 'utf8')).agent, undefined);
-  assert.equal(existsSync(join(dir, '.claude', 'agents', 'pm-agent.md')), false);
-  assert.equal(JSON.parse(readFileSync(manifestPath, 'utf8')).files.some((f) => f.path.endsWith('pm-agent.md')), false);
-  assert.equal(JSON.parse(readFileSync(manifestPath, 'utf8')).settings.agent.action, 'none');
+  for (const p of ['.claude/agents/qa-agent.md', '.claude/hooks/subagent-guard.mjs', '.claude/skills/subagent/SKILL.md', '.claude/agents/pm-agent.md']) {
+    assert.equal(existsSync(join(dir, p)), false, p);
+  }
+  const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
+  assert.deepEqual(settings.hooks, { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'echo user' }] }] });
+  assert.deepEqual(settings.permissions, { allow: ['Bash(ls)'] });
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  assert.deepEqual(manifest.files.map((f) => f.path), ['.claude/subagent/profile.md']);
+  assert.equal(manifest.templateVersion, '0.6.0');
+  assert.equal(install(['verify', '--target', dir]).json.ok, true);
 });
 
-test('갱신: agent를 replace했던 설치는 원래 사용자 agent로 복원', () => {
-  const { dir, file, settingsPath } = legacyInstall({ action: 'replaced', previous: 'my-agent' }, 'pm-agent');
-  const plan = install(planArgs(dir, file));
-  install(applyArgs(dir, file, plan.json.hash));
-  assert.equal(JSON.parse(readFileSync(settingsPath, 'utf8')).agent, 'my-agent');
-});
-
-test('갱신: 사용자가 직접 바꾼 agent 설정과 수정한 PM 에이전트 파일은 보존', () => {
-  const { dir, file, settingsPath } = legacyInstall({ action: 'set', previous: null }, 'my-own');
-  writeFileSync(join(dir, '.claude', 'agents', 'pm-agent.md'), '사용자가 고친 PM\n');
+test('갱신: 사용자가 고친 옛 복사 파일은 지우지 않고 알림', () => {
+  const { dir, file } = legacyInstall();
+  writeFileSync(join(dir, '.claude', 'agents', 'qa-agent.md'), '사용자가 고친 qa\n');
   const plan = install(planArgs(dir, file));
   const applied = install(applyArgs(dir, file, plan.json.hash));
   assert.equal(applied.json.ok, true);
-  assert.equal(JSON.parse(readFileSync(settingsPath, 'utf8')).agent, 'my-own');
-  assert.equal(readFileSync(join(dir, '.claude', 'agents', 'pm-agent.md'), 'utf8'), '사용자가 고친 PM\n');
-  assert.ok(applied.json.skipped.some((s) => s.path === '.claude/agents/pm-agent.md'));
+  assert.equal(readFileSync(join(dir, '.claude', 'agents', 'qa-agent.md'), 'utf8'), '사용자가 고친 qa\n');
+  assert.ok(applied.json.skipped.some((s) => s.path === '.claude/agents/qa-agent.md'));
+});
+
+test('갱신: v0.2.x가 설정한 agent=pm-agent를 해제하고, replace했던 설치는 원래 agent로 복원', () => {
+  const set = legacyInstall({ action: 'set', previous: null }, 'pm-agent');
+  install(applyArgs(set.dir, set.file, install(planArgs(set.dir, set.file)).json.hash));
+  assert.equal(JSON.parse(readFileSync(set.settingsPath, 'utf8')).agent, undefined);
+  const replaced = legacyInstall({ action: 'replaced', previous: 'my-agent' }, 'pm-agent');
+  install(applyArgs(replaced.dir, replaced.file, install(planArgs(replaced.dir, replaced.file)).json.hash));
+  assert.equal(JSON.parse(readFileSync(replaced.settingsPath, 'utf8')).agent, 'my-agent');
+  const own = legacyInstall({ action: 'set', previous: null }, 'my-own');
+  install(applyArgs(own.dir, own.file, install(planArgs(own.dir, own.file)).json.hash));
+  assert.equal(JSON.parse(readFileSync(own.settingsPath, 'utf8')).agent, 'my-own', '사용자가 바꾼 agent는 보존');
 });
 
 test('해석할 수 없는 settings.json은 진행 불가', () => {
@@ -237,26 +243,22 @@ test('제거: 기본은 dry-run, 설치한 항목만 제거하고 사용자 수�
   writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), '사용자가 고친 프로필\n');
   const dry = install(['remove', '--target', dir]);
   assert.equal(dry.json.dryRun, true);
-  assert.ok(existsSync(join(dir, '.claude', 'skills', 'subagent', 'SKILL.md')));
+  assert.ok(existsSync(join(dir, '.claude', 'subagent', 'manifest.json')));
   const real = install(['remove', '--target', dir, '--yes']);
   assert.equal(real.json.ok, true);
   assert.deepEqual(real.json.kept.map((k) => k.path), ['.claude/subagent/profile.md']);
-  assert.equal(existsSync(join(dir, '.claude', 'agents')), false);
-  assert.equal(existsSync(join(dir, '.claude', 'skills')), false);
-  assert.equal(existsSync(join(dir, '.claude', 'hooks')), false);
   assert.equal(readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8'), '사용자가 고친 프로필\n');
-  assert.equal(existsSync(join(dir, '.claude', 'settings.json')), false, '우리가 만든 settings는 삭제');
   assert.equal(existsSync(join(dir, '.mcp.json')), false);
   assert.equal(readFileSync(join(dir, '.gitignore'), 'utf8').trim(), 'node_modules/');
   assert.equal(existsSync(join(dir, '.claude', 'subagent', 'manifest.json')), false);
 });
 
-test('verify는 수정·삭제를 탐지', () => {
+test('verify는 프로필 수정과 삭제를 탐지', () => {
   const { dir } = installFresh();
-  writeFileSync(join(dir, '.claude', 'agents', 'qa-agent.md'), '변조\n');
+  writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), '변조\n');
   const modified = install(['verify', '--target', dir]);
   assert.equal(modified.json.ok, false);
-  assert.match(modified.json.checks.find((c) => c.name === 'files').detail, /qa-agent\.md\(modified\)/);
+  assert.match(modified.json.checks.find((c) => c.name === 'files').detail, /profile\.md\(modified\)/);
 });
 
 test('잘못된 answers는 거부하고 매니페스트 없는 verify·remove는 실패', () => {
@@ -290,9 +292,8 @@ test('PDCA 생략 시 off로 계획·설치', () => {
 test('엄격 모드 설치는 승인 기록을 만들지 않고 실제 점검은 미확인으로 유지', () => {
   const { dir } = installFresh({}, { guardMode: 'strict' });
   assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Protection mode: strict/);
-  assert.equal(existsSync(join(dir, '.claude/subagent/bin/subagent-approval.mjs')), true);
   assert.equal(existsSync(join(dir, '.claude-subagent-docs/.guard/grant.json')), false);
-  const result = install(['verify', '--target', dir, '--live']);
+  const result = install(['verify', '--target', dir]);
   assert.equal(result.json.ok, true, JSON.stringify(result.json));
   const checks = Object.fromEntries(result.json.checks.map((c) => [c.name, c.status]));
   assert.equal(checks['guard canary'], 'pass');
@@ -305,21 +306,6 @@ test('잘못된 보호 모드 입력은 설치 계획 전에 거부', () => {
   const file = answersFile({ guardMode: 'unknown' });
   assert.equal(install(planArgs(dir, file)).status, 2);
   assert.deepEqual(readdirSync(dir), []);
-});
-
-test('verify --live의 Claude 호출은 설치 대상 폴더에서 실행', () => {
-  const { dir } = installFresh();
-  const tempDir = temp('live-cwd-');
-  const fake = join(tempDir, 'claude.mjs');
-  const marker = join(tempDir, 'cwd.txt');
-  writeFileSync(fake, [
-    "import { writeFileSync } from 'node:fs';",
-    "if (process.argv.includes('--version')) console.log('2.1.302');",
-    "else { writeFileSync(process.env.CAPTURE_CWD, process.cwd()); console.log(JSON.stringify({ result: 'subagent-guard: refused' })); }",
-  ].join('\n'));
-  const result = install(['verify', '--target', dir, '--live'], { SUBAGENT_CLAUDE_BIN: '"' + process.execPath + '" "' + fake + '"', CAPTURE_CWD: marker });
-  assert.equal(result.json.ok, true, JSON.stringify(result.json));
-  assert.equal(realpathSync.native(readFileSync(marker, 'utf8')), realpathSync.native(dir));
 });
 
 // ---------- 갱신, 보존 fixture: 실제 릴리즈 간 갱신이 아닌 이전 릴리즈를 흉내 낸 임시 상태 ----------
@@ -338,7 +324,7 @@ function downgradeFile(dir, rel, content) {
 
 test('갱신: 이전 릴리즈 그대로인 파일은 update로 교체하고 매니페스트 해시를 갱신', () => {
   const { dir, file } = installFresh();
-  const rel = '.claude/agents/qa-agent.md';
+  const rel = '.claude/subagent/profile.md';
   const current = readFileSync(join(dir, rel), 'utf8');
   downgradeFile(dir, rel, `${current}\n이전 릴리즈 문구\n`);
   const plan = install(planArgs(dir, file));
@@ -352,8 +338,8 @@ test('갱신: 이전 릴리즈 그대로인 파일은 update로 교체하고 매
 
 test('갱신: 사용자가 수정한 설치 파일은 충돌로 보고하고 기본은 건너뜀, 백업 교체는 명시 결정', () => {
   const { dir, file } = installFresh();
-  const rel = '.claude/agents/frontend-agent.md';
-  const mine = '# 사용자가 고친 역할\n';
+  const rel = '.claude/subagent/profile.md';
+  const mine = '# 사용자가 고친 프로필\n';
   writeFileSync(join(dir, rel), mine);
   const plan = install(planArgs(dir, file));
   assert.equal(plan.json.ok, false, '결정 전에는 진행 불가');
@@ -410,11 +396,10 @@ test('제거 후 재설치 가능하고 사용자 프로젝트 파일은 그대�
 test('plugin 채널: git 없는 배포본에서 source가 플러그인 버전 태그로 기록', async () => {
   const { cpSync } = await import('node:fs');
   const root = temp('plugin-copy-');
-  cpSync(join(here, '..', 'scripts'), join(root, 'scripts'), { recursive: true });
-  cpSync(join(here, '..', 'template'), join(root, 'template'), { recursive: true });
+  for (const d of ['skills', 'agents', 'references', '.claude-plugin']) cpSync(join(here, '..', d), join(root, d), { recursive: true });
   const dir = project();
   const file = answersFile({ profile: 'lite' });
-  const run = (args) => spawnSync(process.execPath, [join(root, 'scripts', 'install.mjs'), ...args], {
+  const run = (args) => spawnSync(process.execPath, [join(root, 'skills', 'setup', 'scripts', 'install.mjs'), ...args], {
     encoding: 'utf8',
     env: { ...process.env, SUBAGENT_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"` },
   });
@@ -780,7 +765,7 @@ test('config: 설치되지 않은 프로젝트는 안내와 함께 실패', () =
 test('config: 보호 모드는 엄격 전환 경고와 함께 미리보기 후 적용되고 가드 동작이 바로 바뀜', () => {
   const { dir } = installFresh({}, { profile: 'lite' });
   const profilePath = join(dir, '.claude', 'subagent', 'profile.md');
-  const guard = join(dir, '.claude', 'hooks', 'subagent-guard.mjs');
+  const guard = join(here, '..', 'skills', 'run', 'scripts', 'subagent-guard.mjs');
   const mainWrite = () => spawnSync(process.execPath, [guard], {
     cwd: dir,
     env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
@@ -831,7 +816,7 @@ test('add-role: 미리보기는 파일을 만들지 않고, --yes로 정의 파�
   const applied = install(addRoleArgs(dir, ['--yes']));
   assert.equal(applied.json.ok, true);
   const text = readFileSync(join(dir, '.claude', 'agents', 'engine-agent.md'), 'utf8');
-  const base = readFileSync(join(here, '..', 'template', '.claude', 'agents', 'backend-agent.md'), 'utf8').replace(/\r\n/g, '\n');
+  const base = readFileSync(join(here, '..', 'agents', 'backend-agent.md'), 'utf8').replace(/\r\n/g, '\n');
   assert.ok(text.includes(base.slice(base.indexOf('## Common rules'))), '공통 절이 기본 writer와 같음');
   assert.deepEqual(JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), 'utf8')).roles, [{ name: 'engine-agent', kind: 'writer' }]);
   const verified = install(['verify', '--target', dir]);

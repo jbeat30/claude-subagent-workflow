@@ -7,9 +7,9 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const claude = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude');
-const runScript = join(claude, 'subagent', 'bin', 'subagent-run.mjs');
-const guardScript = join(claude, 'hooks', 'subagent-guard.mjs');
+const scripts = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'run', 'scripts');
+const runScript = join(scripts, 'subagent-run.mjs');
+const guardScript = join(scripts, 'subagent-guard.mjs');
 const statePath = (dir) => join(dir, '.claude-subagent-docs', '.guard', 'run-state.json');
 
 const project = () => realpathSync.native(mkdtempSync(join(tmpdir(), 'subagent-run-')));
@@ -254,7 +254,7 @@ test('grade: 질문 정책과 함께 한국어 안내 문구 전체를 정확히
 test('grade: 질문 정책 파일이 없어도 등급 기록은 성공하고 대체 안내를 출력', () => {
   const dir = project();
   run(dir, 'start');
-  const r = run(dir, 'grade', 'L2', 'R1');
-  assert.equal(r.ok, true);
-  assert.match(r.stdout, /questions.md is missing/);
+  const g = spawnSync(process.execPath, [runScript, 'grade', 'L2', 'R1'], { cwd: dir, env: { ...process.env, CLAUDE_PROJECT_DIR: dir, SUBAGENT_QUESTIONS_POLICY: join(dir, 'missing.md') }, encoding: 'utf8' });
+  assert.equal(g.status, 0);
+  assert.match(g.stdout, /questions\.md of the run skill\) is missing/);
 });

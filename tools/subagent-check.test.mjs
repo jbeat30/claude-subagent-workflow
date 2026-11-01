@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'subagent', 'bin', 'subagent-check.mjs');
+const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'run', 'scripts', 'subagent-check.mjs');
 const RUN_ID = '20260101-0000-test';
 
 function plan(rows) {

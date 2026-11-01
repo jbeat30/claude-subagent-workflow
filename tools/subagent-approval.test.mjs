@@ -7,10 +7,10 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const base = join(dirname(fileURLToPath(import.meta.url)), '..', 'template/.claude');
-const approval = join(base, 'subagent/bin/subagent-approval.mjs');
-const guardScript = join(base, 'hooks/subagent-guard.mjs');
-const checkScript = join(base, 'subagent/bin/subagent-check.mjs');
+const base = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills/run/scripts');
+const approval = join(base, 'subagent-approval.mjs');
+const guardScript = join(base, 'subagent-guard.mjs');
+const checkScript = join(base, 'subagent-check.mjs');
 const command = `"${process.execPath}" -e "console.log('approved check')"`;
 
 function run(script, dir, args, input) {

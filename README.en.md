@@ -16,14 +16,13 @@
 
 **A plugin that makes Claude Code work like a PM.** It plans first, asks when something is unclear, hands the work to role subagents, and has an independent QA verify it before reporting.
 
-## What changes
+## What it does
 
-| What happens when Claude works alone | With this workflow |
-| --- | --- |
-| A vague request such as "add a discount" gets built on a guess | It shows options and a recommendation before building, and only recommends an option whose result actually shows up |
-| A function changes and a hidden caller is missed | An analysis role finds the callers first, and only the files in the plan are edited |
-| Unchecked work is reported as done | An independent QA verifies it, and anything not checked is reported as not checked |
-| Work ignores the project's rules | Your project's rules (`CLAUDE.md`, `AGENTS.md`, lint config) always come first; conflicts are asked |
+- **Asks before it builds.** A vague request such as "add a discount" gets options and a recommendation for you to confirm. Only an option whose result actually shows up can be recommended.
+- **Finds the impact first.** An analysis role finds the hidden callers, and only the files in the plan are edited.
+- **Splits the work by role.** Planning, screen, server, API, and test roles each do only their part. You can add roles for your own domain.
+- **Verifies with an independent QA.** Anything not checked is reported as not checked.
+- **Follows your project rules.** `CLAUDE.md`, `AGENTS.md`, and lint config always come first; conflicts are asked.
 
 Normal conversations stay the same. The workflow runs only when you call it.
 

@@ -6,8 +6,8 @@
 ## 개발 환경
 
 - Node 20 이상, 의존성 설치 없음
-- `npm test`로 정적 검사와 단위 테스트 실행, 통과 결과와 실행하지 못한 검사를 PR에 명시, 전체 검사 방법은 [검사 방법](../docs/verification/TESTING.md)
-- `template/`은 사용자 프로젝트에 복사되는 배포 원본, 역할 정의를 바꾸면 `tools/validate-template.mjs`도 함께 갱신
+- `npm test`로 정적 검사와 단위 테스트 실행, 통과 결과와 실행하지 못한 검사를 PR에 명시
+- 저장소 루트가 곧 플러그인(`agents/`, `skills/`, `hooks/`, `references/`), 역할 정의를 바꾸면 `tools/validate-template.mjs`도 함께 갱신하고 `claude plugin validate .`로 확인
 
 ## 문서 이미지
 
@@ -20,9 +20,8 @@
 | 검사 | 비용 | 필요한 경우 |
 | --- | --- | --- |
 | `npm test` | 없음 | 모든 변경, PR마다 필수이며 CI도 같은 검사를 실행 |
-| 실제 Claude 측정(`tools/eval`) | 사용 한도·비용 발생 | 역할 지침이나 워크플로 동작을 바꿔 효과를 보이고 싶을 때만 선택, PR 요건 아님, CI에서 실행하지 않음 |
 
-실제 측정 방법은 [tools/eval/README.md](../tools/eval/README.md), 결과를 PR에 남길 때는 호출 횟수·모델·비용 상한·한계를 함께 기재
+컨벤션 플러그인(jbeat-conventions)은 소유자 에이전트용 선택 사항이며 기여에 필요하지 않음, 이 문서와 [브랜치 전략](BRANCH_STRATEGY.md)만 따르면 충분
 
 ## 소유자 전용
 

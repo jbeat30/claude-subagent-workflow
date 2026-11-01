@@ -8,12 +8,12 @@ The workflow starts only when you call it; otherwise you talk to Claude as usual
 
 ![Ordinary requests versus calling the workflow](../assets/subagent-on-demand.en.png)
 
-- `/subagent <request>`: starts the workflow for sure.
-- In words: "solve this with the subagent workflow" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/subagent` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
+- `/subagent-workflow:run <request>`: starts the workflow for sure.
+- In words: "solve this with the subagent workflow" or "work on this as pm-agent" are recognized too (the model decides, so it can occasionally miss; use `/subagent-workflow:run` then. Claude may ask for permission to run the skill. In a non-interactive check the skill did not run without that permission; the interactive screen has not been checked).
 - For a simple question or a small edit, asking Claude directly is faster and cheaper than calling the workflow.
 
 ```text
-/subagent Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
+/subagent-workflow:run Add a show/hide password toggle to the existing login screen. Follow the current UI rules.
 ```
 
 ```text
@@ -32,6 +32,6 @@ Explain what this function does.
 | Adding a feature where unstated requirements (validation, error handling) are easy to miss | Typos, comments, wording |
 | Changes to data structures, permissions, or security where the impact has to be worked out first | A small edit to a single file |
 
-In the evaluation the workflow appeared to help on changes with hidden callers and on tasks with unstated requirements. There are too few repeated runs to be sure. Details are in the [results and limits](../verification/results/hard-task-comparison.md) (Korean).
+It is most useful for changes with hidden callers and tasks with many unstated requirements. There is no guarantee that it always beats handling the task directly.
 
 A request like the last one, without calling the workflow, is answered by regular Claude. The PM answers and asks questions in the language you write in.

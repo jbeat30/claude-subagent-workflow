@@ -12,6 +12,6 @@ allowed-tools:
 
 # Claude Subagent Workflow Check
 
-1. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/install.mjs" verify --target .` without `--live` (no Claude call).
-2. Summarize `fail`, `unverified`, and `update` from the result in the user's language. An `update` item (`workflow version`) means the project's installed workflow files are older than this plugin: tell the user to run `/subagent-workflow:setup update`, and that a newer plugin version itself is fetched with `claude plugin marketplace update jbeat-plugins` then `claude plugin update subagent-workflow@jbeat-plugins`. If nothing is installed, point to `/subagent-workflow:setup`.
-3. Checking that the guard really fires needs `--live`, which calls Claude once. Say so and run it only when the user asks.
+1. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/scripts/install.mjs" verify --target .` (no Claude call).
+2. Summarize `fail`, `unverified`, and `update` from the result in the user's language. An `update` item (`workflow version` or `settings hooks`) means the project still has files from an older setup: tell the user to run `/subagent-workflow:setup update`, and that a newer plugin version itself is fetched with `claude plugin marketplace update jbeat-plugins` then `claude plugin update subagent-workflow@jbeat-plugins`. If nothing is installed, point to `/subagent-workflow:setup`.
+3. Say that the guard is a hook of this plugin and that whether it fires in Claude Code is unchecked until a `/subagent-workflow:run` run shows a guard message.

@@ -8,4 +8,4 @@
 2. `.github/BRANCH_STRATEGY.md`로 브랜치·커밋 규칙 확인
 3. `AGENTS.md`의 컨벤션과 저장소 구조·검증 명령 확인
 
-`template/`은 사용자 프로젝트에 복사되는 배포 원본이며 이 저장소 자체의 `.claude/` 설정이 아님
+저장소 루트가 곧 플러그인(`agents/`, `skills/`, `hooks/`, `references/`)이며 이 저장소 자체의 `.claude/` 설정과 별개

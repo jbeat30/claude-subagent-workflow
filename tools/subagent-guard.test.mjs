@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'template', '.claude', 'hooks', 'subagent-guard.mjs');
+const script = join(dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'run', 'scripts', 'subagent-guard.mjs');
 const RUN = 'R1';
 
 function plan(status, rows) {
@@ -50,18 +50,18 @@ test('PM: 일반 파일과 요청·기획안은 허용, 보고·검사 기록·�
   assert.equal(write(dir, undefined, 'src/new.js').allowed, true);
   assert.equal(write(dir, 'pm-agent', '.claude-subagent-docs/runs/R1/plan.md').allowed, true);
   assert.equal(write(dir, 'pm-agent', '.claude/subagent/profile.md').allowed, true);
-  for (const p of [reports('planner-agent-01.md'), '.claude-subagent-docs/runs/R1/checks/01/record.json', '.claude/agents/pm-agent.md', '.claude/hooks/subagent-guard.mjs', '.claude/settings.json', '.git/config', '.claude-subagent-docs/.guard/writer.lock.json']) {
+  for (const p of [reports('planner-agent-01.md'), '.claude-subagent-docs/runs/R1/checks/01/record.json', '.claude/agents/pm-agent.md', '.claude/subagent/roles.local.json', '.claude/settings.json', '.git/config', '.claude-subagent-docs/.guard/writer.lock.json']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, false, p);
   }
 });
 
-test('.claude/ 아래 사용자 규칙은 PM도 수정 가능하고 워크플로 정책 파일과 subagent 스킬만 거부', () => {
+test('.claude/ 아래 사용자 규칙은 PM도 수정 가능하고 워크플로 설정 파일, settings, 역할 정의만 거부', () => {
   const dir = project();
-  for (const p of ['.claude/rules/style.md', '.claude/commands/mine.md', '.claude/agents/mine.md', '.claude/skills/mine/SKILL.md']) {
+  for (const p of ['.claude/rules/style.md', '.claude/commands/mine.md', '.claude/agents/mine.md', '.claude/skills/mine/SKILL.md', '.claude/hooks/mine.mjs']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, true, p);
     assert.equal(write(dir, undefined, p).allowed, true, p);
   }
-  for (const p of ['.claude/hooks/subagent-guard.mjs', '.claude/subagent/bin/subagent-check.mjs', '.claude/skills/subagent/SKILL.md', '.claude/settings.json', '.claude/settings.local.json', '.claude/agents/qa-agent.md']) {
+  for (const p of ['.claude/subagent/roles.local.json', '.claude/subagent/manifest.json', '.claude/settings.json', '.claude/settings.local.json', '.claude/agents/qa-agent.md']) {
     assert.equal(write(dir, 'pm-agent', p).allowed, false, p);
     assert.equal(write(dir, undefined, p).allowed, false, p);
   }
@@ -101,6 +101,16 @@ test('분석·QA·리더는 자신의 보고·산출물에만 쓰기', () => {
   assert.equal(write(dir, 'dev-lead', reports('dev-lead.md')).allowed, true);
   assert.equal(write(dir, 'dev-lead', '.claude-subagent-docs/runs/R1/plan.md').allowed, false);
   assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/NOPE/reports/planner-agent-01.md').allowed, false);
+});
+
+test('보고서 이름이 틀리면 거부하고 메시지가 기대하는 이름을 알려 줌', () => {
+  const dir = project();
+  const wrong = write(dir, 'architecture-agent', reports('architecture-01.md'));
+  assert.equal(wrong.allowed, false);
+  assert.match(wrong.stderr, /reports\/architecture-agent-NN\.md/);
+  assert.match(wrong.stderr, /architecture-01\.md/);
+  assert.equal(write(dir, 'architecture-agent', reports('architecture-agent-01.md')).allowed, true);
+  assert.match(write(dir, 'qa-agent', reports('qa-extra.md')).stderr, /qa-plan\.md or reports\/qa-final\.md/);
 });
 
 test('실무 에이전트: 잠금·confirmed·배정 파일이 모두 맞을 때만 소스 쓰기', () => {
@@ -172,7 +182,7 @@ test('이 워크플로 외의 에이전트는 워크플로 정책 파일만 보�
   const dir = project();
   assert.equal(write(dir, 'my-own-agent', 'src/anything.js').allowed, true);
   assert.equal(write(dir, 'my-own-agent', '.claude/agents/mine.md').allowed, true);
-  assert.equal(write(dir, 'my-own-agent', '.claude/hooks/x.mjs').allowed, false);
+  assert.equal(write(dir, 'my-own-agent', '.claude/subagent/roles.local.json').allowed, false);
   assert.equal(write(dir, 'my-own-agent', '.claude/agents/pm-agent.md').allowed, false);
   assert.equal(call(dir, 'my-own-agent', 'some-other-agent', '인계 없음').allowed, true);
 });
@@ -249,4 +259,64 @@ test('L2 기획은 architecture-agent 보고 없이도 개발 호출 허용', ()
   const planPath = join(dir, '.claude-subagent-docs', 'runs', RUN, 'plan.md');
   writeFileSync(planPath, readFileSync(planPath, 'utf8').replace('- Status: confirmed', '- Risk: L2\n- Status: confirmed'));
   assert.equal(call(dir, 'pm-agent', 'backend-agent').allowed, true);
+});
+
+// 사용자가 추가한 역할: roles.local.json에 등록되고 정의 파일이 있어야 워크플로 역할로 인정
+function withCustomRoles(dir, roles) {
+  mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+  mkdirSync(join(dir, '.claude', 'agents'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), JSON.stringify({ roles }));
+  for (const r of roles) writeFileSync(join(dir, '.claude', 'agents', `${r.name}.md`), `---\nname: ${r.name}\n---\n`);
+  return dir;
+}
+
+test('추가 역할 writer: 기본 쓰기 역할과 같은 잠금, confirmed, 배정 파일 규칙', () => {
+  const dir = withCustomRoles(project({ rows: [['src/engine.c', 'engine-agent'], ['src/a.js', 'backend-agent']] }), [{ name: 'engine-agent', kind: 'writer' }]);
+  assert.equal(write(dir, 'engine-agent', 'src/engine.c').allowed, false, '잠금 없음');
+  assert.equal(call(dir, 'pm-agent', 'engine-agent').allowed, true);
+  assert.equal(write(dir, 'engine-agent', 'src/engine.c').allowed, true);
+  assert.equal(write(dir, 'engine-agent', 'src/a.js').allowed, false, '다른 역할 배정');
+  assert.equal(write(dir, 'engine-agent', reports('engine-agent-01.md')).allowed, true, '자신의 보고');
+  assert.equal(write(dir, 'engine-agent', '.claude/agents/engine-agent.md').allowed, false, '자기 정의 파일은 보호');
+});
+
+test('추가 역할 analyst: 자기 보고서만 쓰기, 개발 호출 조건 없이 호출 가능', () => {
+  const dir = withCustomRoles(project({ status: 'draft' }), [{ name: 'perf-agent', kind: 'analyst' }]);
+  assert.equal(call(dir, 'pm-agent', 'perf-agent').allowed, true);
+  assert.equal(write(dir, 'perf-agent', reports('perf-agent-01.md')).allowed, true);
+  assert.equal(write(dir, 'perf-agent', 'src/a.js').allowed, false);
+});
+
+test('추가 역할 등록이 잘못되면 워크플로 역할로 인정하지 않음(기본 역할 이름, 잘못된 종류, 정의 파일 없음)', () => {
+  const dir = withCustomRoles(project(), [{ name: 'qa-agent', kind: 'writer' }, { name: 'lead-agent', kind: 'lead' }]);
+  writeFileSync(join(dir, '.claude', 'subagent', 'roles.local.json'), JSON.stringify({ roles: [{ name: 'qa-agent', kind: 'writer' }, { name: 'lead-agent', kind: 'lead' }, { name: 'ghost-agent', kind: 'writer' }] }));
+  assert.equal(write(dir, 'qa-agent', 'src/a.js').allowed, false, '기본 qa는 여전히 보고서만');
+  // 인정되지 않은 이름은 권고 모드에서 이 워크플로 밖 에이전트로 취급(호출에 간섭하지 않음)
+  assert.equal(call(dir, 'pm-agent', 'ghost-agent', 'no run id').allowed, true);
+  assert.equal(call(dir, 'pm-agent', 'lead-agent', 'no run id').allowed, true);
+});
+
+test('플러그인 hook: 워크플로를 설정하지 않은 프로젝트에는 간섭하지 않음', () => {
+  const dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'not-a-workflow-')));
+  assert.equal(write(dir, undefined, '.git/config').allowed, true);
+  assert.equal(write(dir, 'backend-agent', 'src/a.js').allowed, true);
+  assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent', 'no run id').allowed, true);
+});
+
+test('플러그인 역할 이름(subagent-workflow: 접두사)은 기본 역할과 같은 규칙으로 판정', () => {
+  const dir = project();
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/a.js').allowed, false, '잠금 없음');
+  assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/a.js').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'test/a.test.js').allowed, false, '다른 역할 배정');
+  assert.equal(write(dir, 'subagent-workflow:planner-agent', reports('planner-agent-01.md')).allowed, true);
+  assert.equal(call(dir, 'subagent-workflow:dev-lead', 'subagent-workflow:qa-agent').allowed, false, 'dev-lead는 qa를 부를 수 없음');
+  assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent', '인계 없음', 'toolu_2').allowed, false, 'runId 없는 호출 거부');
+});
+
+test('기획서 담당 칸에 플러그인 이름 접두사가 붙어 있어도 같은 역할로 배정을 판정', () => {
+  const dir = project({ rows: [['src/a.js', 'subagent-workflow:backend-agent']] });
+  assert.equal(call(dir, 'main', 'subagent-workflow:backend-agent').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/a.js').allowed, true);
+  assert.equal(write(dir, 'subagent-workflow:backend-agent', 'src/b.js').allowed, false);
 });

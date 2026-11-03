@@ -14,7 +14,7 @@ const fakeClaude = join(realpathSync(mkdtempSync(join(tmpdir(), 'fake-claude-'))
 writeFileSync(fakeClaude, "console.log(process.env.FAKE_CLAUDE_VERSION ?? '2.1.302 (Claude Code)');\n");
 
 const temp = (prefix = 'subagent-install-') => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
-const answersFor = (over = {}) => ({ profile: 'full', context7: true, gitignore: true, pdca: 'off', stack: [{ item: 'Node.js', value: 'npm', evidence: 'package.json' }], checks: [{ purpose: '테스트', command: 'npm test', cwd: '.', sideEffect: 'none (assumed)' }], conventions: [], forbidden: [{ path: 'dist/', reason: '생성 파일' }], ...over });
+const answersFor = (over = {}) => ({ profile: 'full', gitignore: true, pdca: 'off', stack: [{ item: 'Node.js', value: 'npm', evidence: 'package.json' }], checks: [{ purpose: '테스트', command: 'npm test', cwd: '.', sideEffect: 'none (assumed)' }], conventions: [], forbidden: [{ path: 'dist/', reason: '생성 파일' }], ...over });
 
 function project(files = {}) {
   const dir = temp();
@@ -97,7 +97,7 @@ test('신규 설치: 프로젝트에는 프로필, 매니페스트, MCP, gitigno
   for (const p of ['.claude/agents', '.claude/skills', '.claude/hooks', '.claude/subagent/bin', '.claude/settings.json']) {
     assert.equal(existsSync(join(dir, p)), false, `${p}는 플러그인이 제공하므로 만들지 않음`);
   }
-  assert.equal(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers.context7.command, 'npx');
+  assert.equal(existsSync(join(dir, '.mcp.json')), false, 'Context7은 플러그인이 원격으로 실으므로 .mcp.json을 만들지 않음');
   assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /\.claude-subagent-docs\//);
   const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
   assert.match(profile, /Execution profile: full/);
@@ -121,7 +121,7 @@ test('재적용은 변경 없음(멱등)', () => {
   const plan = install(planArgs(dir, file));
   assert.ok(plan.json.files.every((f) => f.action === 'unchanged'));
   assert.equal(plan.json.settings.action, 'unchanged');
-  assert.equal(plan.json.mcp.action, 'already');
+  assert.equal(plan.json.mcp.action, 'none');
   assert.equal(plan.json.gitignore.action, 'already');
   assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
 });
@@ -264,9 +264,9 @@ test('verify는 프로필 수정과 삭제를 탐지', () => {
 test('잘못된 answers는 거부하고 매니페스트 없는 verify·remove는 실패', () => {
   const dir = project();
   const bad = join(temp('answers-'), 'a.json');
-  writeFileSync(bad, JSON.stringify({ profile: 'medium', context7: true }));
+  writeFileSync(bad, JSON.stringify({ profile: 'medium' }));
   assert.equal(install(planArgs(dir, bad)).status, 2);
-  writeFileSync(bad, JSON.stringify({ profile: 'lite' }));
+  writeFileSync(bad, JSON.stringify({ profile: 'lite', guardMode: 'loose' }));
   assert.equal(install(planArgs(dir, bad)).status, 2);
   assert.equal(install(['verify', '--target', dir]).status, 1);
   assert.equal(install(['remove', '--target', dir, '--yes']).status, 1);
@@ -360,11 +360,10 @@ test('기존 .mcp.json·.gitignore의 사용자 항목은 설치·갱신·제거
   const { dir, file } = installFresh({ '.mcp.json': mcp, '.gitignore': 'node_modules/\n.env\n' });
   const afterInstall = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8'));
   assert.deepEqual(afterInstall.mcpServers.mine, { command: 'my-server' });
-  assert.ok(afterInstall.mcpServers.context7);
   assert.equal(afterInstall.extra, true);
 
   const again = install(planArgs(dir, file));
-  assert.equal(again.json.mcp.action, 'already');
+  assert.equal(again.json.mcp.action, 'none');
   assert.equal(again.json.gitignore.action, 'already');
 
   assert.equal(install(['remove', '--target', dir, '--yes']).json.ok, true);
@@ -374,13 +373,21 @@ test('기존 .mcp.json·.gitignore의 사용자 항목은 설치·갱신·제거
 });
 
 
-test('기존 context7 설정이 다르면 덮어쓰지 않고 충돌로 보고', () => {
-  const custom = { mcpServers: { context7: { command: 'custom-context7' } } };
-  const dir = project({ '.mcp.json': custom });
-  const plan = install(planArgs(dir, answersFile()));
-  assert.ok(plan.json.conflicts.some((c) => /context7/.test(c.item)));
-  assert.equal(plan.json.mcp.action, 'skip');
-  assert.equal(readdirSync(dir).length, 1, 'plan은 파일을 만들지 않음');
+test('v0.6.x가 등록한 context7은 제거 때 정리하고, 사용자가 등록한 context7은 설치, 제거 모두 건드리지 않음', () => {
+  const legacy = { command: 'npx', args: ['-y', '@upstash/context7-mcp'] };
+  const { dir } = installFresh({ '.mcp.json': { mcpServers: { context7: legacy } } });
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers.context7, legacy, '설치는 기존 context7을 그대로 둠');
+  assert.equal(install(['remove', '--target', dir, '--yes']).json.ok, true);
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers.context7, legacy, '워크플로가 등록하지 않았으면 남김');
+
+  const old = installFresh().dir;
+  const manifestPath = join(old, '.claude', 'subagent', 'manifest.json');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  writeFileSync(manifestPath, JSON.stringify({ ...manifest, mcp: { context7: 'added' } }));
+  writeFileSync(join(old, '.mcp.json'), JSON.stringify({ mcpServers: { context7: legacy } }));
+  const removed = install(['remove', '--target', old, '--yes']);
+  assert.ok(removed.json.actions.includes('removed .mcp.json context7'));
+  assert.equal(existsSync(join(old, '.mcp.json')), false);
 });
 
 test('제거 후 재설치 가능하고 사용자 프로젝트 파일은 그대로', () => {
@@ -414,11 +421,11 @@ test('plugin 채널: git 없는 배포본에서 source가 플러그인 버전 �
 test('디자인 도구 MCP: 선택한 서버만 .mcp.json에 병합하고 프로필에 기록, 제거 시 사용자 서버 보존', () => {
   const { dir, applied } = installFresh(
     { '.mcp.json': { mcpServers: { mine: { command: 'node', args: ['mine.js'] } } } },
-    { context7: true, designTools: ['playwright', 'chrome-devtools', 'shadcn', 'figma'] },
+    { designTools: ['playwright', 'chrome-devtools', 'shadcn', 'figma'] },
   );
   assert.equal(applied.status, 0, JSON.stringify(applied.json));
   const servers = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers;
-  assert.deepEqual(Object.keys(servers).sort(), ['chrome-devtools', 'context7', 'figma', 'mine', 'playwright', 'shadcn']);
+  assert.deepEqual(Object.keys(servers).sort(), ['chrome-devtools', 'figma', 'mine', 'playwright', 'shadcn']);
   assert.deepEqual(servers['chrome-devtools'], { command: 'npx', args: ['-y', 'chrome-devtools-mcp@latest'] });
   assert.deepEqual(servers.playwright, { command: 'npx', args: ['@playwright/mcp@latest'] });
   assert.deepEqual(servers.shadcn, { command: 'npx', args: ['shadcn@latest', 'mcp'] });
@@ -435,7 +442,7 @@ test('디자인 도구 MCP: 선택한 서버만 .mcp.json에 병합하고 프로
 });
 
 test('디자인 도구 MCP: 선택하지 않으면 등록하지 않고 알 수 없는 값은 거부', () => {
-  const { dir } = installFresh({}, { context7: false, designTools: [] });
+  const { dir } = installFresh({}, { designTools: [] });
   assert.equal(existsSync(join(dir, '.mcp.json')), false);
   const bad = install(planArgs(project(), answersFile({ designTools: ['photoshop'] })));
   assert.equal(bad.status, 2);
@@ -444,7 +451,7 @@ test('디자인 도구 MCP: 선택하지 않으면 등록하지 않고 알 수 �
 
 test('디자인 도구 MCP: 다른 설정이 이미 있으면 덮어쓰지 않고 충돌로 보고', () => {
   const dir = project({ '.mcp.json': { mcpServers: { playwright: { command: 'node', args: ['custom.js'] } } } });
-  const file = answersFile({ context7: false, designTools: ['playwright', 'shadcn'] });
+  const file = answersFile({ designTools: ['playwright', 'shadcn'] });
   const plan = install(planArgs(dir, file));
   assert.ok(plan.json.conflicts.some((c) => c.item === '.mcp.json playwright'));
   const decided = install(planArgs(dir, file, ['--on-conflict', 'skip']));
@@ -485,8 +492,7 @@ test('config: 현재 모드·보호 모드와 MCP 선택 현황을 보여 줌', 
   assert.equal(result.json.mode, 'lite');
   assert.equal(result.json.protection, 'advisory');
   const mcp = Object.fromEntries(result.json.mcp.map((m) => [m.name, m]));
-  assert.deepEqual(Object.keys(mcp).sort(), ['anymd', 'chrome-devtools', 'context7', 'figma', 'figma-desktop', 'figma-plugin', 'playwright', 'shadcn']);
-  assert.equal(mcp.context7.registered, true);
+  assert.deepEqual(Object.keys(mcp).sort(), ['anymd', 'chrome-devtools', 'figma', 'figma-desktop', 'figma-plugin', 'playwright', 'shadcn']);
   assert.equal(mcp.playwright.registered, true);
   assert.equal(mcp.figma.registered, false);
   assert.equal(mcp.figma.selected, false);
@@ -516,17 +522,16 @@ test('config: 모드 전환은 미리보기 후 --yes로 적용하고 verify가 
 });
 
 test('config: 선택하지 않았던 MCP를 추가하면 .mcp.json·프로필·매니페스트가 함께 갱신되고 제거 때 되돌림', () => {
-  const { dir } = installFresh({}, { profile: 'lite', context7: false });
+  const { dir } = installFresh({}, { profile: 'lite' });
   const mcpPath = join(dir, '.mcp.json');
   assert.equal(existsSync(mcpPath), false);
-  const applied = install(['config', '--target', dir, '--add-mcp', 'context7,figma', '--yes']);
+  assert.equal(install(['config', '--target', dir, '--add-mcp', 'context7']).status, 2, 'context7은 플러그인이 실으므로 고르지 않음');
+  const applied = install(['config', '--target', dir, '--add-mcp', 'figma', '--yes']);
   assert.equal(applied.json.ok, true, applied.stderr);
   assert.match(applied.json.note, /new Claude Code session/);
   const servers = JSON.parse(readFileSync(mcpPath, 'utf8')).mcpServers;
-  assert.equal(servers.context7.command, 'npx');
   assert.equal(servers.figma.type, 'http');
   const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
-  assert.match(profile, /Context7 MCP: registered/);
   assert.match(profile, /Design tool MCP: figma/);
   const manifest = JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8'));
   assert.equal(manifest.mcp.figma, 'added');
@@ -667,8 +672,7 @@ test('Figma MCP: 데스크톱 서버는 figma-desktop 이름으로 등록되고 
 test('Figma MCP: 플러그인 방식은 .mcp.json에 쓰지 않고 실행 명령만 안내, 설치 여부는 미확인으로 보고', () => {
   const { dir, applied } = installFresh({}, { designTools: ['figma-plugin'] });
   assert.equal(applied.status, 0, JSON.stringify(applied.json));
-  const servers = JSON.parse(readFileSync(join(dir, '.mcp.json'), 'utf8')).mcpServers;
-  assert.deepEqual(Object.keys(servers), ['context7']);
+  assert.equal(existsSync(join(dir, '.mcp.json')), false);
   assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Design tool MCP: figma-plugin/);
   assert.equal(JSON.parse(readFileSync(join(dir, '.claude/subagent/manifest.json'), 'utf8')).mcp['figma-plugin'], 'guided');
   const check = install(['verify', '--target', dir]).json.checks.find((c) => c.name === 'figma-plugin');

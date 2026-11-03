@@ -170,10 +170,12 @@ function isProtectedFor(role, rl) {
 }
 
 function ownReportRunId(role, rel) {
-  const m = rel.match(new RegExp(`^${DOCS}/runs/([^/]+)/(reports/(.+)|plan\\.md|request\\.md)$`));
+  const m = rel.match(new RegExp(`^${DOCS}/runs/([^/]+)/(reports/(.+)|plan\\.md|request\\.md|evidence\\.md)$`));
   if (!m) return null;
   const [, runId, , reportFile] = m;
   const name = reportFile ?? m[2];
+  // 문서 확인 기록은 모든 역할이 공유해 같은 버전의 같은 질문을 다시 조회하지 않게 함
+  if (name === 'evidence.md' && !reportFile) return runId;
   if ([...ANALYSTS, ...WRITERS].includes(role) && new RegExp(`^${role}-\\d{2}\\.md$`).test(reportFile ?? '')) return runId;
   if (role === 'qa-agent' && /^qa-(plan|final)(-\d{2})?\.md$/.test(reportFile ?? '')) return runId;
   if (role === 'dev-lead' && reportFile === 'dev-lead.md') return runId;

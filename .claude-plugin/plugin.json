@@ -13,5 +13,15 @@
     "subagent-workflow",
     "subagents",
     "jbeat"
-  ]
+  ],
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "jina": {
+      "type": "http",
+      "url": "https://mcp.jina.ai/v1?include_tags=read"
+    }
+  }
 }

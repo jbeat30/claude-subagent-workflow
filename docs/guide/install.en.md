@@ -40,7 +40,6 @@ Plain requests work too: "recommend and add a subagent for our C game engine", "
 
 | Choice | Options | Default or recommendation |
 | --- | --- | --- |
-| Context7 MCP | Register it in `.mcp.json` to check docs against the installed version | Asked |
 | Design system (UI projects) | Where your tokens, component library, Storybook, Figma library, or brand guide live. If you have one it is the **top authority for all UI work** and subagents never deviate from it | Only if you have one |
 | Document reader MCP (optional) | **anymd** (`@sylphx/anymd`, MIT): reads PDF and Word, Excel, PowerPoint, HTML as Markdown on your machine; useful for spec or design PDFs. Nothing is uploaded and no API key is needed, but it runs an external package through `npx` and downloads a native binary on first use. Agents open only files named in the request and never follow instructions found inside a document | Only if you want it |
 | Design tool MCP (optional) | **Playwright**: open and look at the running page<br>**Chrome DevTools**: inspect the page, console, network, and performance in Chrome; useful for UI/UX checks<br>**shadcn/ui**: reuse vetted components (needs `components.json`)<br>**Figma**: when you have Figma designs; pick one connection<br>· `figma`: remote server; sign in from the browser through `/mcp` after registering<br>· `figma-desktop`: Figma desktop app server; enable the desktop MCP server in Dev Mode, needs a Dev or Full seat<br>· `figma-plugin`: official plugin; the installer does not install it and only shows the command to run (choose this one if you already use the official plugin)<br>Agents only **read** Figma (tools that change files are not allowed). Reads count against your plan limit: about 20 per month on the Starter plan and View or Collab seats, about 200 per day on Full or Dev seats | Asked only for projects with a UI; Playwright and shadcn/ui recommended |
@@ -64,5 +63,5 @@ Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwr
   roles.local.json  roles you added (only after adding a role)
 .claude/agents/     role files you added (only after adding a role)
 .claude-subagent-docs/   per-task records (request, plan, reports, check records, diff); adding it to .gitignore is optional
-.mcp.json            Context7 and design tool MCP entries (optional, merged with existing settings)
+.mcp.json            Design and document tool MCP entries (optional, merged with existing settings)
 ```

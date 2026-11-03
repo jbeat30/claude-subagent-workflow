@@ -257,6 +257,14 @@ try {
 if (plugin) {
   if (plugin.name !== 'subagent-workflow') fail('plugin.json', 'name은 subagent-workflow(claude- 접두사는 서드파티 예약어라 사용 불가)');
   if (plugin.author?.name !== 'jbeat') fail('plugin.json', 'author.name은 jbeat');
+  // 원격 MCP 묶음: Node 없이 동작하도록 http 원격 서버만, 키 헤더 없이
+  const bundled = { context7: 'https://mcp.context7.com/mcp', jina: 'https://mcp.jina.ai/v1?include_tags=read' };
+  const servers = plugin.mcpServers ?? {};
+  if (Object.keys(servers).sort().join() !== Object.keys(bundled).sort().join()) fail('plugin.json', `mcpServers는 ${Object.keys(bundled).join(', ')}만`);
+  for (const [name, url] of Object.entries(bundled)) {
+    const s = servers[name];
+    if (s && (s.type !== 'http' || s.url !== url || s.headers)) fail('plugin.json', `mcpServers.${name}은 type http, url ${url}, headers 없음`);
+  }
 }
 const skillsDir = join(repoRoot, 'skills');
 const skillNames = existsSync(skillsDir) ? readdirSync(skillsDir) : [];

@@ -38,6 +38,15 @@ Normal conversations stay the same. The workflow runs only when you call it.
 
 Requirements: Claude Code 2.1.302 or later, Node 20 or later
 
+When the plugin is enabled, it connects to two external services as remote MCP servers. They work without a key, and only library names, general questions, and public URLs are sent. You can turn them off in `/mcp`.
+
+| Server | Purpose |
+| --- | --- |
+| Context7 | Official library and framework docs for the installed version |
+| Jina (web reader) | Read web pages and PDF URLs as Markdown |
+
+Without a key the rate limits are low. If you use them heavily, register the same server with your own key at user scope, and it is used first.
+
 ## Use
 
 ```text

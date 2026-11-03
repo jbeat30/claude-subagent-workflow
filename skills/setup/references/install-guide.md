@@ -33,7 +33,7 @@ Ask only the needed items in chat and do not re-ask what detection already shows
 | Item | What to ask | Note |
 | --- | --- | --- |
 | Default mode | Not asked. The workflow starts in Lite (the PM calls only the roles it needs). The user can switch the default to Full later with `/subagent-workflow:setting`, or ask for Full in a single request. Put `profile` in the answers only if the user explicitly asks for Full at setup. | Do not ask. Mention in one line that the mode can be changed later. |
-| Context7 MCP | Whether to register it in `.mcp.json` to check documentation against the installed version. Tool permission is still up to the user even if registered; if not allowed, the PM marks `unchecked`. It runs `npx @upstash/context7-mcp` and queries carry only library names, versions, and general questions. | Always ask. |
+| Docs MCP | Not asked. The plugin bundles Context7 (versioned library docs) and Jina (web page and PDF reader) as remote servers; they connect when the plugin is enabled and need no Node or key. Tell the user in one line that only library names, general questions, and public URLs are sent and that they can turn them off in `/mcp`. | Do not ask. |
 | Design system (UI projects) | Ask whether the project has a design system (tokens, component library, Storybook, Figma library, brand guide) and where it lives (a path or link). If yes, put it in `designSystem` and tell the user the agents will treat it as authoritative and never deviate from it. | Ask only for projects with a UI; if none, skip. |
 | Document reader (optional) | Ask only if the user mentions PDF specs, design PDFs, or other documents the agents should read. **anymd** (`@sylphx/anymd`, MIT) reads PDF and Word, Excel, PowerPoint, HTML as Markdown locally; nothing is uploaded and no API key is needed. Tell the user it runs an external package through `npx`, downloads a native binary on first use, adds its tool definitions to planner-agent, frontend-agent, and qa-agent calls (token cost), fetches a URL only when one is given, and that agents are told to open only files named in the request and never to follow instructions found inside a document. Put `"anymd"` in `documentTools`. | Optional; offer it only on request or when documents are mentioned. |
 | Design tools (optional) | Only when the project has a UI (a frontend stack was detected); skip for backend-only projects. Whether to register design MCP servers in `.mcp.json` for UI work: **Playwright** (recommended; lets frontend-agent and qa-agent open and look at the running page, so the app must be running), **Chrome DevTools** (optional; opens Chrome to inspect the page, console, network, and performance), **shadcn/ui** (recommended when `detect` reports `componentsJson: true`), **Figma** (only if the user has Figma designs; choose exactly one connection: `figma` is the remote server and needs a browser sign-in through `/mcp`; `figma-desktop` is the Figma desktop app server and needs the app running with the desktop MCP server enabled in Dev Mode plus a Dev or Full seat; agents get read tools only, and reads count against the Figma plan limit, so tell the user this. `figma-plugin` is the official Figma plugin, which this installer never installs: show the user the command `claude plugin install figma@claude-plugins-official` to run themselves). Tell the user each one runs through `npx` (Figma is a remote server) and adds its tool definitions to every frontend-agent and qa-agent call, which costs tokens. Browser tools can see the content of the browser they open, so advise against personal tabs and sensitive data. | Optional; recommend Playwright and shadcn/ui, offer Figma only on request. |
@@ -52,7 +52,6 @@ Save it as JSON at a temporary path outside the project. No secrets.
 ```json
 {
   "profile": "lite | full (optional, default lite)",
-  "context7": true,
   "gitignore": true,
   "pdca": "off",
   "executionMode": "relay | nested (full only, relay if omitted)",
@@ -68,7 +67,7 @@ Save it as JSON at a temporary path outside the project. No secrets.
 }
 ```
 
-`context7` is required and `profile` is optional (default lite); `ruleSources` is optional (project-relative paths of the project's own rule files; no copies of their contents, no absolute paths, URLs, or `..`); `documentTools` is optional (`anymd` only). `designTools` is optional (any of `playwright`, `chrome-devtools`, `shadcn`, and at most one of `figma`, `figma-desktop`, `figma-plugin`). `figma-plugin` registers nothing in `.mcp.json`; it only records the choice and the installer prints the plugin command for the user to run. Registration never proves a working connection. If you do not know a check command's side-effect class, write `unchecked`.
+`profile` is optional (default lite); `ruleSources` is optional (project-relative paths of the project's own rule files; no copies of their contents, no absolute paths, URLs, or `..`); `documentTools` is optional (`anymd` only). `designTools` is optional (any of `playwright`, `chrome-devtools`, `shadcn`, and at most one of `figma`, `figma-desktop`, `figma-plugin`). `figma-plugin` registers nothing in `.mcp.json`; it only records the choice and the installer prints the plugin command for the user to run. Registration never proves a working connection. If you do not know a check command's side-effect class, write `unchecked`.
 
 ## 5. Plan and user confirmation
 
@@ -91,7 +90,7 @@ Write it in the user's language.
 - Plugin version, profile, the files setup wrote, and skipped or backed-up items.
 - Settings can be changed later with `/subagent-workflow:setting` (default mode, protection mode, MCP servers), and project roles can be added with `/subagent-workflow:add-role`.
 - Protection: the guard is a hook of this plugin and runs while the plugin is enabled. Whether it fired in Claude Code is unchecked until a `/subagent-workflow:run` run shows a guard message; say so.
-- Unchecked items (`unverified` from verify). Context7 and other MCP servers need approval after restarting Claude Code.
+- Unchecked items (`unverified` from verify). MCP servers registered in `.mcp.json` need approval after restarting Claude Code.
 - Teams: teammates need the plugin too. If the user wants that, suggest committing the plugin to the project's `.claude/settings.json` (`enabledPlugins` and the marketplace in `extraKnownMarketplaces`); teammates are prompted after they trust the folder. Do not write it without the user's request.
 - The workflow does not start by itself. The user calls it with `/subagent-workflow:run <request>` or in words such as "solve this with the subagent workflow"; ordinary requests stay ordinary Claude. Give one or two usage examples and say simple questions or small edits are better asked directly.
 

@@ -14,7 +14,7 @@ const fakeClaude = join(realpathSync(mkdtempSync(join(tmpdir(), 'fake-claude-'))
 writeFileSync(fakeClaude, "console.log(process.env.FAKE_CLAUDE_VERSION ?? '2.1.302 (Claude Code)');\n");
 
 const temp = (prefix = 'subagent-install-') => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
-const answersFor = (over = {}) => ({ profile: 'full', gitignore: true, pdca: 'off', stack: [{ item: 'Node.js', value: 'npm', evidence: 'package.json' }], checks: [{ purpose: '테스트', command: 'npm test', cwd: '.', sideEffect: 'none (assumed)' }], conventions: [], forbidden: [{ path: 'dist/', reason: '생성 파일' }], ...over });
+const answersFor = (over = {}) => ({ gitignore: true, pdca: 'off', stack: [{ item: 'Node.js', value: 'npm', evidence: 'package.json' }], checks: [{ purpose: '테스트', command: 'npm test', cwd: '.', sideEffect: 'none (assumed)' }], conventions: [], forbidden: [{ path: 'dist/', reason: '생성 파일' }], ...over });
 
 function project(files = {}) {
   const dir = temp();
@@ -87,7 +87,7 @@ test('plan은 결정적이고 apply는 plan 해시가 맞을 때만 적용', () 
   const wrong = install(applyArgs(dir, file, 'deadbeef'));
   assert.equal(wrong.status, 1);
   assert.equal(readdirSync(dir).length, 0);
-  const changed = install(applyArgs(dir, answersFile({ profile: 'lite' }), a.json.hash));
+  const changed = install(applyArgs(dir, answersFile({ gitignore: false }), a.json.hash));
   assert.equal(changed.status, 1, '답변이 바뀌면 거부');
 });
 
@@ -100,8 +100,7 @@ test('신규 설치: 프로젝트에는 프로필, 매니페스트, MCP, gitigno
   assert.equal(existsSync(join(dir, '.mcp.json')), false, 'Context7은 플러그인이 원격으로 실으므로 .mcp.json을 만들지 않음');
   assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /\.claude-subagent-docs\//);
   const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
-  assert.match(profile, /Execution profile: full/);
-  assert.match(profile, /Execution mode: relay/);
+  assert.doesNotMatch(profile, /Execution profile|Execution mode|Protection mode/);
   assert.match(profile, /`npm test`/);
   assert.match(profile, /dist\//);
   assert.match(profile, /built-in roles come from the plugin/);
@@ -264,9 +263,9 @@ test('verify는 프로필 수정과 삭제를 탐지', () => {
 test('잘못된 answers는 거부하고 매니페스트 없는 verify·remove는 실패', () => {
   const dir = project();
   const bad = join(temp('answers-'), 'a.json');
-  writeFileSync(bad, JSON.stringify({ profile: 'medium' }));
+  writeFileSync(bad, JSON.stringify({ designTools: 'playwright' }));
   assert.equal(install(planArgs(dir, bad)).status, 2);
-  writeFileSync(bad, JSON.stringify({ profile: 'lite', guardMode: 'loose' }));
+  writeFileSync(bad, JSON.stringify({ ruleSources: [{ path: '../outside.md' }] }));
   assert.equal(install(planArgs(dir, bad)).status, 2);
   assert.equal(install(['verify', '--target', dir]).status, 1);
   assert.equal(install(['remove', '--target', dir, '--yes']).status, 1);
@@ -289,23 +288,16 @@ test('PDCA 생략 시 off로 계획·설치', () => {
   assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /PDCA mode: off/);
 });
 
-test('엄격 모드 설치는 승인 기록을 만들지 않고 실제 점검은 미확인으로 유지', () => {
-  const { dir } = installFresh({}, { guardMode: 'strict' });
-  assert.match(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Protection mode: strict/);
-  assert.equal(existsSync(join(dir, '.claude-subagent-docs/.guard/grant.json')), false);
+test('옛 answers의 profile, executionMode, guardMode는 무시하고 기본 경로로 설치', () => {
+  const { dir, applied } = installFresh({}, { profile: 'full', executionMode: 'nested', guardMode: 'strict' });
+  assert.equal(applied.json.ok, true, applied.stderr);
+  assert.doesNotMatch(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'), /Execution profile|Execution mode|Protection mode/);
+  assert.equal(JSON.parse(readFileSync(join(dir, '.claude/subagent/manifest.json'), 'utf8')).profile, undefined);
   const result = install(['verify', '--target', dir]);
   assert.equal(result.json.ok, true, JSON.stringify(result.json));
   const checks = Object.fromEntries(result.json.checks.map((c) => [c.name, c.status]));
   assert.equal(checks['guard canary'], 'pass');
-  assert.equal(checks['strict approval'], 'unverified');
-  assert.equal(checks['guard live'], 'unverified');
-});
-
-test('잘못된 보호 모드 입력은 설치 계획 전에 거부', () => {
-  const dir = project();
-  const file = answersFile({ guardMode: 'unknown' });
-  assert.equal(install(planArgs(dir, file)).status, 2);
-  assert.deepEqual(readdirSync(dir), []);
+  assert.equal(checks['strict approval'], undefined);
 });
 
 // ---------- 갱신, 보존 fixture: 실제 릴리즈 간 갱신이 아닌 이전 릴리즈를 흉내 낸 임시 상태 ----------
@@ -405,7 +397,7 @@ test('plugin 채널: git 없는 배포본에서 source가 플러그인 버전 �
   const root = temp('plugin-copy-');
   for (const d of ['skills', 'agents', 'references', '.claude-plugin']) cpSync(join(here, '..', d), join(root, d), { recursive: true });
   const dir = project();
-  const file = answersFile({ profile: 'lite' });
+  const file = answersFile();
   const run = (args) => spawnSync(process.execPath, [join(root, 'skills', 'setup', 'scripts', 'install.mjs'), ...args], {
     encoding: 'utf8',
     env: { ...process.env, SUBAGENT_CLAUDE_BIN: `"${process.execPath}" "${fakeClaude}"` },
@@ -472,25 +464,10 @@ test('디자인 시스템: answers에 있으면 프로필에 권위 있는 기�
   assert.doesNotMatch(readFileSync(join(without.dir, '.claude/subagent/profile.md'), 'utf8'), /## Design system/);
 });
 
-test('answers.profile 생략 시 lite가 기본이고 실행 모드는 relay로 기록', () => {
-  const dir = project();
-  const file = join(dir, '..', `answers-${Date.now()}.json`);
-  const answers = { ...JSON.parse(readFileSync(answersFile(), 'utf8')) };
-  delete answers.profile;
-  writeFileSync(file, JSON.stringify(answers));
-  const plan = install(planArgs(dir, file));
-  assert.equal(install(applyArgs(dir, file, plan.json.hash)).json.ok, true);
-  const profile = readFileSync(join(dir, '.claude', 'subagent', 'profile.md'), 'utf8');
-  assert.match(profile, /Execution profile: lite/);
-  assert.match(profile, /Execution mode: relay/, 'lite도 relay로 기록해 모드를 바꿔도 가드 보호가 유지됨');
-});
-
-test('config: 현재 모드·보호 모드와 MCP 선택 현황을 보여 줌', () => {
-  const { dir } = installFresh({}, { profile: 'lite', designTools: ['playwright'] });
+test('config: MCP 선택 현황을 보여 줌', () => {
+  const { dir } = installFresh({}, { designTools: ['playwright'] });
   const result = install(['config', '--target', dir]);
   assert.equal(result.json.ok, true, result.stderr);
-  assert.equal(result.json.mode, 'lite');
-  assert.equal(result.json.protection, 'advisory');
   const mcp = Object.fromEntries(result.json.mcp.map((m) => [m.name, m]));
   assert.deepEqual(Object.keys(mcp).sort(), ['anymd', 'chrome-devtools', 'figma', 'figma-desktop', 'figma-plugin', 'playwright', 'shadcn']);
   assert.equal(mcp.playwright.registered, true);
@@ -501,28 +478,20 @@ test('config: 현재 모드·보호 모드와 MCP 선택 현황을 보여 줌', 
   assert.ok(mcp.figma.summary && mcp.figma.note && mcp.figma.used_by);
 });
 
-test('config: 모드 전환은 미리보기 후 --yes로 적용하고 verify가 계속 통과', () => {
-  const { dir } = installFresh({}, { profile: 'lite' });
+test('config: 제거한 --set-mode, --set-protection은 거부하고 파일을 바꾸지 않음', () => {
+  const { dir } = installFresh();
   const profilePath = join(dir, '.claude', 'subagent', 'profile.md');
   const before = readFileSync(profilePath, 'utf8');
-  const preview = install(['config', '--target', dir, '--set-mode', 'full']);
-  assert.equal(preview.json.dryRun, true);
-  assert.equal(readFileSync(profilePath, 'utf8'), before, '미리보기는 파일을 바꾸지 않음');
-
-  const applied = install(['config', '--target', dir, '--set-mode', 'full', '--yes']);
-  assert.equal(applied.json.ok, true, applied.stderr);
-  assert.match(readFileSync(profilePath, 'utf8'), /Execution profile: full/);
-  assert.equal(JSON.parse(readFileSync(join(dir, '.claude', 'subagent', 'manifest.json'), 'utf8')).profile, 'full');
-  assert.ok(applied.json.backups, '바꾸기 전 프로필을 백업');
-  assert.equal(install(['config', '--target', dir]).json.mode, 'full');
-  const verified = install(['verify', '--target', dir]);
-  assert.equal(verified.json.ok, true, JSON.stringify(verified.json.checks));
-  assert.equal(install(['config', '--target', dir, '--set-mode', 'lite', '--yes']).json.ok, true);
-  assert.match(readFileSync(profilePath, 'utf8'), /Execution profile: lite/);
+  for (const args of [['--set-mode', 'full'], ['--set-protection', 'strict']]) {
+    const result = install(['config', '--target', dir, ...args, '--yes']);
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /removed in v0.7.0/);
+  }
+  assert.equal(readFileSync(profilePath, 'utf8'), before);
 });
 
 test('config: 선택하지 않았던 MCP를 추가하면 .mcp.json·프로필·매니페스트가 함께 갱신되고 제거 때 되돌림', () => {
-  const { dir } = installFresh({}, { profile: 'lite' });
+  const { dir } = installFresh();
   const mcpPath = join(dir, '.mcp.json');
   assert.equal(existsSync(mcpPath), false);
   assert.equal(install(['config', '--target', dir, '--add-mcp', 'context7']).status, 2, 'context7은 플러그인이 실으므로 고르지 않음');
@@ -546,7 +515,7 @@ test('config: 선택하지 않았던 MCP를 추가하면 .mcp.json·프로필·�
 
 test('config: 이미 다른 설정이 있는 MCP는 덮어쓰지 않고 충돌로 보고, 잘못된 값은 거부', () => {
   const different = { mcpServers: { shadcn: { command: 'my-own', args: [] } } };
-  const { dir } = installFresh({ '.mcp.json': different }, { profile: 'lite' });
+  const { dir } = installFresh({ '.mcp.json': different });
   const conflict = install(['config', '--target', dir, '--add-mcp', 'shadcn']);
   assert.equal(conflict.status, 1);
   assert.equal(conflict.json.conflicts[0].item, '.mcp.json shadcn');
@@ -766,38 +735,19 @@ test('config: 설치되지 않은 프로젝트는 안내와 함께 실패', () =
   assert.match(result.stderr, /not installed/);
 });
 
-test('config: 보호 모드는 엄격 전환 경고와 함께 미리보기 후 적용되고 가드 동작이 바로 바뀜', () => {
-  const { dir } = installFresh({}, { profile: 'lite' });
+test('옛 프로필에 엄격 모드 줄이 남아 있어도 가드는 기본 동작으로 판정', () => {
+  const { dir } = installFresh();
   const profilePath = join(dir, '.claude', 'subagent', 'profile.md');
+  writeFileSync(profilePath, `${readFileSync(profilePath, 'utf8')}- Protection mode: strict
+`);
   const guard = join(here, '..', 'skills', 'run', 'scripts', 'subagent-guard.mjs');
-  const mainWrite = () => spawnSync(process.execPath, [guard], {
+  const status = spawnSync(process.execPath, [guard], {
     cwd: dir,
     env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
-    input: JSON.stringify({ cwd: dir, permission_mode: 'default', hook_event_name: 'PreToolUse', tool_name: 'Write', tool_input: { file_path: 'src/new.js' } }),
+    input: JSON.stringify({ cwd: dir, permission_mode: 'acceptEdits', hook_event_name: 'PreToolUse', tool_name: 'Write', tool_input: { file_path: 'src/new.js' } }),
     encoding: 'utf8',
   }).status;
-  assert.equal(install(['config', '--target', dir]).json.protection, 'advisory');
-  assert.equal(mainWrite(), 0, '권고 모드에서는 메인 세션 수정을 막지 않음');
-
-  const preview = install(['config', '--target', dir, '--set-protection', 'strict']);
-  assert.equal(preview.json.dryRun, true);
-  assert.ok(preview.json.warnings.length >= 2, '엄격 전환의 부담을 적용 전에 알림');
-  assert.match(readFileSync(profilePath, 'utf8'), /Protection mode: advisory/, '미리보기는 파일을 바꾸지 않음');
-
-  const applied = install(['config', '--target', dir, '--set-protection', 'strict', '--yes']);
-  assert.equal(applied.json.ok, true, applied.stderr);
-  assert.match(readFileSync(profilePath, 'utf8'), /Protection mode: strict/);
-  assert.equal(mainWrite(), 2, '엄격 모드에서는 승인 기록 없이 메인 세션 수정을 막음');
-  const verified = install(['verify', '--target', dir]);
-  assert.equal(verified.json.ok, true, JSON.stringify(verified.json.checks));
-  assert.equal(Object.fromEntries(verified.json.checks.map((c) => [c.name, c.status]))['strict approval'], 'unverified');
-
-  const back = install(['config', '--target', dir, '--set-protection', 'advisory', '--yes']);
-  assert.equal(back.json.ok, true);
-  assert.deepEqual(back.json.warnings, []);
-  assert.equal(mainWrite(), 0);
-  assert.equal(install(['verify', '--target', dir]).json.ok, true);
-  assert.equal(install(['config', '--target', dir, '--set-protection', 'off']).status, 2);
+  assert.equal(status, 0);
 });
 
 // 역할 추가와 제거: 미리보기 뒤 --yes로만 적용, 공통 절은 기본 역할에서 복사, 도구 상한과 공통 절 변조는 verify가 잡음

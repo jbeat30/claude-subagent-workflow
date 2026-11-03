@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-// 권고, 엄격 모드 가드: PreToolUse, PostToolUse hook, 역할별 쓰기 경로와 에이전트 호출 대상, 순서 검사
+// 가드: PreToolUse, PostToolUse hook, 역할별 쓰기 경로와 에이전트 호출 대상, 순서 검사
 // 차단은 exit 2와 stderr 메시지, 오류, 파싱 실패도 차단(fail closed)
 // 보안 경계가 아닌 실수 방지 장치: 메인 세션의 Bash, 사용자, hook 설정 변경은 방어하지 않음
 // 전제: 에이전트 호출 인계에 `runId: <id>`, 기획안 상태는 `- Status: confirmed`, 변경 계획 6장 표의 담당은 역할 이름
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { strictMode, verifyRegistration, verifyWrite } from './subagent-policy.mjs';
 import { isActive, readState, writeState } from './subagent-state.mjs';
 import { BUILTIN_ANALYSTS, BUILTIN_WRITERS, customRoles, roleName } from './subagent-roles.mjs';
 
@@ -246,22 +245,18 @@ function decideWrite(root, input) {
   const rl = rel.toLowerCase();
 
   const isPm = role === 'main' || role === 'pm-agent';
-  // 권고 모드의 프로필 수정은 사용자 요청을 받은 PM에게만 허용
-  const strict = strictMode(root);
-  if (strict && input.permission_mode !== 'default') return deny('strict mode allows only the default permission mode; do not downgrade automatically');
-  const pmProfile = !strict && isPm && rl === '.claude/subagent/profile.md';
+  // 프로필 수정은 사용자 요청을 받은 PM에게만 허용
+  const pmProfile = isPm && rl === '.claude/subagent/profile.md';
   if (!pmProfile && isProtectedFor(role, rl)) return deny(`protected path cannot be modified: ${rel}`);
 
   if (isPm) {
     if (new RegExp(`^${DOCS}/runs/[^/]+/reports/`).test(rl)) return deny('only the owning agent may write a report file (the PM must not rewrite or re-save it)');
     if (!pmProfile && !rl.startsWith(`${DOCS}/runs/`)) pmRunGate(root, rel, input.tool_input);
-    if (strict && !rl.startsWith(`${DOCS}/runs/`)) verifyWrite(root, rel, 'pm-agent');
     return;
   }
 
   if (!SUBAGENT_ROLES.includes(role)) {
-    if (strict) return deny('strict mode rejects file edits by unregistered roles');
-    return; // 권고 모드에서는 이 워크플로 외의 에이전트에 간섭하지 않음
+    return; // 이 워크플로 외의 에이전트에는 간섭하지 않음
   }
 
   // runId는 대소문자를 구분하는 파일시스템에서 실제 폴더명과 일치해야 하므로 원래 경로(rel)에서 추출
@@ -277,15 +272,8 @@ function decideWrite(root, input) {
 
   const lock = readLock(root);
   if (!lock || lock.subagentType !== role) return deny(`${role} may write only when activated by a call from the PM or dev-lead`);
-  if (strict) verifyWrite(root, rel, role, lock.runId);
   if (!planConfirmed(root, lock.runId)) return deny('the plan is not in confirmed status, so source and config writes cannot start');
   if (!assignedFiles(root, lock.runId, role).includes(norm(rel))) return deny(`file not assigned to ${role} in the plan's change table (section 6): ${rel}. Write | inside a table cell as \\| and put only the role name in the Owner column`);
-}
-
-// 프로필의 실행 모드가 relay이면 리더는 하위 에이전트를 직접 호출하지 않고 카드만 반환
-function relayMode(root) {
-  const text = readText(join(root, '.claude/subagent/profile.md'));
-  return text !== null && /^- Execution mode:\s*relay\b/m.test(text);
 }
 
 function decideAgent(root, input) {
@@ -293,15 +281,13 @@ function decideAgent(root, input) {
   const target = roleName(input.tool_input?.subagent_type);
   const prompt = input.tool_input?.prompt ?? '';
   if (!ROLES.includes(target)) {
-    if (strictMode(root)) return deny('strict mode rejects calls to unregistered roles');
-    return; // 권고 모드에서는 이 워크플로 외의 호출에 간섭하지 않음
+    return; // 이 워크플로 외의 호출에는 간섭하지 않음
   }
 
   // 백그라운드 호출은 즉시 반환되어 쓰기 잠금이 풀리고 가드가 서브에이전트의 쓰기를 추적하지 못하므로 포그라운드만 허용
   if (input.tool_input?.run_in_background !== false) return deny('call subagents in the foreground: set run_in_background to false (a background call returns at once, so the guard cannot track its writes)');
 
   if (SUBAGENT_ROLES.includes(caller)) {
-    if (relayMode(root)) return deny(`in relay mode ${caller} must not call sub-agents; return call cards for the PM to call`);
     const allowed = CALL_TARGETS[caller] ?? [];
     if (!allowed.includes(target)) return deny(`${caller} cannot call ${target}`);
     if (target === 'qa-agent' && /Mode:\s*final/.test(prompt)) return deny('the PM must call final verification directly');
@@ -316,10 +302,6 @@ function decideAgent(root, input) {
   if (target === 'dev-lead' || WRITERS.includes(target)) {
     if (!planConfirmed(root, runId)) return deny('the plan is not in confirmed status, so development calls cannot start');
     if (needsArchitectureReport(root, runId)) return deny('an L3 plan needs an architecture-agent report in reports/ before development calls; call architecture-agent first');
-    if (strictMode(root)) {
-      if (input.permission_mode !== 'default') return deny('strict mode allows only the default permission mode; do not downgrade automatically');
-      verifyRegistration(root, runId);
-    }
   }
   if (WRITERS.includes(target)) {
     acquireLock(root, { runId, subagentType: target, toolUseId: input.tool_use_id, startedAt: Date.now() });

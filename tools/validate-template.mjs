@@ -120,10 +120,6 @@ for (const file of agentFiles) {
     } else if (!ceiling.includes(tool)) fail(file, `허용되지 않은 도구 ${tool}`);
   }
   if (allowedTargets && !tools.some((t) => t.startsWith('Agent('))) fail(file, '리더는 Agent(...) 필요');
-  if (allowedTargets) {
-    if (!body.includes('# Relay mode')) fail(file, 'relay 모드 절차 없음');
-    if (!/^status: .*needs-dispatch/m.test(body)) fail(file, '보고 형식에 needs-dispatch 필요');
-  }
   for (const heading of ['## Common rules', '## Report format']) {
     if (!body.includes(heading)) fail(file, `${heading} 구간 없음`);
   }
@@ -165,14 +161,14 @@ else {
         if (!agentNames.has(roleName(target))) fail('skills/run/SKILL.md', `Agent 대상 ${target}의 정의 파일 없음`);
       }
     }
-    for (const needle of ['# Relay mode', '# Requirement preservation check', 'subagent-check.mjs" trace']) {
+    for (const needle of ['# Requirement preservation check', 'subagent-check.mjs" trace']) {
       if (!body.includes(needle)) fail('skills/run/SKILL.md', `${needle} 없음`);
     }
   }
 }
 
 // PM 지침의 필수 규칙: 분리된 참조 파일까지 합친 본문에서 확인
-const pmText = ['skills/run/SKILL.md', 'skills/run/references/relay-mode.md', 'references/design-tools.md', 'skills/run/references/strict-mode.md', 'references/rule-priority.md', 'references/ui-verification.md', 'skills/run/references/questions.md']
+const pmText = ['skills/run/SKILL.md', 'references/design-tools.md', 'references/rule-priority.md', 'references/ui-verification.md', 'skills/run/references/questions.md']
   .map((p) => (existsSync(join(repoRoot, p)) ? readFileSync(join(repoRoot, p), 'utf8') : ''))
   .join('\n');
 for (const [label, re] of PM_RULES) {

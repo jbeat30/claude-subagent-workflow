@@ -65,7 +65,7 @@
 | --- | --- |
 | `/subagent-workflow:run` | 작업 맡기기 |
 | `/subagent-workflow:setup` | 프로젝트 설정, 갱신, 제거 |
-| `/subagent-workflow:setting` | 기본 모드(Lite, Full), 보호 모드, MCP 바꾸기 |
+| `/subagent-workflow:setting` | 선택 MCP 보기, 추가, 해제 |
 | `/subagent-workflow:add-role` | 프로젝트 역할 추가, 제거 |
 | `/subagent-workflow:check` | 설정 상태 점검(Claude 호출 없음) |
 
@@ -84,7 +84,7 @@
 - 큰 작업은 기획, 개발, 검증 역할을 여러 번 부르기 때문에 직접 처리보다 비용과 시간이 여러 배 들어요.
 - 가드 hook은 실수를 막는 안전망이지 보안 경계가 아니에요. 메인 세션의 셸 명령은 막지 못해요.
 - 작업을 어떤 등급으로 분류할지와 영향 분석이 충분한지는 지침에 기대요. 품질이 항상 높아진다는 보장은 없어요.
-- Full 모드, relay 실행, 엄격 모드는 실험 기능이에요.
+- v0.6.x의 Full 모드, relay 실행, 엄격 모드는 v0.7.0에서 없앴어요.
 
 자세한 내용: [안전장치와 기능 성숙도](docs/guide/safety-and-maturity.md)
 
@@ -95,7 +95,7 @@
 | [설치와 선택 항목](docs/guide/install.md) | 설정할 때 고르는 항목, 프로젝트에 생기는 파일 |
 | [사용법](docs/guide/usage.md) | 부르는 방법, 사용 예 |
 | [동작 방식](docs/guide/how-it-works.md) | 역할 구성, 작업 흐름, 규칙 우선순위, 토큰 효율 |
-| [설정 바꾸기](docs/guide/settings.md) | 기본 모드, 보호 모드, MCP |
+| [설정 바꾸기](docs/guide/settings.md) | 선택 MCP |
 | [갱신과 제거](docs/guide/update-remove.md) | 새 버전 받기, 이전 버전에서 옮기기, 제거 |
 | [프롬프트 설계 원칙](docs/PROMPT_DESIGN.md) | 프롬프트로 지키는 규칙과 hook, 스크립트로 강제하는 규칙 |
 | [개발 도구 가이드](docs/DEV_TOOLS.md) | 이 저장소를 개발하는 소유자용 도구 설정(컨벤션, Ponytail, Graphify, Headroom) |

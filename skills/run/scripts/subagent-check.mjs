@@ -13,7 +13,6 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, realpathSync } from 'node:fs';
 import { join, relative, resolve, isAbsolute } from 'node:path';
 
-import { strictMode, verifyRegistration, paths as approvalPaths, hash as approvalHash } from './subagent-policy.mjs';
 
 const VERSION = '0.5.0';
 const MAX_BUFFER = 256 * 1024 * 1024;
@@ -24,14 +23,6 @@ const die = (message) => {
   console.error(`subagent-check: ${message}`);
   process.exit(2);
 };
-
-function strictRegistration(runId) {
-  try {
-    return strictMode(root) ? verifyRegistration(root, runId) : null;
-  } catch (error) {
-    return die(error.message);
-  }
-}
 
 function runDir(runId) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(runId ?? '')) die(`invalid runId format: ${runId}`);
@@ -93,7 +84,6 @@ function cmdRun(args) {
   if (!command) die('check command required');
   const dir = runDir(runId);
   const plan = readPlan(dir);
-  const registration = strictRegistration(runId);
   const entry = parseAllowedChecks(plan.text).find((row) => row.command === command);
   if (!entry) die(`commands not in plan section 8 are not run: ${command}`);
   const clean = /^none/.test(entry.sideEffect);
@@ -124,7 +114,6 @@ function cmdRun(args) {
     spawnError: result.error ? String(result.error.message) : null,
     sideEffectsApproved: !clean && allowSideEffects,
     planSha256: plan.hash,
-    registrationSha256: registration ? approvalHash(registration) : null,
     stdoutSha256: sha256(stdout),
     stderrSha256: sha256(stderr),
     runner: `subagent-check ${VERSION}`,
@@ -132,12 +121,6 @@ function cmdRun(args) {
     source: 'check record source: run by the main session with the runner',
   };
   writeFileSync(join(outDir, 'record.json'), `${JSON.stringify(record, null, 2)}\n`);
-  if (registration) {
-    const indexPath = join(approvalPaths(root, runId).guard, `check-index-${runId}.json`);
-    const index = existsSync(indexPath) ? JSON.parse(readFileSync(indexPath, 'utf8')) : {};
-    index[relative(dir, outDir).replaceAll('\\', '/')] = approvalHash(readFileSync(join(outDir, 'record.json')));
-    writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`);
-  }
   console.log(JSON.stringify({ recordDir: relative(root, outDir), exitCode: record.exitCode, signal: record.signal }));
 }
 
@@ -145,7 +128,6 @@ function cmdVerify(args) {
   const [runId] = args;
   const dir = runDir(runId);
   const planHash = readPlan(dir).hash;
-  const registration = strictRegistration(runId);
   const checksDir = join(dir, 'checks');
   const indices = existsSync(checksDir) ? readdirSync(checksDir).filter((n) => /^\d+$/.test(n)).sort() : [];
   if (!indices.length) {
@@ -176,12 +158,6 @@ function cmdVerify(args) {
       const path = join(base, file);
       if (!existsSync(path)) problems.push(`${index}: ${file} not found`);
       else if (sha256(readFileSync(path)) !== record[key]) problems.push(`${index}: ${file} hash mismatch`);
-    }
-    if (registration) {
-      const indexPath = join(approvalPaths(root, runId).guard, `check-index-${runId}.json`);
-      const indexData = existsSync(indexPath) ? JSON.parse(readFileSync(indexPath, 'utf8')) : {};
-      if (indexData[`checks/${index}`] !== approvalHash(readFileSync(recordPath))) problems.push(`${index}: check record hash mismatch`);
-      if (record.registrationSha256 !== approvalHash(registration)) problems.push(`${index}: approval registration changed`);
     }
     if (record.planSha256 !== planHash) {
       if (isSuperseded(index)) superseded.push(index);

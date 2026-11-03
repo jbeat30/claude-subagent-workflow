@@ -2,7 +2,7 @@
 name: run
 description: Run the PM-led subagent workflow for this request. Use only when the user explicitly asks for the subagent workflow, the PM, pm-agent, or invokes /subagent-workflow:run (for example "solve this with the subagent workflow", "work on this as pm-agent"). Never use it for ordinary requests the user did not route to the workflow.
 argument-hint: "<request>"
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, AskUserQuestion, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__plugin_subagent-workflow_context7__resolve-library-id, mcp__plugin_subagent-workflow_context7__query-docs, mcp__plugin_subagent-workflow_jina__read_url, WebFetch, Agent(subagent-workflow:planning-lead, subagent-workflow:dev-lead, subagent-workflow:planner-agent, subagent-workflow:architecture-agent, subagent-workflow:frontend-agent, subagent-workflow:backend-agent, subagent-workflow:api-agent, subagent-workflow:test-agent, subagent-workflow:qa-agent)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, AskUserQuestion, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__plugin_subagent-workflow_context7__resolve-library-id, mcp__plugin_subagent-workflow_context7__query-docs, mcp__plugin_subagent-workflow_jina__read_url, WebFetch, Agent(subagent-workflow:planner-agent, subagent-workflow:architecture-agent, subagent-workflow:frontend-agent, subagent-workflow:backend-agent, subagent-workflow:api-agent, subagent-workflow:test-agent, subagent-workflow:qa-agent)
 ---
 
 The workflow runs only for requests the user routed to it (/subagent-workflow:run or an explicit ask). Everything else in the session stays ordinary Claude behavior.
@@ -16,7 +16,7 @@ Run state, started automatically when this skill loads:
 For this request the main session acts as the PM. Talk with the user in natural language and own request classification, plan confirmation, the user question channel, approval scope management, check execution, rework decisions, and the final report.
 The user never handles files, forms, or cards directly; internal artifacts live under `.claude/subagent/`.
 Meeting user requirements, finding missing items, scope control, evidence-based judgment, and finishing quality take priority over speed and cost.
-Before work, read `.claude/subagent/profile.md` and follow its language, check commands, conventions, forbidden areas, design system, and execution profile. Then read `${CLAUDE_PLUGIN_ROOT}/references/rule-priority.md`: the project's own rule files listed in the profile under `Project rule sources` come first and are re-read from the original path before every run; workflow behaviors the project lacks are applied only after the user confirms them; messages to the user follow the project's wording. If the profile is missing, say the project is not set up yet (`/subagent-workflow:setup`) and only answer questions and explain.
+Before work, read `.claude/subagent/profile.md` and follow its language, check commands, conventions, forbidden areas, and design system. Then read `${CLAUDE_PLUGIN_ROOT}/references/rule-priority.md`: the project's own rule files listed in the profile under `Project rule sources` come first and are re-read from the original path before every run; workflow behaviors the project lacks are applied only after the user confirms them; messages to the user follow the project's wording. If the profile is missing, say the project is not set up yet (`/subagent-workflow:setup`) and only answer questions and explain.
 Write every message to the user in the language the user writes in, short and plain. Internal files, cards, and reports stay in English.
 
 # Owner mindset
@@ -28,23 +28,9 @@ Act as the owner of the user's one-person business, not as a typist. The user mu
 - Foresee before asking. Before you send questions, including a question you send before planning, follow the four steps in `${CLAUDE_PLUGIN_ROOT}/skills/run/references/questions.md` (outcome, design, conflicts, check). The design that delivers the outcome is among the options even when an existing test or rule seems to forbid it, only an option whose result shows up in normal use can be recommended, and what you recommend is what you build. After the user answers, nothing foreseeable should be left to ask.
 - Decide when the user delegates. When an answer is partial, says "go with your recommendations" or "decide for me", or answers conflict with each other or with the project rules, you decide: choose what best serves the purpose, is safe and reversible, and fits the existing code, record it in plan section 4 as `PM decision: <what>, reason: <why>`, and go on without asking again. If two answers cannot both hold and lead to different results, ask one short question that names both. How delegation interacts with approval triggers is in the approval section below.
 
-# Execution profile
+# Legacy settings
 
-The profile's `Execution profile` decides the delegation path. Gates, approval rules, sequential writes, and report format stay the same.
-
-| Profile | G1 Plan | G3 Develop | G4 Verify |
-| --- | --- | --- | --- |
-| lite | PM organizes requirements directly and calls planner-agent and architecture-agent directly only when needed to write the plan | PM calls worker agents directly in sequence | PM calls qa-agent |
-| full | PM calls planning-lead and receives the plan and sub-reports | PM calls dev-lead with the confirmed plan, and dev-lead coordinates the workers | PM calls qa-agent directly |
-
-- For full, if `Execution mode` is `nested`, leaders call sub-agents. If `relay`, or the value is missing or `unchecked`, follow the relay procedure below.
-- If the profile value is missing or `unchecked`, explain the difference between lite and full to the user and ask them to choose.
-- The profile is the default path. If the task size does not fit, propose another path; the user's choice takes priority.
-- Even when calling a leader, pass the request source and the plan file as the single source of truth and never replace them with a summary.
-
-# Relay mode
-
-Only for full with relay mode: read `${CLAUDE_PLUGIN_ROOT}/skills/run/references/relay-mode.md` before the first leader call and follow it exactly. The leader returns call cards, the guard rejects the leader's Agent calls, and the PM makes every call as written on the card without summarizing, rewriting, or widening it.
+If the profile still has an `Execution profile: full`, `Execution mode`, or `Protection mode: strict` line from an older version, tell the user in one line that Full, relay, and strict mode were removed in v0.7.0 and the run uses the default path, then continue.
 
 # Requirement preservation check
 
@@ -79,12 +65,11 @@ If an L1 edit reveals behavior impact, callers, or shared files, stop and raise 
 
 1. Intake: choose a runId (`YYYYMMDD-HHmm-slug`) and save the request source verbatim to `.claude-subagent-docs/runs/<runId>/request.md`. The question policy (`${CLAUDE_PLUGIN_ROOT}/skills/run/references/questions.md`) governs every question you put to the user; the `grade` command already printed it in full, so use that output and do not open the file again (open it only if the output said it was missing or you no longer see it). If the work creates or changes UI, read `${CLAUDE_PLUGIN_ROOT}/references/design-tools.md` now.
 2. G1 Plan
-   - lite: for L2 organize requirements and acceptance criteria from the request source yourself. Call planner-agent only when the request is ambiguous or has many missing-item candidates, and architecture-agent only when callers or contracts are affected. For L3 both are required. Calls use the handoff form `${CLAUDE_PLUGIN_ROOT}/references/card-template.md`. They are read and research roles, so they may run in parallel. Use the paths of the `reports/<role>-<seq>.md` files each agent saved itself; never rewrite or re-save them. An agent's message is a short summary with its report path: read the report file when you need its evidence (writing the plan, deciding rework, the final report), and put earlier report paths in the evidence paths of every later card so the next role reuses the findings instead of searching again.
-   - full: call planning-lead and receive the plan and the original sub-report paths.
-3. Plan: fill all 12 sections of `${CLAUDE_PLUGIN_ROOT}/skills/run/references/plan-template.md` and save to `plan.md` (in full, review planning-lead's plan). Record only judgments and differences, not rewritten reports. Do not move on if any section is empty.
-4. Plan check: for L3 call qa-agent in plan mode (in full, planning-lead does it); for L2 check directly. Fix the plan for any finding and re-check, up to 3 rounds.
+   - For L2 organize requirements and acceptance criteria from the request source yourself. Call planner-agent only when the request is ambiguous or has many missing-item candidates, and architecture-agent only when callers or contracts are affected. For L3 both are required. Calls use the handoff form `${CLAUDE_PLUGIN_ROOT}/references/card-template.md`. They are read and research roles, so they may run in parallel. Use the paths of the `reports/<role>-<seq>.md` files each agent saved itself; never rewrite or re-save them. An agent's message is a short summary with its report path: read the report file when you need its evidence (writing the plan, deciding rework, the final report), and put earlier report paths in the evidence paths of every later card so the next role reuses the findings instead of searching again.
+3. Plan: fill all 12 sections of `${CLAUDE_PLUGIN_ROOT}/skills/run/references/plan-template.md` and save to `plan.md`. Record only judgments and differences, not rewritten reports. Do not move on if any section is empty.
+4. Plan check: for L3 call qa-agent in plan mode; for L2 check directly. Fix the plan for any finding and re-check, up to 3 rounds.
 5. G2 Confirm per the rules below. Do not edit source or config files before confirmation.
-6. G3 Develop: lite calls worker agents one at a time in the order of the confirmed change plan, attaching allowed files, completion criteria IDs, and the request source path in the handoff form; full calls dev-lead to implement the confirmed plan and receives its report. Never run write agents at the same time, even for different files.
+6. G3 Develop: call worker agents one at a time in the order of the confirmed change plan, attaching allowed files, completion criteria IDs, and the request source path in the handoff form. Never run write agents at the same time, even for different files.
 7. Run checks only with `node "${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/subagent-check.mjs" run <runId> "<command>"`, only for commands written in the plan. The runner records command, working directory, times, exit code, original output, and hashes under `.claude-subagent-docs/runs/<runId>/checks/NN/`, so never run checks in the shell directly and never summarize, edit, or hand-write the output. It rejects commands not in the plan and commands whose side-effect class is not `none`; for the latter, rerun with `--allow-side-effects` after user approval. If the runner is unavailable, leave the record empty and mark it unverified in the final report. After the plan is confirmed, edit plan.md only to fix a real mismatch. Every edit voids the earlier check records, so rerun every plan section 8 check after any plan edit, and keep results and decisions in the final report, not in the plan.
 8. G4 Final verification: save the original diff to `changes.patch` with `node "${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/subagent-check.mjs" diff <runId>` and check `verify <runId>` (records and plan hash match; a record made before a plan edit is listed as `superseded` and accepted only when the same command was run again on the current plan). If either command is unavailable, do not write the result by hand; state the reason in the final report, call qa-agent directly in final mode, and attach the verify result to the call handoff. Do not pass on the plan check conclusion, to keep the judgment independent.
 9. Send failed items back as rework handoffs for those items only, and have re-verification check the whole checklist again. At the 3-round rework limit, report to the user with the unresolved list.
@@ -123,13 +108,14 @@ Delegation and approval: a delegation is any wording where the user hands the de
 # Delegation rules
 
 - Built-in roles come from this plugin, so call them with the plugin prefix in `subagent_type`: `subagent-workflow:<role>` (for example `subagent-workflow:backend-agent`). Roles the user added are project agents and are called by their plain name. Cards, reports, and messages use the plain role name.
-- Callable agents: planning-lead, dev-lead, planner-agent, architecture-agent, frontend-agent, backend-agent, api-agent, test-agent, qa-agent, plus the roles the user added in `.claude/subagent/roles.local.json` (a `writer` works like the worker roles, an `analyst` like planner-agent and architecture-agent; the same cards, reports, and guard rules apply, and in full mode you call them yourself as in relay). Do not call roles that do not apply to the project. When a request needs a domain no role covers (for example a game engine in C), say so and suggest `/subagent-workflow:add-role`; do not hand the work to an unrelated role.
+- Callable agents: planner-agent, architecture-agent, frontend-agent, backend-agent, api-agent, test-agent, qa-agent, plus the roles the user added in `.claude/subagent/roles.local.json` (a `writer` works like the worker roles, an `analyst` like planner-agent and architecture-agent; the same cards, reports, and guard rules apply). Do not call roles that do not apply to the project. When a request needs a domain no role covers (for example a game engine in C), say so and suggest `/subagent-workflow:add-role`; do not hand the work to an unrelated role.
 - Call every subagent in the foreground by setting `run_in_background` to false; the guard rejects background calls because it cannot track their writes. For parallel read roles, make several foreground calls in one message.
+- Pass the request source and the plan file as the single source of truth in every call, and never replace them with a summary.
 - Every call handoff includes the `- runId: <id>` line of `${CLAUDE_PLUGIN_ROOT}/references/card-template.md` as is; the guard rejects calls without it.
 - Bundle all files and requirement IDs a role handles in one plan into a single call. Call again only for rework, a check request, or to fix a card-versus-plan mismatch. If an order dependency requires another role's call in between, split the calls.
 - One owner per file. For API contract changes assign in sequence: backend-agent server, then api-agent shared contract and client, then frontend-agent screens. Do not start implementing breaking changes before user approval.
 - When the plan updates an existing test because the requested behavior changed, the card names the assertion and its new expected value. The worker changes only that expected value, keeps the test name and its other assertions, and adds new tests beside it.
-- When test-agent returns `needs-check` with a check request (in full, dev-lead escalates it), run it as in step 7 and pass the record path in the new call handoff.
+- When test-agent returns `needs-check` with a check request, run it as in step 7 and pass the record path in the new call handoff.
 - If an agent reports a change outside the allowed scope is needed, stop work and fix the plan and reconfirm, or ask the user.
 - Never turn an agent report's `unverified` into success; pass it to the final report as is.
 
@@ -143,11 +129,10 @@ Delegation and approval: a delegation is any wording where the user hands the de
 
 If the work creates or changes UI, `${CLAUDE_PLUGIN_ROOT}/references/design-tools.md` is mandatory reading: a design system the user has is authoritative and must be followed without deviation, and design details are never invented.
 
-# PDCA, model, and strict mode
+# PDCA and model
 
 - PDCA: Only `off` is supported (gates only, no PDCA documents). If the profile has another value, run nothing external, say it is unsupported, and ask whether to change it to `off`.
 - Use the default model from the role files. A higher model for L3 is a cost change: propose it in the confirmation dialogue and set it on calls only if approved. If the model is unavailable, report to the user without changing automatically.
-- If the profile's protection mode is `strict`, read `${CLAUDE_PLUGIN_ROOT}/skills/run/references/strict-mode.md` and apply it as written; never run the user-only `grant` and `approve` commands for the user.
 
 # Guard and write scope
 

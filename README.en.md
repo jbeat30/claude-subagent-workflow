@@ -65,7 +65,7 @@ Need a role for your domain? It recommends roles and adds the one you pick.
 | --- | --- |
 | `/subagent-workflow:run` | Hand over a task |
 | `/subagent-workflow:setup` | Set up, update, or remove the project setup |
-| `/subagent-workflow:setting` | Change the default mode (Lite, Full), protection mode, MCP servers |
+| `/subagent-workflow:setting` | View, add, or remove optional MCP servers |
 | `/subagent-workflow:add-role` | Add or remove a project role |
 | `/subagent-workflow:check` | Check the setup (no Claude call) |
 
@@ -84,7 +84,7 @@ A simple request still gets handled directly by the PM without subagents, but cl
 - Larger tasks call the planning, development, and verification roles several times, so they cost several times more and take longer than handling the task directly.
 - The guard hook is a safety net against mistakes, not a security boundary. It cannot stop shell commands in the main session.
 - How a task is classified and whether the impact analysis is thorough rest on the instructions. Better quality is not guaranteed.
-- Full mode, relay execution, and strict mode are experimental.
+- Full mode, relay execution, and strict mode from v0.6.x were removed in v0.7.0.
 
 Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 
@@ -95,7 +95,7 @@ Details: [Safeguards and feature maturity](docs/guide/safety-and-maturity.en.md)
 | [Install and choices](docs/guide/install.en.md) | What you choose at setup, files created in your project |
 | [Usage](docs/guide/usage.en.md) | How to call it, examples |
 | [How it works](docs/guide/how-it-works.en.md) | Roles, task flow, rule priority, token efficiency |
-| [Settings](docs/guide/settings.en.md) | Default mode, protection mode, MCP |
+| [Settings](docs/guide/settings.en.md) | Optional MCP servers |
 | [Update and remove](docs/guide/update-remove.en.md) | New versions, moving from older versions, removal |
 | [Development tools guide](docs/DEV_TOOLS.en.md) | Owner-only tooling setup for developing this repository |
 | [Prompt design principles](docs/PROMPT_DESIGN.en.md) | Rules kept by prompts versus enforced by hooks and scripts |

@@ -226,21 +226,13 @@ test('배정 파일의 대소문자는 파일시스템 기준으로 비교', () 
   assert.equal(write(dir, 'backend-agent', reports('backend-agent-01.md')).allowed, true, '대문자 실행 ID R1 보존');
 });
 
-test('relay 모드: 리더의 하위 에이전트 호출 거부, nested 모드·PM 직접 호출은 허용', () => {
+test('옛 프로필의 relay 설정은 무시하고 리더는 자기 부서만 호출', () => {
   const dir = project();
-  const profile = (mode) => {
-    mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
-    writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), `## 워크플로 설정\n\n- Execution profile: full\n- Execution mode: ${mode}\n`);
-  };
-  profile('relay');
-  const denied = call(dir, 'dev-lead', 'backend-agent');
-  assert.equal(denied.allowed, false);
-  assert.match(denied.stderr, /relay mode/);
-  assert.equal(call(dir, 'planning-lead', 'planner-agent').allowed, false);
-  assert.equal(call(dir, undefined, 'backend-agent', card(), 'toolu_r').allowed, true, 'PM 직접 호출은 유지');
-  post(dir, 'backend-agent', 'toolu_r');
-  profile('nested');
+  mkdirSync(join(dir, '.claude', 'subagent'), { recursive: true });
+  writeFileSync(join(dir, '.claude', 'subagent', 'profile.md'), '## 워크플로 설정\n\n- Execution profile: full\n- Execution mode: relay\n');
   assert.equal(call(dir, 'dev-lead', 'backend-agent', card(), 'toolu_n').allowed, true);
+  post(dir, 'backend-agent', 'toolu_n');
+  assert.equal(call(dir, 'planning-lead', 'frontend-agent').allowed, false);
 });
 
 test('백그라운드 호출은 거부하고 포그라운드(run_in_background false)만 허용', () => {

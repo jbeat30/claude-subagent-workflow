@@ -24,7 +24,7 @@ Prompt rules **reduce risk but guarantee nothing**; only items enforced by code 
 | Source evidence per requirement | Each requirement carries a quote from the source; no requirements are invented | Prompt, trace check |
 | Edit only allowed files | Only files listed as exact paths in the plan, one owner per file; if a change outside the scope is needed, stop editing and return the needed scope and reason | Prompt, guard hook |
 | No edits before confirmation | No source or config writes and no development calls until the plan is `confirmed` | Guard hook |
-| Forbidden areas | Forbidden areas in the profile and files outside the approved scope need user approval | Prompt, guard hook (allows only files assigned in the plan; comparing against forbidden paths themselves happens only in strict mode) |
+| Forbidden areas | Forbidden areas in the profile and files outside the approved scope need user approval | Prompt, guard hook (allows only files assigned in the plan; it does not compare against the forbidden paths themselves) |
 | Never lower the grade | A signature change that needs caller edits is L3 even if the request looks small; if impact appears mid-run, stop writing and raise the grade | Prompt |
 | User approval triggers | Scope changes, policy decisions, compatibility changes, security and permissions, new dependencies and installs, and external effects are confirmed with the user, never decided alone | Prompt |
 

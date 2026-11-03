@@ -29,10 +29,10 @@ The roles, the PM instructions, and the guard live in the plugin. Nothing is cop
 | `/subagent-workflow:run` | Hand over a task (the PM plans, confirms, calls roles, verifies, reports) | Depends on the task |
 | `/subagent-workflow:setup` | **Set up, update, or remove** the project setup; pass `install`, `update`, or `remove` | A few turns; the installer commands do not call Claude |
 | `/subagent-workflow:check` | Check the setup (profile, leftovers from older versions, guard script, version) | None; it does not call Claude |
-| `/subagent-workflow:setting` | **View and change settings**: the default mode (Lite/Full), the protection mode, which MCP servers the workflow can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
+| `/subagent-workflow:setting` | **View and change settings**: which optional MCP servers the workflow can use and which are selected, and adding an MCP server you did not select | A few conversation turns; the installer commands do not call Claude |
 | `/subagent-workflow:add-role` | **Add or remove a project role**: recommends roles from your domain and stack, then creates the chosen role file with the shared rules and verifies it | A few conversation turns; the installer commands do not call Claude |
 
-Plain requests work too: "recommend and add a subagent for our C game engine", "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "switch the mode to Full", "remove the workflow".
+Plain requests work too: "recommend and add a subagent for our C game engine", "set up the subagent workflow", "check the workflow installation", "show the workflow settings", "remove the workflow".
 
 ## What you choose at setup
 
@@ -47,7 +47,7 @@ Plain requests work too: "recommend and add a subagent for our C game engine", "
 | Task records | Add `.claude-subagent-docs/` to `.gitignore` | Add |
 | Conflict handling | If files collide, per item: skip or replace with backup | Asked on conflict |
 
-The mode and the protection mode are not asked at install. The protection mode installs as **advisory** (the guard hook blocks violations); **strict** (an experimental feature that tracks direct approval records, where you run the approval commands yourself) can be chosen later in `/subagent-workflow:setting`. The plugin provides the 9 roles and the default mode is Lite. Later you can switch to Full in `/subagent-workflow:setting`, or ask for it in a single request ("handle this in Full mode"). Asking this way in a project installed as Lite ran the Full path planning-lead → dev-lead → worker subagents → qa-agent (checked once).
+No mode is asked at install. The workflow has one path (the PM calls the needed roles directly) and the guard hook blocks violations. Full mode, relay, and strict mode from v0.6.x were removed in v0.7.0; if an older profile still has those settings, the PM says so in one line and uses the default path.
 
 Only `frontend-agent` and `qa-agent` use the design tools. Browser tools (Playwright, Chrome DevTools) can see the content of the browser they open, so avoid personal tabs and sensitive data. A registered server's tool definitions are added to every call of those two roles, which costs tokens, and `npx` runs external packages, so choose them only when you need them. The subagents never invent spacing, colors, or copy that the design does not state, and mark visual checks they could not make as `unchecked`.
 

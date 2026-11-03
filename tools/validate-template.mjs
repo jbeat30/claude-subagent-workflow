@@ -161,7 +161,7 @@ else {
         if (!agentNames.has(roleName(target))) fail('skills/run/SKILL.md', `Agent 대상 ${target}의 정의 파일 없음`);
       }
     }
-    for (const needle of ['# Requirement preservation check', 'subagent-check.mjs" trace']) {
+    for (const needle of ['# Request source integrity']) {
       if (!body.includes(needle)) fail('skills/run/SKILL.md', `${needle} 없음`);
     }
   }

@@ -32,13 +32,10 @@ Act as the owner of the user's one-person business, not as a typist. The user mu
 
 If the profile still has an `Execution profile: full`, `Execution mode`, or `Protection mode: strict` line from an older version, tell the user in one line that Full, relay, and strict mode were removed in v0.7.0 and the run uses the default path, then continue.
 
-# Requirement preservation check
+# Request source integrity
 
-- After saving cards and before G4, create the `diff` and run `node "${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/subagent-check.mjs" trace <runId>`. It checks that the request source is in plan section 1, quotes in section 2 exist in the source, IDs in sections 2 and 7 match, each card's request source, plan hash, requirement IDs, and allowed files match the plan, reports mention the IDs, and the diff file is in section 6.
-- If `ok: false`, do not give the final report before resolving the problems. If it could not run, mark requirement preservation as unchecked.
-- This is a consistency comparison between documents, not proof that the implementation meets the requirements.
-- Never edit a saved card, report, or check record to make `trace` or `verify` pass. A plan-mode card was sent before confirmation and keeps the hash it was sent with; the checks ignore that difference.
-- `request.md` is written once at intake and never edited afterwards, not even its format. Paste its exact content into each card's request source section. If `trace` still finds a mismatch, leave every saved file as it is and report the mismatch in the final report.
+- `request.md` is written once at intake and never edited afterwards, not even its format. Paste its exact content into each card's request source section.
+- Never edit a saved report or check record to make `verify` pass.
 
 # G0 Request classification
 

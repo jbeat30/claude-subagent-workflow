@@ -9,7 +9,8 @@ export const BUILTIN_ANALYSTS = ['planner-agent', 'architecture-agent'];
 export const BUILTIN_ROLES = ['planning-lead', 'dev-lead', ...BUILTIN_ANALYSTS, ...BUILTIN_WRITERS, 'qa-agent'];
 export const CUSTOM_KINDS = ['writer', 'analyst'];
 // 추가 역할의 도구 상한: writer는 셸 없이 읽기와 쓰기, analyst는 자기 보고서 쓰기만(가드가 경로를 다시 제한)
-const CONTEXT7 = ['mcp__context7__resolve-library-id', 'mcp__context7__query-docs'];
+// 문서 확인 도구: 사용자가 연결한 Context7을 먼저, 없으면 플러그인이 싣는 Context7과 Jina, Jina 실패 시 WebFetch
+const CONTEXT7 = ['mcp__context7__resolve-library-id', 'mcp__context7__query-docs', 'mcp__plugin_subagent-workflow_context7__resolve-library-id', 'mcp__plugin_subagent-workflow_context7__query-docs', 'mcp__plugin_subagent-workflow_jina__read_url', 'WebFetch'];
 export const KIND_TOOLS = {
   writer: ['Read', 'Glob', 'Grep', 'Edit', 'Write', ...CONTEXT7],
   analyst: ['Read', 'Glob', 'Grep', 'Write', ...CONTEXT7],

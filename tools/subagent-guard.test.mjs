@@ -103,6 +103,17 @@ test('분석·QA·리더는 자신의 보고·산출물에만 쓰기', () => {
   assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/NOPE/reports/planner-agent-01.md').allowed, false);
 });
 
+test('문서 확인 기록(evidence.md)은 모든 역할이 공유해 쓰고, 실행 단위가 없거나 다른 이름이면 거부', () => {
+  const dir = project();
+  const evidence = '.claude-subagent-docs/runs/R1/evidence.md';
+  for (const role of ['planner-agent', 'architecture-agent', 'qa-agent', 'backend-agent', 'planning-lead']) {
+    assert.equal(write(dir, role, evidence).allowed, true, role);
+  }
+  assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/NOPE/evidence.md').allowed, false);
+  assert.equal(write(dir, 'planner-agent', reports('evidence.md')).allowed, false);
+  assert.equal(write(dir, 'planner-agent', '.claude-subagent-docs/runs/R1/evidence2.md').allowed, false);
+});
+
 test('보고서 이름이 틀리면 거부하고 메시지가 기대하는 이름을 알려 줌', () => {
   const dir = project();
   const wrong = write(dir, 'architecture-agent', reports('architecture-01.md'));

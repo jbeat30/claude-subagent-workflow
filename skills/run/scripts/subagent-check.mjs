@@ -7,13 +7,11 @@
 //   node <plugin>/skills/run/scripts/subagent-check.mjs run <runId> "<검사 명령>" [--allow-side-effects]
 //   node <plugin>/skills/run/scripts/subagent-check.mjs verify <runId>
 //   node <plugin>/skills/run/scripts/subagent-check.mjs diff <runId> [--base <ref>]
-//   node <plugin>/skills/run/scripts/subagent-check.mjs trace <runId>
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, realpathSync } from 'node:fs';
 import { join, relative, resolve, isAbsolute } from 'node:path';
 
-import { strictMode, verifyRegistration, paths as approvalPaths, hash as approvalHash } from './subagent-policy.mjs';
 
 const VERSION = '0.5.0';
 const MAX_BUFFER = 256 * 1024 * 1024;
@@ -24,14 +22,6 @@ const die = (message) => {
   console.error(`subagent-check: ${message}`);
   process.exit(2);
 };
-
-function strictRegistration(runId) {
-  try {
-    return strictMode(root) ? verifyRegistration(root, runId) : null;
-  } catch (error) {
-    return die(error.message);
-  }
-}
 
 function runDir(runId) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(runId ?? '')) die(`invalid runId format: ${runId}`);
@@ -93,7 +83,6 @@ function cmdRun(args) {
   if (!command) die('check command required');
   const dir = runDir(runId);
   const plan = readPlan(dir);
-  const registration = strictRegistration(runId);
   const entry = parseAllowedChecks(plan.text).find((row) => row.command === command);
   if (!entry) die(`commands not in plan section 8 are not run: ${command}`);
   const clean = /^none/.test(entry.sideEffect);
@@ -124,7 +113,6 @@ function cmdRun(args) {
     spawnError: result.error ? String(result.error.message) : null,
     sideEffectsApproved: !clean && allowSideEffects,
     planSha256: plan.hash,
-    registrationSha256: registration ? approvalHash(registration) : null,
     stdoutSha256: sha256(stdout),
     stderrSha256: sha256(stderr),
     runner: `subagent-check ${VERSION}`,
@@ -132,12 +120,6 @@ function cmdRun(args) {
     source: 'check record source: run by the main session with the runner',
   };
   writeFileSync(join(outDir, 'record.json'), `${JSON.stringify(record, null, 2)}\n`);
-  if (registration) {
-    const indexPath = join(approvalPaths(root, runId).guard, `check-index-${runId}.json`);
-    const index = existsSync(indexPath) ? JSON.parse(readFileSync(indexPath, 'utf8')) : {};
-    index[relative(dir, outDir).replaceAll('\\', '/')] = approvalHash(readFileSync(join(outDir, 'record.json')));
-    writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`);
-  }
   console.log(JSON.stringify({ recordDir: relative(root, outDir), exitCode: record.exitCode, signal: record.signal }));
 }
 
@@ -145,7 +127,6 @@ function cmdVerify(args) {
   const [runId] = args;
   const dir = runDir(runId);
   const planHash = readPlan(dir).hash;
-  const registration = strictRegistration(runId);
   const checksDir = join(dir, 'checks');
   const indices = existsSync(checksDir) ? readdirSync(checksDir).filter((n) => /^\d+$/.test(n)).sort() : [];
   if (!indices.length) {
@@ -176,12 +157,6 @@ function cmdVerify(args) {
       const path = join(base, file);
       if (!existsSync(path)) problems.push(`${index}: ${file} not found`);
       else if (sha256(readFileSync(path)) !== record[key]) problems.push(`${index}: ${file} hash mismatch`);
-    }
-    if (registration) {
-      const indexPath = join(approvalPaths(root, runId).guard, `check-index-${runId}.json`);
-      const indexData = existsSync(indexPath) ? JSON.parse(readFileSync(indexPath, 'utf8')) : {};
-      if (indexData[`checks/${index}`] !== approvalHash(readFileSync(recordPath))) problems.push(`${index}: check record hash mismatch`);
-      if (record.registrationSha256 !== approvalHash(registration)) problems.push(`${index}: approval registration changed`);
     }
     if (record.planSha256 !== planHash) {
       if (isSuperseded(index)) superseded.push(index);
@@ -233,161 +208,8 @@ function cmdDiff(args) {
   );
 }
 
-const squash = (text) => text.replace(/\s+/g, ' ').trim();
-const stripCell = (cell) => (cell ?? '').replace(/^`+|`+$/g, '').trim();
-
-function splitRow(line) {
-  return line
-    .trim()
-    .replace(/^\||\|$/g, '')
-    .split(/(?<!\\)\|/)
-    .map((c) => c.trim().replace(/\\\|/g, '|'));
-}
-
-// 기획안 N장의 표 본문 행(헤더, 구분선 제외)을 셀 배열로 추출
-function planTable(planText, chapter) {
-  const start = planText.search(new RegExp(`^## ${chapter}\\.`, 'm'));
-  if (start < 0) return null;
-  const rows = [];
-  let header = true;
-  for (const line of planText.slice(start).split(/\r?\n/).slice(1)) {
-    if (/^## /.test(line)) break;
-    if (!line.trim().startsWith('|')) continue;
-    if (/^\|\s*-/.test(line.trim())) {
-      header = false;
-      continue;
-    }
-    if (!header) rows.push(splitRow(line));
-  }
-  return rows;
-}
-
-// 1장 인용 블록 전체를 이어 붙여 반환
-function planQuote(planText) {
-  const start = planText.search(/^## 1\./m);
-  if (start < 0) return null;
-  const quoted = [];
-  for (const line of planText.slice(start).split(/\r?\n/).slice(1)) {
-    if (/^## /.test(line)) break;
-    if (line.startsWith('>')) quoted.push(line.replace(/^>\s?/, ''));
-  }
-  return quoted.join('\n');
-}
-
-// 호출 카드의 `- 항목:` 값과 `## Request source` 인용 블록 추출
-function parseCard(text) {
-  const field = (name) => text.match(new RegExp(`^- ${name}[^:\\n]*:[ \\t]*(.*)$`, 'm'))?.[1]?.trim() ?? '';
-  const quote = text.split(/^## Request source\s*$/m)[1];
-  return {
-    runId: field('runId'),
-    mode: field('Mode').match(/\b(plan|final)\b/)?.[1] ?? null,
-    planHash: field('Plan path and hash').match(/\b[0-9a-f]{64}\b/)?.[0] ?? null,
-    ids: field('Assigned requirements').match(/\bR\d+\b/g) ?? [],
-    // 역할 자신의 보고서 경로(reports/...)는 소스 배정이 아니므로 대조에서 제외(읽기 전용 역할 카드에 적힌 경우)
-    files: /^none\b/i.test(field('Allowed files')) ? [] : field('Allowed files').split(',').map((f) => stripCell(f).replace(/^\.\//, ''))
-      .filter((f) => f && f !== 'none' && !/^(\.claude-subagent-docs\/runs\/[^/]+\/)?reports\//.test(f)),
-    quote: quote === undefined ? null : quote.split(/\r?\n/).filter((l) => l.startsWith('>')).map((l) => l.replace(/^>\s?/, '')).join('\n'),
-  };
-}
-
-// 요청 원문 → 기획안 → 호출 카드 → 보고 → diff로 이어지는 요구, 인수 기준, 파일 범위 보존 대조
-// 기록 파일의 작성자를 인증하지 않는 일관성 검사이며 구현 정확성이나 요구 충족의 증명이 아님
-function cmdTrace(args) {
-  const [runId] = args;
-  const dir = runDir(runId);
-  const plan = readPlan(dir);
-  const requestPath = join(dir, 'request.md');
-  if (!existsSync(requestPath)) die('request.md not found');
-  const request = readFileSync(requestPath, 'utf8');
-  const problems = [];
-  const notes = [];
-
-  if (!squash(request)) problems.push('request.md is empty');
-  else if (!squash(planQuote(plan.text) ?? '').includes(squash(request))) problems.push('plan section 1 does not contain the full request source');
-
-  const reqRows = planTable(plan.text, 2);
-  const doneRows = planTable(plan.text, 7);
-  if (!reqRows || !doneRows) die('plan section 2 or 7 table not found');
-  const ids = reqRows.map((r) => stripCell(r[0])).filter((id) => /^R\d+$/.test(id));
-  if (!ids.length) problems.push('no requirement ID in section 2');
-  if (new Set(ids).size !== ids.length) problems.push('duplicate requirement ID in section 2');
-  const flat = squash(request);
-  for (const row of reqRows) {
-    const id = stripCell(row[0]);
-    if (!/^R\d+$/.test(id)) continue;
-    const evidence = squash(stripCell(row[2]).replace(/^["“>]+|["”]+$/g, ''));
-    if (!evidence) problems.push(`${id}: no source quote`);
-    else if (!flat.includes(evidence)) problems.push(`${id}: the source quote is not in request.md`);
-  }
-  const doneIds = new Set();
-  for (const row of doneRows) {
-    const id = stripCell(row[0]);
-    if (!/^R\d+$/.test(id)) continue;
-    doneIds.add(id);
-    if (![1, 2, 3].every((i) => stripCell(row[i]))) problems.push(`${id}: completion criteria Given/When/Then is empty`);
-  }
-  for (const id of ids) if (!doneIds.has(id)) problems.push(`${id}: no completion criteria in section 7`);
-  for (const id of doneIds) if (!ids.includes(id)) problems.push(`${id}: completion criteria for an ID not in section 2`);
-
-  const changeRows = planTable(plan.text, 6) ?? [];
-  const planned = new Map();
-  for (const row of changeRows) {
-    const file = stripCell(row[1]).replace(/\\/g, '/').replace(/^\.\//, '');
-    if (!file || file === 'File') continue;
-    planned.set(file, stripCell(row[4]).replace(/^subagent-workflow:/, ''));
-  }
-
-  const cardsDir = join(dir, 'cards');
-  const cardFiles = existsSync(cardsDir) ? readdirSync(cardsDir).filter((n) => /^\d{2}-[a-z-]+\.md$/.test(n)).sort() : [];
-  const covered = new Set();
-  for (const name of cardFiles) {
-    const role = name.slice(3, -3);
-    const card = parseCard(readFileSync(join(cardsDir, name), 'utf8'));
-    if (card.runId !== runId) problems.push(`cards/${name}: runId mismatch`);
-    if (card.quote === null || squash(card.quote) !== flat) problems.push(`cards/${name}: the card's request source differs from request.md`);
-    // 계획 단계(읽기 전용) 카드는 확정 전에 보내므로 확정 뒤 계획서 해시와 다른 것이 정상, 쓰기와 최종 검증 카드만 현재 해시와 비교
-    const planStage = card.mode === 'plan' || ['planner-agent', 'architecture-agent'].includes(role);
-    if (card.planHash && card.planHash !== plan.hash) {
-      if (planStage) notes.push(`cards/${name}: plan-stage card keeps the hash it was sent with`);
-      else problems.push(`cards/${name}: the card's plan hash differs from the current plan`);
-    }
-    for (const id of card.ids) {
-      if (!ids.includes(id)) problems.push(`cards/${name}: requirement not in the plan ${id}`);
-      else covered.add(id);
-    }
-    for (const file of card.files) {
-      // 계획서, 보고서 같은 실행 기록은 소스 파일이 아니므로 변경 계획(6장) 비교에서 제외(planning-lead 카드의 허용 파일이 plan.md)
-      if (file.replace(/\\/g, '/').startsWith('.claude-subagent-docs/runs/')) continue;
-      if (!planned.has(file)) problems.push(`cards/${name}: file not in plan section 6 ${file}`);
-      else if (planned.get(file) !== role) problems.push(`cards/${name}: ${file} is owned by ${planned.get(file)}, but the card receiver is ${role}`);
-    }
-  }
-  const writerCards = cardFiles.filter((n) => /-(frontend|backend|api|test)-agent\.md$/.test(n));
-  if (writerCards.length) for (const id of ids) if (!covered.has(id)) problems.push(`${id}: not assigned to any worker card`);
-  if (!cardFiles.length) notes.push('no call card records (cards/NN-<role>.md); card stage comparison skipped');
-
-  const reportsDir = join(dir, 'reports');
-  for (const name of ['dev-lead.md', 'qa-final.md']) {
-    const path = join(reportsDir, name);
-    if (!existsSync(path)) continue;
-    const text = readFileSync(path, 'utf8');
-    for (const id of ids) if (!new RegExp(`\\b${id}\\b`).test(text)) problems.push(`reports/${name}: ${id} not mentioned`);
-  }
-
-  const patchPath = join(dir, 'changes.patch');
-  if (existsSync(patchPath)) {
-    const patch = readFileSync(patchPath, 'utf8');
-    const changed = new Set([...patch.matchAll(/^diff --git a\/(.+?) b\/(.+)$/gm)].map((m) => m[2]));
-    for (const file of changed) if (!planned.has(file)) problems.push(`changes.patch: changed file not in plan section 6 ${file}`);
-  } else notes.push('no changes.patch; file scope diff comparison skipped');
-
-  console.log(JSON.stringify({ ok: problems.length === 0, requirements: ids.length, cards: cardFiles.length, problems, notes }));
-  process.exit(problems.length ? 1 : 0);
-}
-
 const [command, ...rest] = process.argv.slice(2);
 if (command === 'run') cmdRun(rest);
 else if (command === 'verify') cmdVerify(rest);
 else if (command === 'diff') cmdDiff(rest);
-else if (command === 'trace') cmdTrace(rest);
-else die('usage: run <runId> "<command>" | verify <runId> | diff <runId> [--base <ref>] | trace <runId>');
+else die('usage: run <runId> "<command>" | verify <runId> | diff <runId> [--base <ref>]');

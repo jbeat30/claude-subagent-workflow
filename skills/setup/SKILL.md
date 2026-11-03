@@ -31,7 +31,7 @@ If `${CLAUDE_PLUGIN_ROOT}` is empty, find it with `find ~/.claude -path "*subage
 
 ## Usage mode
 
-Do not ask for a mode at setup. The workflow starts in Lite. Do not ask for the protection mode either; setup uses advisory mode and strict is only on explicit request. Say in one line that the default mode (Lite or Full), the protection mode, and the MCP servers can be changed later with `/subagent-workflow:setting`, and that a single request can ask for Full ("handle this in Full mode").
+There is no mode to choose: the workflow has one path, and Full, relay, and strict protection were removed in v0.7.0. Say in one line that optional MCP servers can be changed later with `/subagent-workflow:setting`.
 
 ## Rules
 

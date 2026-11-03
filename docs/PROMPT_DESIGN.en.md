@@ -10,9 +10,8 @@ The English originals are in `agents/`, `references/`, and `skills/run/`.
 | Enforcement | Meaning |
 | --- | --- |
 | Prompt | Delivered only as instructions; the model is expected to follow it and can fail to |
-| Guard hook | Code checks at tool-call time and blocks violations (advisory mode) |
+| Guard hook | Code checks at tool-call time and blocks violations |
 | Check runner | Runs only approved commands and records original output and hashes |
-| Trace check | Cross-document consistency comparison (`subagent-check.mjs trace`); not proof that the implementation is correct |
 
 Prompt rules **reduce risk but guarantee nothing**; only items enforced by code are actually blocked.
 
@@ -20,11 +19,11 @@ Prompt rules **reduce risk but guarantee nothing**; only items enforced by code 
 
 | Rule | Content | Enforcement |
 | --- | --- | --- |
-| Preserve the request source | The request source is quoted verbatim in plan section 1, no summary or restatement; every subagent reads the source and plan files directly | Prompt, trace check |
-| Source evidence per requirement | Each requirement carries a quote from the source; no requirements are invented | Prompt, trace check |
+| Preserve the request source | The request source is quoted verbatim in plan section 1, no summary or restatement; every subagent reads the source and plan files directly | Prompt |
+| Source evidence per requirement | Each requirement carries a quote from the source; no requirements are invented | Prompt |
 | Edit only allowed files | Only files listed as exact paths in the plan, one owner per file; if a change outside the scope is needed, stop editing and return the needed scope and reason | Prompt, guard hook |
 | No edits before confirmation | No source or config writes and no development calls until the plan is `confirmed` | Guard hook |
-| Forbidden areas | Forbidden areas in the profile and files outside the approved scope need user approval | Prompt, guard hook (allows only files assigned in the plan; comparing against forbidden paths themselves happens only in strict mode) |
+| Forbidden areas | Forbidden areas in the profile and files outside the approved scope need user approval | Prompt, guard hook (allows only files assigned in the plan; it does not compare against the forbidden paths themselves) |
 | Never lower the grade | A signature change that needs caller edits is L3 even if the request looks small; if impact appears mid-run, stop writing and raise the grade | Prompt |
 | User approval triggers | Scope changes, policy decisions, compatibility changes, security and permissions, new dependencies and installs, and external effects are confirmed with the user, never decided alone | Prompt |
 
@@ -70,7 +69,6 @@ Prompt rules **reduce risk but guarantee nothing**; only items enforced by code 
 ## 6. Keep long handoffs from distorting the request
 
 - Leaders and sub-roles get the **file paths** of the request source and plan as the single source of truth, not summaries.
-- Call cards are saved, and `trace` detects mismatches in request source, plan hash, requirement IDs, and allowed files (consistency comparison).
 - Files and requirements of the same owner go in one call, which reduces dropped details and duplicate calls.
 
 ## 7. Token efficiency

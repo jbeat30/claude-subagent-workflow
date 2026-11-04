@@ -6,25 +6,17 @@
 
 ### The subagent workflow
 
-![Subagent workflow: Lite and Full](../assets/subagent-workflow.en.png)
-
 When you call the workflow, the main session acts as the PM for that request, talks with you, and calls only the roles it needs (the PM instructions are the `/subagent-workflow:run` skill).
 
-| Mode | Structure | Fits |
-| --- | --- | --- |
-| Lite | The PM calls analysis, worker, and QA roles directly | General work |
-| Full | Planning and development leaders coordinate sub-roles; the PM calls QA directly | Multi-area, large, or high-risk work |
+The PM calls the analysis, worker, and QA roles directly. Full mode, relay execution, and strict mode from v0.6.x were removed in v0.7.0.
 
-Full runs in relay mode: leaders do not call sub-roles directly but return call cards, and the PM calls them as written. Nested mode, where the leader calls sub-roles, did not work in the version checked and is not recommended.
 
-![Lite roles: the PM calls the needed roles directly](../assets/workflow-lite-roles.en.jpg)
-
-![Full relay roles: leaders return call cards and the PM makes the calls](../assets/workflow-full-relay-roles.en.jpg)
+![Roles: the PM calls the needed roles directly](../assets/workflow-lite-roles.en.jpg)
 
 | Role | Responsibility |
 | --- | --- |
 | PM (`/subagent-workflow:run` skill, main session) | Request classification, user conversation and confirmation, approval scope, running checks, final report |
-| planning-lead, dev-lead | Planning and development coordination in Full |
+| planning-lead, dev-lead | Kept for the leader organization planned for v0.8.0; the PM does not call them in v0.7.0 |
 | planner-agent | Requirement breakdown, finding items users may miss, acceptance criteria |
 | architecture-agent | Analysis of callers, contracts, regressions, and side effects |
 | frontend, backend, api, test | Edit only assigned files, write tests |
@@ -48,7 +40,7 @@ Terms: a **subagent** is a Claude Code feature defined by one role file. The 9 b
 - Scope changes, policy decisions, compatibility changes, security, and external effects are confirmed with you first; otherwise the PM self-confirms and says so.
 - No source edits before confirmation. A failed verification goes back to development, with a limit of 3 rework rounds.
 - Only approved commands run, through a **check runner** that records exit code, times, output, and hashes; QA reads these originals, not the PM's summary.
-- Library and framework behavior is checked against the installed version through Context7; anything unchecked is marked `unchecked`.
+- Library and framework behavior is checked, only where this task touches it, against the installed version: Context7 first, then the official doc page (Jina, or WebFetch if that fails). Answers go to the run's `evidence.md` so later roles and runs reuse them; if the docs cannot be checked, the workflow does not go on from memory: it asks you whether to continue with that item unverified, and changes no file that depends on it until you answer.
 
 ### Project rules come first
 
@@ -57,11 +49,10 @@ This workflow is a base layer, so it always ranks below the rules a project alre
 - The profile does not copy rules; it points to the **original paths**. Agents re-read the originals before work, so edits to them apply immediately.
 - Workflow behaviors fall into three classes.
   1. **Defaults**: plan and card forms, requirement IDs, report structure, risk grades. Where the project already defines the same thing, the project's way wins.
-  2. **Confirm first**: behaviors the project lacks that change how you work (UI/UX walkthrough, a browser check in place of the project's own verification, strict mode, reports in the workflow's structure). Asked once before applying.
+  2. **Confirm first**: behaviors the project lacks that change how you work (UI/UX walkthrough, a browser check in place of the project's own verification, reports in the workflow's structure). Asked once before applying.
   3. **Fixed safety**: the guard hook, no edits before confirmation, assigned files only, never reporting unchecked items as passed. If a project rule conflicts, you are told and the workflow stops.
 - If the project defines its own verification method (for example measuring computed styles), it is used first; the browser check covers only what that method does not.
 - The guard is a plugin hook, so it runs while the plugin is enabled, but it only acts in projects set up for the workflow. It protects only the workflow's files (`.claude/subagent/`, `settings.json`, workflow role definitions), not all of `.claude/`; your own rules, commands, agents, and hooks under `.claude/` stay editable.
-- Strict mode still applies to every edit of the main session (it is not limited to workflow runs). When no approval is registered, the block message states the reason and the fix.
 
 ### Against hallucination and unrequested edits
 
@@ -80,4 +71,4 @@ This workflow is a base layer, so it always ranks below the rules a project alre
 - Agents write the full report only to a file and return a status and a short summary; the PM opens the file only when it needs the evidence.
 - Callers and library answers found by an earlier role are passed to the next role's card as paths, so the same search is not repeated. QA uses them as a starting list and checks them itself.
 - The question policy printed once by the grade command is used as is; the file is not opened again.
-- The relay procedure and design-work guidance live in files read only when that work happens (PM instruction input about 18% smaller, measured on one model), and a checker confirms the required rules by list.
+- Design-work guidance lives in files read only when that work happens (PM instruction input about 18% smaller, measured on one model), and a checker confirms the required rules by list.

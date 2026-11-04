@@ -22,7 +22,7 @@ import { tmpdir } from 'node:os';
 import { CUSTOM_KINDS, KIND_TOOLS, ROLES_LOCAL, validRoleName } from '../../run/scripts/subagent-roles.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const TEMPLATE_VERSION = '0.6.1';
+const TEMPLATE_VERSION = '0.7.0';
 // v0.5.x까지 settings.json에 넣던 가드 hook 명령(플러그인 hooks/hooks.json으로 이동)
 const LEGACY_HOOK = /\.claude\/hooks\/subagent-guard\.mjs/;
 const SOURCE_REPO = 'https://github.com/jbeat30/claude-subagent-workflow';
@@ -45,7 +45,6 @@ const DESIGN_TOOLS = ['playwright', 'chrome-devtools', 'shadcn', ...FIGMA_TOOLS]
 // 도구 이름 접두사가 mcp__anymd__*이므로 서버 이름을 바꾸지 않음, 메이저 버전을 고정해 도구 이름 변경이 조용히 들어오지 않게 함
 const DOCUMENT_TOOLS = ['anymd'];
 const MCP_SERVERS = {
-  context7: { command: 'npx', args: ['-y', '@upstash/context7-mcp'] },
   playwright: { command: 'npx', args: ['@playwright/mcp@latest'] },
   'chrome-devtools': { command: 'npx', args: ['-y', 'chrome-devtools-mcp@latest'] },
   shadcn: { command: 'npx', args: ['shadcn@latest', 'mcp'] },
@@ -55,6 +54,10 @@ const MCP_SERVERS = {
 };
 // 설치기가 .mcp.json에 쓰지 않고 안내만 하는 항목, 외부 플러그인은 자동 설치하지 않고 사용자가 직접 실행(AGENTS.md)
 // 플러그인 방식은 도구 이름이 mcp__plugin_figma_figma__*로 달라짐
+// v0.6.x까지 설치기가 등록하던 항목: v0.7.0부터 플러그인이 원격 서버로 함께 실음, 제거 때 워크플로가 등록한 것만 정리
+const LEGACY_MCP = {
+  context7: { command: 'npx', args: ['-y', '@upstash/context7-mcp'] },
+};
 const GUIDED = {
   'figma-plugin': { command: 'claude plugin install figma@claude-plugins-official' },
 };
@@ -234,7 +237,6 @@ function detect(dir) {
       agentSetting: settings?.value?.agent ?? null,
       hasHooks: Boolean(settings?.value?.hooks),
       mcpFile: existsSync(join(dir, MCP_PATH)),
-      context7Registered: Boolean(readJson(join(dir, MCP_PATH)).value?.mcpServers?.context7),
       registeredMcp: Object.keys(readJson(join(dir, MCP_PATH)).value?.mcpServers ?? {}),
       componentsJson: existsSync(join(dir, 'components.json')),
       gitignore: existsSync(join(dir, GITIGNORE_PATH)),
@@ -257,25 +259,16 @@ function loadAnswers(options) {
   const parsed = readJson(resolve(options.answers));
   if (parsed.error) fail(`failed to parse the answers file: ${parsed.error}`);
   const a = parsed.value;
-  if (a.profile !== undefined && !['lite', 'full'].includes(a.profile)) fail('answers.profile must be lite or full when given (default lite)');
-  if (typeof a.context7 !== 'boolean') fail('answers.context7 must be true or false');
-  if (a.executionMode !== undefined && !['nested', 'relay'].includes(a.executionMode)) fail('answers.executionMode must be nested or relay');
-  if (a.guardMode !== undefined && !['advisory', 'strict'].includes(a.guardMode)) fail('answers.guardMode must be advisory or strict');
   if (a.designTools !== undefined && (!Array.isArray(a.designTools) || a.designTools.some((t) => !DESIGN_TOOLS.includes(t)))) fail(`answers.designTools must be an array of ${DESIGN_TOOLS.join(', ')}`);
   if (a.documentTools !== undefined && (!Array.isArray(a.documentTools) || a.documentTools.some((t) => !DOCUMENT_TOOLS.includes(t)))) fail(`answers.documentTools must be an array of ${DOCUMENT_TOOLS.join(', ')}`);
   if (a.designTools !== undefined && a.designTools.filter((t) => FIGMA_TOOLS.includes(t)).length > 1) fail(`answers.designTools may contain only one Figma connection (${FIGMA_TOOLS.join(', ')})`);
   if (a.ruleSources !== undefined && (!Array.isArray(a.ruleSources) || a.ruleSources.some((r) => !validRulePath(r?.path)))) fail('answers.ruleSources must be an array of { path, covers? } with project-relative paths (no absolute path, URL, or ..)');
   if (a.pdca !== undefined && a.pdca !== 'off') fail('only answers.pdca=off is supported; bkit PDCA integration is planned for a later version');
   return {
-    profile: a.profile ?? 'lite',
-    context7: a.context7,
     designTools: [...new Set(a.designTools ?? [])],
     documentTools: [...new Set(a.documentTools ?? [])],
     gitignore: a.gitignore ?? true,
     pdca: 'off',
-    // nested는 확인한 버전에서 리더가 하위 호출 도구를 받지 못해 기본을 relay로 둠, 모드를 나중에 full로 바꿔도 가드의 relay 보호가 켜져 있도록 lite도 relay로 기록
-    executionMode: a.executionMode ?? 'relay',
-    guardMode: a.guardMode ?? 'advisory',
     agentSetting: ['keep', 'replace'].includes(a.agentSetting) ? a.agentSetting : null,
     designSystem: a.designSystem ?? [],
     stack: a.stack ?? [],
@@ -325,12 +318,8 @@ ${table(['Item', 'Content', 'Location'], answers.designSystem.map((d) => [d.item
 ` : ''}
 ## Workflow settings
 
-- Execution profile: ${answers.profile}
-- Execution mode: ${answers.executionMode ?? 'n/a (lite)'}
-- Context7 MCP: ${answers.context7 ? 'registered' : 'not registered'}
 - Design tool MCP: ${answers.designTools.length ? answers.designTools.join(', ') : 'none'}
 - Document tool MCP: ${answers.documentTools.length ? answers.documentTools.join(', ') : 'none'}
-- Protection mode: ${answers.guardMode === 'strict' ? 'strict' : 'advisory'}
 - PDCA mode: ${answers.pdca}
 - Roles: the built-in roles come from the plugin (${ROLE_FILES.join(', ')}); roles added for this project are listed in roles.local.json
 - Source repository, tag, commit: ${source.repo} · ${source.tag ?? 'no tag'} · ${source.commit ?? 'unchecked'}
@@ -427,9 +416,9 @@ function buildPlan(dir, answers, options) {
     settingsPlan = { action: changed ? 'merge' : 'unchanged', agent: merged.agent, removedHooks: merged.removed, content: changed ? (Object.keys(merged.settings).length ? `${JSON.stringify(merged.settings, null, 2)}\n` : '') : null };
   }
 
-  // MCP 등록: Context7과 선택한 디자인 도구를 한 번에 병합, 서버별로 추가, 동일, 충돌 판정
+  // MCP 등록: 선택한 디자인, 문서 도구를 한 번에 병합, 서버별로 추가, 동일, 충돌 판정
   let mcpPlan = { action: 'none', servers: {} };
-  const wanted = [...(answers.context7 ? ['context7'] : []), ...answers.designTools, ...answers.documentTools].filter((n) => MCP_SERVERS[n]);
+  const wanted = [...answers.designTools, ...answers.documentTools].filter((n) => MCP_SERVERS[n]);
   const guided = answers.designTools.filter((n) => GUIDED[n]);
   if (wanted.length) {
     const mcpAbs = join(dir, MCP_PATH);
@@ -491,7 +480,7 @@ function buildPlan(dir, answers, options) {
 function summarize(plan) {
   const count = (a) => plan.core.files.filter((f) => f.action === a).length;
   const lines = [
-    `source: ${plan.source.tag ?? 'no tag'} (${plan.source.commit?.slice(0, 7) ?? 'commit unchecked'}) · profile ${plan.core.answers.profile} · PDCA ${plan.core.answers.pdca}`,
+    `source: ${plan.source.tag ?? 'no tag'} (${plan.source.commit?.slice(0, 7) ?? 'commit unchecked'}) · PDCA ${plan.core.answers.pdca}`,
     `files: new ${count('create')} · update ${count('update')} · unchanged ${count('unchanged')} · replace (backup) ${count('replace-with-backup')} · skip ${count('skip')}`,
     `settings: ${plan.core.settings.action}${plan.core.settings.agent?.action && plan.core.settings.agent.action !== 'none' ? ` (agent ${plan.core.settings.agent.action})` : ''}, removed old guard hooks ${plan.core.settings.removedHooks.length}`,
     `MCP (.mcp.json): ${plan.core.mcp.action}${Object.keys(plan.core.mcp.servers ?? {}).length ? ` (${Object.entries(plan.core.mcp.servers).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${plan.core.mcp.guided.length ? ` · plugin to install yourself: ${plan.core.mcp.guided.map((n) => GUIDED[n].command).join('; ')}` : ''} · .gitignore: ${plan.core.gitignore.action}`,
@@ -564,7 +553,7 @@ function apply(dir, options) {
     if (['set', 'replaced'].includes(settingsPlan.agent.action)) agentRecord = settingsPlan.agent;
     else if (settingsPlan.agent.action === 'released') agentRecord = { action: 'none', previous: null };
   }
-  let mcpRecord = previous?.mcp ?? { context7: 'none' };
+  let mcpRecord = previous?.mcp ?? {};
   if (plan.mcpPlan.action === 'add') {
     doBackup(MCP_PATH);
     writeFile(dir, MCP_PATH, plan.mcpPlan.content);
@@ -584,7 +573,6 @@ function apply(dir, options) {
     templateVersion: TEMPLATE_VERSION,
     source: plan.source,
     installedAt: new Date().toISOString(),
-    profile: answers.profile,
     files: installed,
     skipped,
     settings: { hooks: [], agent: agentRecord },
@@ -659,8 +647,6 @@ function verify(dir, options) {
   add('claude version', claude.status === 'ok' ? 'pass' : claude.status === 'below' ? 'fail' : 'unverified', `${claude.version ?? 'unavailable'} (minimum ${MIN_CLAUDE})`);
   const canary = guardCanary();
   add('guard canary', canary.status, canary.detail);
-  const strict = existsSync(join(dir, '.claude/subagent/profile.md')) && /^- Protection mode:\s*strict\s*$/m.test(readFileSync(join(dir, '.claude/subagent/profile.md'), 'utf8'));
-  if (strict) add('strict approval', 'unverified', 'direct approval scope, registration, and default interactive runs need a separate check; never treat as automatically confirmed');
   add('guard live', 'unverified', 'the plugin hook fires only while the plugin is enabled; whether it fired in Claude Code is unchecked here, so treat protection as unconfirmed until a /subagent-workflow:run shows a guard message');
   for (const name of Object.keys(MCP_SERVERS)) {
     if (manifest.mcp?.[name] === 'added') add(name, 'unverified', `.mcp.json registration confirmed; the actual connection needs approval after restarting Claude Code${name === 'figma' ? ' and a browser sign-in to Figma (/mcp, select figma, Authenticate)' : ''}${name === 'figma-desktop' ? ' and the Figma desktop app running with the desktop MCP server enabled in Dev Mode (needs a Dev or Full seat)' : ''}${name === 'anymd' ? '; it runs an external package through npx and downloads a native binary on first use, so the first start can be slow or fail offline' : ''}${name === 'chrome-devtools' || name === 'playwright' ? '; the tool can see browser content, so avoid personal tabs and sensitive data' : ''}`);
@@ -733,7 +719,7 @@ function remove(dir, options) {
     }
   }
   const mcpAbs = join(dir, MCP_PATH);
-  const addedMcp = Object.keys(MCP_SERVERS).filter((name) => manifest.mcp?.[name] === 'added');
+  const addedMcp = Object.keys({ ...MCP_SERVERS, ...LEGACY_MCP }).filter((name) => manifest.mcp?.[name] === 'added');
   if (addedMcp.length && existsSync(mcpAbs)) {
     const parsed = readJson(mcpAbs);
     if (!parsed.error) {
@@ -776,7 +762,6 @@ function remove(dir, options) {
 const PROFILE_PATH = '.claude/subagent/profile.md';
 // 설정 스킬이 보여 주는 MCP 목록: 선택 여부와 용도, 주의 사항
 const MCP_INFO = {
-  context7: { kind: 'docs', used_by: 'PM and analysts', summary: 'Look up library documentation for the installed versions', note: 'Runs an external package through npx' },
   playwright: { kind: 'design', used_by: 'frontend-agent, qa-agent', summary: 'Open the running app in a browser and check it', note: 'Can see the content of the browser it opens; runs an external package through npx; a browser install may be needed' },
   'chrome-devtools': { kind: 'design', used_by: 'frontend-agent, qa-agent', summary: 'Inspect the screen, console, network and performance in Chrome', note: 'Can see the content of the browser it opens; runs an external package through npx' },
   shadcn: { kind: 'design', used_by: 'frontend-agent, qa-agent', summary: 'Reuse vetted shadcn/ui components', note: 'Needs components.json in the project; runs an external package through npx' },
@@ -797,7 +782,7 @@ function config(dir, options) {
   const profileAbs = join(dir, PROFILE_PATH);
   if (!existsSync(profileAbs)) fail(`${PROFILE_PATH} is missing; run the update to restore it`);
   let profile = readFileSync(profileAbs, 'utf8');
-  for (const label of ['Execution profile', 'Execution mode', 'Context7 MCP', 'Design tool MCP', 'Protection mode']) {
+  for (const label of ['Design tool MCP']) {
     if (profileLine(profile, label) === null) fail(`${PROFILE_PATH} has no "${label}" line; run the update to restore it`);
   }
   const mcpAbs = join(dir, MCP_PATH);
@@ -805,10 +790,8 @@ function config(dir, options) {
   if (mcpFile.error) fail(`${MCP_PATH} cannot be parsed; fix it first: ${mcpFile.error}`);
   const servers = mcpFile.value.mcpServers ?? {};
 
-  const setMode = options['set-mode'];
-  if (setMode !== undefined && !['lite', 'full'].includes(setMode)) fail('--set-mode must be lite or full');
-  const setProtection = options['set-protection'];
-  if (setProtection !== undefined && !['advisory', 'strict'].includes(setProtection)) fail('--set-protection must be advisory or strict');
+  // v0.7.0에서 제거한 설정: 옛 안내를 따라 넘긴 값이 조용히 무시되지 않게 거부
+  for (const flag of ['set-mode', 'set-protection']) if (options[flag] !== undefined) fail(`--${flag} was removed in v0.7.0 (Full, relay, and strict mode no longer exist)`);
   const nameList = (flag, allowed) => {
     const names = options[flag] === undefined ? [] : [...new Set(String(options[flag]).split(',').map((s) => s.trim()).filter(Boolean))];
     const bad = names.filter((n) => !allowed.includes(n));
@@ -816,7 +799,6 @@ function config(dir, options) {
     return names;
   };
   const addMcp = nameList('add-mcp', SELECTABLE);
-  // context7은 필수라 해제 대상이 아님, 디자인 도구만 해제
   const removeMcp = nameList('remove-mcp', [...DESIGN_TOOLS, ...DOCUMENT_TOOLS]);
   const both = addMcp.filter((n) => removeMcp.includes(n));
   if (both.length) fail(`${both.join(', ')} cannot be in both --add-mcp and --remove-mcp`);
@@ -829,15 +811,14 @@ function config(dir, options) {
     return {
       name, ...MCP_INFO[name],
       registered: Boolean(existing),
-      selected: name === 'context7' ? Boolean(existing) : selectedTools(labelOf(name)).includes(name),
+      selected: selectedTools(labelOf(name)).includes(name),
       differs: Boolean(existing) && JSON.stringify(existing) !== JSON.stringify(MCP_SERVERS[name]),
       ...(GUIDED[name] ? { install_command: GUIDED[name].command } : {}),
     };
   });
-  const current = () => ({ mode: profileLine(profile, 'Execution profile'), executionMode: profileLine(profile, 'Execution mode'), protection: profileLine(profile, 'Protection mode') });
 
-  if (setMode === undefined && setProtection === undefined && !addMcp.length && !removeMcp.length) {
-    return output({ ok: true, ...current(), templateVersion: manifest.templateVersion, mcp: listMcp(), how: 'config --target <dir> --set-mode lite|full, --set-protection advisory|strict, --add-mcp <name[,name]>, and/or --remove-mcp <name[,name]> (design tools only); add --yes to apply (default is a preview)' });
+  if (!addMcp.length && !removeMcp.length) {
+    return output({ ok: true, templateVersion: manifest.templateVersion, mcp: listMcp(), how: 'config --target <dir> --add-mcp <name[,name]> and/or --remove-mcp <name[,name]> (design and document tools); add --yes to apply (default is a preview)' });
   }
 
   const changes = [];
@@ -845,33 +826,7 @@ function config(dir, options) {
   const conflicts = [];
   let nextServers = structuredClone(servers);
   let mcpChanged = false;
-  const nextMcpRecord = { ...(manifest.mcp ?? { context7: 'none' }) };
-
-  if (setMode !== undefined) {
-    const before = profileLine(profile, 'Execution profile');
-    if (before === setMode) changes.push(`mode: already ${setMode}`);
-    else {
-      profile = setProfileLine(profile, 'Execution profile', setMode);
-      changes.push(`mode: ${before} -> ${setMode}`);
-    }
-    // 가드의 relay 보호가 모드와 무관하게 켜지도록 실행 모드를 항상 relay로 유지
-    if (!/^relay\b/.test(profileLine(profile, 'Execution mode'))) profile = setProfileLine(profile, 'Execution mode', 'relay');
-  }
-
-  if (setProtection !== undefined) {
-    const before = profileLine(profile, 'Protection mode');
-    if (before === setProtection) changes.push(`protection: already ${setProtection}`);
-    else {
-      profile = setProfileLine(profile, 'Protection mode', setProtection);
-      changes.push(`protection: ${before} -> ${setProtection}`);
-      // 가드는 프로필의 보호 모드를 실행할 때마다 읽으므로 바로 적용됨, 엄격 모드의 부담을 적용 전에 알림
-      if (setProtection === 'strict') {
-        warnings.push('strict mode takes effect immediately: every edit by the main session needs an active approval registration, so ordinary edits are blocked until the user sets one up');
-        warnings.push('the user must run the grant and approve commands directly; agents never run them. Follow .claude/subagent/strict-mode.md');
-        warnings.push('strict mode is experimental and its interactive approval flow has not been verified; it is not a security boundary');
-      }
-    }
-  }
+  const nextMcpRecord = { ...(manifest.mcp ?? {}) };
 
   const next = [];
   const setTools = (tools, label = 'Design tool MCP') => {
@@ -929,8 +884,7 @@ function config(dir, options) {
       if (name === 'figma') next.push('figma: in a new session run /mcp, select figma, choose Authenticate and allow access in the browser');
       if (name === 'figma-desktop') next.push('figma-desktop: open the Figma desktop app, switch a Design file to Dev Mode with nothing selected, click "Enable desktop MCP server" (needs a Dev or Full seat), then check /mcp in a new session');
     } else changes.push(`mcp: ${name} already registered`);
-    if (name === 'context7') profile = setProfileLine(profile, 'Context7 MCP', 'registered');
-    else if (!selectedTools(labelOf(name)).includes(name)) setTools([...selectedTools(labelOf(name)), name], labelOf(name));
+    if (!selectedTools(labelOf(name)).includes(name)) setTools([...selectedTools(labelOf(name)), name], labelOf(name));
   }
 
   const apply = options.yes === true;
@@ -954,7 +908,6 @@ function config(dir, options) {
   // 프로필이 매니페스트 해시와 어긋나 verify가 수정으로 보고하지 않도록 함께 갱신
   const entry = manifest.files.find((f) => f.path === PROFILE_PATH);
   if (entry) entry.sha256 = sha256(Buffer.from(profile, 'utf8'));
-  if (setMode !== undefined) manifest.profile = setMode;
   manifest.mcp = nextMcpRecord;
   writeFile(dir, MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
   return output({ ok: true, dryRun: false, changes, warnings, conflicts, next, backups: backedUp.length ? backupRel : null, note: mcpChanged ? 'start a new Claude Code session so the new MCP server is loaded; Claude asks to approve project MCP servers on first use' : undefined });
@@ -1040,7 +993,7 @@ function addRole(dir, options) {
   if (conflicts.length || options.yes !== true) return output({ ok: conflicts.length === 0, dryRun: true, conflicts, preview });
   writeFile(dir, rel, content);
   writeFile(dir, ROLES_LOCAL, `${JSON.stringify(next, null, 2)}\n`);
-  return output({ ok: true, dryRun: false, added: { name, kind, file: rel }, note: 'start a new Claude Code session if the role does not appear in /agents; the PM can call it in Lite mode and in Full relay mode' });
+  return output({ ok: true, dryRun: false, added: { name, kind, file: rel }, note: 'start a new Claude Code session if the role does not appear in /agents; the PM calls it directly like the built-in roles' });
 }
 
 function removeRole(dir, options) {

@@ -45,7 +45,7 @@ When the plugin is enabled, it connects to two external services as remote MCP s
 | Context7 | Official library and framework docs for the installed version |
 | Jina (web reader) | Read web pages and PDF URLs as Markdown |
 
-Without a key the rate limits are low. If you use them heavily, register the same server with your own key at user scope, and it is used first.
+Without a key the rate limits are low. If you use Context7 heavily, register the Context7 server with your own key at user scope under the name `context7`, and it is used first. Jina always uses the plugin connection without a key.
 
 ## Use
 

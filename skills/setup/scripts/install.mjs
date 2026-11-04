@@ -993,7 +993,7 @@ function addRole(dir, options) {
   if (conflicts.length || options.yes !== true) return output({ ok: conflicts.length === 0, dryRun: true, conflicts, preview });
   writeFile(dir, rel, content);
   writeFile(dir, ROLES_LOCAL, `${JSON.stringify(next, null, 2)}\n`);
-  return output({ ok: true, dryRun: false, added: { name, kind, file: rel }, note: 'start a new Claude Code session if the role does not appear in /agents; the PM can call it in Lite mode and in Full relay mode' });
+  return output({ ok: true, dryRun: false, added: { name, kind, file: rel }, note: 'start a new Claude Code session if the role does not appear in /agents; the PM calls it directly like the built-in roles' });
 }
 
 function removeRole(dir, options) {

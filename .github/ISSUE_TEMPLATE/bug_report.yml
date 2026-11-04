@@ -17,7 +17,7 @@ body:
     id: repro
     attributes:
       label: 재현 절차
-      description: 사용한 요청문, 프로파일(Lite/Full), 대상 프로젝트 종류
+      description: 사용한 요청문, 플러그인 버전, 대상 프로젝트 종류
     validations:
       required: true
   - type: input

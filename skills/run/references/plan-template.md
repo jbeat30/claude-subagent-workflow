@@ -52,7 +52,7 @@ List allowed files as exact paths without globs. One owner per file.
 
 - Forbidden areas:
 - Writes run one owner at a time, in sequence.
-- In the Work column write only `modify` or `create`; strict mode rejects other values.
+- In the Work column write only `modify` or `create`.
 - Put only the role name (for example backend-agent) in the Owner column; the guard checks per-file write permission with this table.
 - Do not use the `|` character inside table cells (it is read as a column separator and the guard check fails); write `\|` if needed.
 
@@ -83,11 +83,10 @@ Items applied from `${CLAUDE_PLUGIN_ROOT}/references/checklist.md` plus project-
 - User approval required: none | required
 
 If none, write `none` with the reasoning. If required, list items, options, and a recommendation.
-In strict mode, PM self-registration is possible only when this marker is `none`, the risk is L1/L2, and the approval scope allows self-confirmation.
 
 ## 11. Evidence
 
-File paths and lines, document URLs and versions. Mark items without evidence as `unchecked`.
+File paths and lines, document URLs and versions. Doc checks use the `library@version: question, answer, source` form, the same lines as the run's `evidence.md`. Mark items without evidence as `unchecked`.
 
 ## 12. Appendix
 

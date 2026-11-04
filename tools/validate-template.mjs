@@ -14,7 +14,7 @@ const sharedDir = join(repoRoot, 'references');
 const PLUGIN_REF = /\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9._\/-]+\.(?:md|mjs|json))/g;
 
 // 역할별 허용 도구 상한, pm-agent는 Agent 호출 대상 검사를 별도로 수행
-const context7 = ['mcp__context7__resolve-library-id', 'mcp__context7__query-docs'];
+const context7 = ['mcp__context7__resolve-library-id', 'mcp__context7__query-docs', 'mcp__plugin_subagent-workflow_context7__resolve-library-id', 'mcp__plugin_subagent-workflow_context7__query-docs', 'mcp__plugin_subagent-workflow_jina__read_url', 'WebFetch'];
 // Figma는 읽기 도구만 허용: 와일드카드는 use_figma, send_code_to_figma 등 사용자의 Figma 파일을 고치는 쓰기 도구까지 열어 줌
 const figmaRead = ['get_design_context', 'get_metadata', 'get_screenshot', 'get_variable_defs', 'search_design_system', 'whoami'];
 const figma = ['mcp__figma__', 'mcp__figma-desktop__', 'mcp__plugin_figma_figma__'].flatMap((p) => figmaRead.map((t) => p + t));
@@ -120,10 +120,6 @@ for (const file of agentFiles) {
     } else if (!ceiling.includes(tool)) fail(file, `허용되지 않은 도구 ${tool}`);
   }
   if (allowedTargets && !tools.some((t) => t.startsWith('Agent('))) fail(file, '리더는 Agent(...) 필요');
-  if (allowedTargets) {
-    if (!body.includes('# Relay mode')) fail(file, 'relay 모드 절차 없음');
-    if (!/^status: .*needs-dispatch/m.test(body)) fail(file, '보고 형식에 needs-dispatch 필요');
-  }
   for (const heading of ['## Common rules', '## Report format']) {
     if (!body.includes(heading)) fail(file, `${heading} 구간 없음`);
   }
@@ -134,6 +130,7 @@ for (const file of agentFiles) {
   if ([...BUILTIN_WRITERS, ...BUILTIN_ANALYSTS].includes(name)) {
     if (!body.includes('Then return a short message, not the whole report')) fail(file, '보고서 전문을 응답으로 반복하지 않는 규칙 없음');
     if (!body.includes('- Reuse prior findings.')) fail(file, '앞선 조사 재사용 규칙 없음');
+    if (!body.includes('so the PM asks the user whether to continue with it unverified')) fail(file, '문서 확인 실패 시 사용자 확인으로 넘기는 규칙 없음');
   }
   if (name === 'qa-agent' && !body.includes('Prior reports are a starting list, not proof')) fail(file, 'QA의 앞선 보고 확인 규칙 없음');
 }
@@ -165,14 +162,14 @@ else {
         if (!agentNames.has(roleName(target))) fail('skills/run/SKILL.md', `Agent 대상 ${target}의 정의 파일 없음`);
       }
     }
-    for (const needle of ['# Relay mode', '# Requirement preservation check', 'subagent-check.mjs" trace']) {
+    for (const needle of ['# Request source integrity']) {
       if (!body.includes(needle)) fail('skills/run/SKILL.md', `${needle} 없음`);
     }
   }
 }
 
 // PM 지침의 필수 규칙: 분리된 참조 파일까지 합친 본문에서 확인
-const pmText = ['skills/run/SKILL.md', 'skills/run/references/relay-mode.md', 'references/design-tools.md', 'skills/run/references/strict-mode.md', 'references/rule-priority.md', 'references/ui-verification.md', 'skills/run/references/questions.md']
+const pmText = ['skills/run/SKILL.md', 'references/design-tools.md', 'references/rule-priority.md', 'references/ui-verification.md', 'skills/run/references/questions.md']
   .map((p) => (existsSync(join(repoRoot, p)) ? readFileSync(join(repoRoot, p), 'utf8') : ''))
   .join('\n');
 for (const [label, re] of PM_RULES) {
@@ -257,6 +254,14 @@ try {
 if (plugin) {
   if (plugin.name !== 'subagent-workflow') fail('plugin.json', 'name은 subagent-workflow(claude- 접두사는 서드파티 예약어라 사용 불가)');
   if (plugin.author?.name !== 'jbeat') fail('plugin.json', 'author.name은 jbeat');
+  // 원격 MCP 묶음: Node 없이 동작하도록 http 원격 서버만, 키 헤더 없이
+  const bundled = { context7: 'https://mcp.context7.com/mcp', jina: 'https://mcp.jina.ai/v1?include_tags=read' };
+  const servers = plugin.mcpServers ?? {};
+  if (Object.keys(servers).sort().join() !== Object.keys(bundled).sort().join()) fail('plugin.json', `mcpServers는 ${Object.keys(bundled).join(', ')}만`);
+  for (const [name, url] of Object.entries(bundled)) {
+    const s = servers[name];
+    if (s && (s.type !== 'http' || s.url !== url || s.headers)) fail('plugin.json', `mcpServers.${name}은 type http, url ${url}, headers 없음`);
+  }
 }
 const skillsDir = join(repoRoot, 'skills');
 const skillNames = existsSync(skillsDir) ? readdirSync(skillsDir) : [];

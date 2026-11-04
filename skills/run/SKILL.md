@@ -9,9 +9,9 @@ The workflow runs only for requests the user routed to it (/subagent-workflow:ru
 The request to handle is the skill argument or the user message that asked for the workflow.
 
 Run state, started automatically when this skill loads:
-!`node "${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/subagent-run.mjs" start || echo "NODE_MISSING: the run state could not start because Node.js 20 or later was not found; the guard hooks and check records are off."`
+!`node "${CLAUDE_PLUGIN_ROOT}/skills/run/scripts/subagent-run.mjs" start || echo "RUN_START_FAILED: the run state command failed (Node.js 20 or later may be missing, or the shell reported an error); the guard hooks and check records may be off."`
 
-If the run state above starts with `NODE_MISSING`, tell the user in one line, in their language, that Node.js 20 or later is needed for the guard hooks and check records and they are off now. Then ask whether to continue without them or stop so they can install Node. Change no files until the user answers. If they continue, run no `node` commands and report every guard and check record as not active.
+If the run state above starts with `RUN_START_FAILED`, check with `node --version` whether Node.js 20 or later is available. Tell the user in one line, in their language, what you found: Node.js 20 or later is missing, or the run state could not start for the error shown, and that the guard hooks and check records are off. Then ask whether to continue without them or stop so they can fix it (install Node, or fix the shown error). Change no files until the user answers. If they continue, run no `node` commands and report every guard and check record as not active.
 
 # Role
 

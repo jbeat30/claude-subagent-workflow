@@ -9,6 +9,7 @@ user-invocable: true
 allowed-tools:
   - Read
   - Bash
+  - PowerShell
   - Glob
   - Write
   - AskUserQuestion

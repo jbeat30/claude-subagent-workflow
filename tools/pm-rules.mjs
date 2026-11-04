@@ -77,4 +77,7 @@ export const PM_RULES = [
   ['워크플로는 사용자가 요청한 경우에만 동작', /only for requests the user routed to it/],
   ['분류 뒤 등급 기록, 기록 전 PM 소스 수정 차단', /subagent-run.mjs"? grade/],
   ['최종 보고 뒤 실행 상태 종료', /subagent-run.mjs"? close/],
+  ['문서 확인 실패 시 기억으로 진행하지 않고 사용자 확인', /do not go on from memory: ask the user/],
+  ['Node 없을 때 한 줄 안내 뒤 답 전까지 수정 없음', /NODE_MISSING[\s\S]*Change no files until the user answers/],
+  ['Bash가 없으면 PowerShell로 같은 명령 실행', /with PowerShell where Bash is not available/],
 ];

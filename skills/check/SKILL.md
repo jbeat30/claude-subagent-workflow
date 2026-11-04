@@ -8,6 +8,7 @@ argument-hint: "(no argument needed)"
 user-invocable: true
 allowed-tools:
   - Bash
+  - PowerShell
 ---
 
 # Claude Subagent Workflow Check

@@ -8,6 +8,7 @@ user-invocable: true
 allowed-tools:
   - Read
   - Bash
+  - PowerShell
   - AskUserQuestion
 ---
 

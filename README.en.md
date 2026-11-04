@@ -36,7 +36,7 @@ Normal conversations stay the same. The workflow runs only when you call it.
 
 `setup` surveys the project, asks only what it needs, and writes one project file (`.claude/subagent/profile.md`). The roles and instructions live in the plugin and are not copied into your project.
 
-Requirements: Claude Code 2.1.302 or later, Node 20 or later
+Requirements: Claude Code 2.1.302 or later, Node 20 or later. Without Node, the workflow says at start that the guard hooks and check records are off and asks whether to continue. On Windows without Git Bash, it runs the same commands with PowerShell.
 
 When the plugin is enabled, it connects to two external services as remote MCP servers. They work without a key, and only library names, general questions, and public URLs are sent. You can turn them off in `/mcp`.
 

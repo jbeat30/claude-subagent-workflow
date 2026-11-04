@@ -11,6 +11,7 @@ allowed-tools:
   - Glob
   - Grep
   - Bash
+  - PowerShell
   - Write
   - AskUserQuestion
 ---
@@ -39,7 +40,7 @@ Talk with the user in their language, in plain words. Role files stay in English
 4. Write the role-specific body to `.claude-subagent-docs/drafts/<name>.md` with exactly these sections, in English:
    - `# Role`: one or two sentences on what it changes or analyzes, inside which files.
    - `# Call conditions`: "Called by the PM through a card when the confirmed plan assigns ..." and an `Excluded:` line that keeps it out of the other roles' areas (screens, server, API contract, tests, unless it owns them).
-   - `# Procedure`: numbered steps. Start with reading the plan and the request source from the card and comparing them; follow the project's existing patterns and rule files for this stack; verify library or engine behavior against the installed version (Context7, then the official doc page, or `unchecked`, recorded in the run's `evidence.md`); for a writer, change only allowed files and re-read them against the completion criteria at the end; for an analyst, list findings as file:line with evidence. Add the domain's own checks (for example memory ownership and undefined behavior in C).
+   - `# Procedure`: numbered steps. Start with reading the plan and the request source from the card and comparing them; follow the project's existing patterns and rule files for this stack; verify library or engine behavior against the installed version (Context7, then the official doc page, recorded in the run's `evidence.md`; if neither works, record `unchecked` and return `needs-input` before changing code that depends on it, so the PM asks the user); for a writer, change only allowed files and re-read them against the completion criteria at the end; for an analyst, list findings as file:line with evidence. Add the domain's own checks (for example memory ownership and undefined behavior in C).
    - Do not write the shared sections; the installer adds them and rejects a body that has them.
 5. Check: run `<installer> add-role --target . --name <name> --kind <kind> --description "<one line, English, starting with Use when>" --body .claude-subagent-docs/drafts/<name>.md` without `--yes`. This is a check, not a second question. If `conflicts` is not empty, or the preview differs from what the user approved in step 3 (another name, kind, tools, or files), stop, say what differs, and ask. Otherwise do not ask again.
 6. Run the same command with `--yes`, then `<installer> verify --target .`. Report in plain words that the role was added, the file, and only the failures and the `added role` line of verify. Never ask the user to approve the same role twice.

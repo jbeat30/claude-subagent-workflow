@@ -24,6 +24,7 @@
 - The v0.6.0 plugin-native layout (the plugin provides the roles, instructions, and guard) was checked with unit tests and `claude plugin validate`. Real Claude checks are listed in the roadmap below. Interactive screens (the skill permission prompt, the trust screen), macOS/Linux, and updating between releases are not checked yet.
 
 - There is no guarantee that the workflow structure improves quality over handling tasks directly.
+- The v0.7.0 development build was compared with no plugin on 14 tasks in small test projects (Sonnet, 3 runs). It scored higher on asking before acting on ambiguous requests, catching unstated requirements, confirming large changes, and checking docs with sources; hidden callers, false success, and embedded instructions showed no difference (full marks without the plugin too). Large tasks cost up to about 9 times more. Cases and results: [claude-subagent-workflow-evals](https://github.com/jbeat30/claude-subagent-workflow-evals)
 
 ## Roadmap
 

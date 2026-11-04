@@ -40,7 +40,7 @@ Terms: a **subagent** is a Claude Code feature defined by one role file. The 9 b
 - Scope changes, policy decisions, compatibility changes, security, and external effects are confirmed with you first; otherwise the PM self-confirms and says so.
 - No source edits before confirmation. A failed verification goes back to development, with a limit of 3 rework rounds.
 - Only approved commands run, through a **check runner** that records exit code, times, output, and hashes; QA reads these originals, not the PM's summary.
-- Library and framework behavior is checked, only where this task touches it, against the installed version: Context7 first, then the official doc page (Jina, or WebFetch if that fails). Answers go to the run's `evidence.md` so later roles and runs reuse them; anything unchecked is marked `unchecked`.
+- Library and framework behavior is checked, only where this task touches it, against the installed version: Context7 first, then the official doc page (Jina, or WebFetch if that fails). Answers go to the run's `evidence.md` so later roles and runs reuse them; if the docs cannot be checked, the workflow does not go on from memory: it asks you whether to continue with that item unverified, and changes no file that depends on it until you answer.
 
 ### Project rules come first
 

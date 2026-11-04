@@ -130,6 +130,7 @@ for (const file of agentFiles) {
   if ([...BUILTIN_WRITERS, ...BUILTIN_ANALYSTS].includes(name)) {
     if (!body.includes('Then return a short message, not the whole report')) fail(file, '보고서 전문을 응답으로 반복하지 않는 규칙 없음');
     if (!body.includes('- Reuse prior findings.')) fail(file, '앞선 조사 재사용 규칙 없음');
+    if (!body.includes('so the PM asks the user whether to continue with it unverified')) fail(file, '문서 확인 실패 시 사용자 확인으로 넘기는 규칙 없음');
   }
   if (name === 'qa-agent' && !body.includes('Prior reports are a starting list, not proof')) fail(file, 'QA의 앞선 보고 확인 규칙 없음');
 }

@@ -45,7 +45,7 @@ Prompt rules **reduce risk but guarantee nothing**; only items enforced by code 
 | Rule | Content | Enforcement |
 | --- | --- | --- |
 | Unchecked is not fact | Record unchecked content in `unverified` and cite file paths and lines as evidence | Prompt |
-| Library behavior from docs | Check against the installed version in the profile through Context7, else official docs, else mark `unchecked`; never present answers from memory as checked facts | Prompt |
+| Library behavior from docs | Check against the installed version in the profile through Context7, else official docs, else ask the user whether to continue unverified and change nothing that depends on it until they answer; never present answers from memory as checked facts | Prompt |
 | Minimal external queries | Queries carry only library names, versions, and general questions, never project code, secrets, or customer data | Prompt |
 | `unverified` never becomes success | Leaders and the PM pass sub-reports' unverified items unchanged to the final report | Prompt |
 | Never report unrun checks as passed | Checks run only through the runner; no record means unverified | Check runner, prompt |

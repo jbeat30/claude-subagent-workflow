@@ -22,7 +22,7 @@ import { tmpdir } from 'node:os';
 import { CUSTOM_KINDS, KIND_TOOLS, ROLES_LOCAL, validRoleName } from '../../run/scripts/subagent-roles.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const TEMPLATE_VERSION = '0.6.1';
+const TEMPLATE_VERSION = '0.7.0';
 // v0.5.x까지 settings.json에 넣던 가드 hook 명령(플러그인 hooks/hooks.json으로 이동)
 const LEGACY_HOOK = /\.claude\/hooks\/subagent-guard\.mjs/;
 const SOURCE_REPO = 'https://github.com/jbeat30/claude-subagent-workflow';
